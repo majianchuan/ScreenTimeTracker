@@ -1,9 +1,0 @@
-!define RELATIVE_INCLUDE
-
-!include ./lib/C4_Component.puml
-
-' 布局方向 (默认 Top to Bottom)
-' LEFT_TO_RIGHT_DIRECTION()
-
-' 通用图例
-LAYOUT_WITH_LEGEND()

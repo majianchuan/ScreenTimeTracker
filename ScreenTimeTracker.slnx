@@ -1,8 +1,16 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/ScreenTimeTracker.ApplicationLayer/ScreenTimeTracker.ApplicationLayer.csproj" />
-    <Project Path="src/ScreenTimeTracker.Desktop/ScreenTimeTracker.Desktop.csproj" />
-    <Project Path="src/ScreenTimeTracker.DomainLayer/ScreenTimeTracker.DomainLayer.csproj" />
-    <Project Path="src/ScreenTimeTracker.Infrastructure/ScreenTimeTracker.Infrastructure.csproj" />
+    <Project Path="src/BuildingBlocks/ScreenTimeTracker.BuildingBlocks.csproj" />
+    <Project Path="src/Shared/ScreenTimeTracker.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/ScreenTime/ScreenTimeTracker.Modules.ScreenTime.csproj" />
+    <Project Path="src/Modules/Shell/ScreenTimeTracker.Modules.Shell.csproj" />
+  </Folder>
+  <Folder Name="/src/Hosts/">
+    <Project Path="src/Hosts/Desktop/ScreenTimeTracker.Hosts.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ScreenTimeTracker.Tests/ScreenTimeTracker.Tests.csproj" />
   </Folder>
 </Solution>
