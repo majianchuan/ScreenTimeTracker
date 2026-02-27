@@ -10,7 +10,4 @@
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Desktop/ScreenTimeTracker.Hosts.Desktop.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/ScreenTimeTracker.Tests/ScreenTimeTracker.Tests.csproj" />
-  </Folder>
 </Solution>
