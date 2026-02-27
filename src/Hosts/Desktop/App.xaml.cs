@@ -127,6 +127,9 @@ public partial class App : Application
         // 注册 ViewModels
         services.AddSingleton<NotifyIconViewModel>();
 
+        // 注册 服务
+        services.AddSingleton<WindowPlacementStore>();
+
         // 注册配置
         services.Configure<NotifyIconOptions>(configuration.GetSection(NotifyIconOptions.SectionName));
         services.Configure<WebViewOptions>(configuration.GetSection(WebViewOptions.SectionName));
