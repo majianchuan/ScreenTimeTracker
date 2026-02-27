@@ -26,4 +26,4 @@ dist-ssr
 # Tanstack Router generated files
 src/app/routeTree.gen.ts
 # Tanstack Temp
-.tanstack
+.tanstack/

@@ -176,7 +176,7 @@ export const UsageOverTimeChart = ({
           name: "时长",
           data: chartData.map((d) => d.value),
           markLine: isByHour
-            ? {}
+            ? undefined
             : {
                 data: [
                   {
@@ -197,7 +197,7 @@ export const UsageOverTimeChart = ({
       className={cn(className)}
       theme={isDark ? "dark" : undefined}
       option={option}
-      style={{ height: "50vh" }}
+      notMerge={true}
     />
   );
 };
