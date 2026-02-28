@@ -8,8 +8,9 @@
 可按应用分类展示统计数据  
 
 ## 界面展示
-![alt text](assets/example1.png)
-![alt text](assets/example2.png)
+![alt text](assets/screenshot1.png)
+![alt text](assets/screenshot2.png)
+![alt text](assets/screenshot3.png)
 
 ## 联系方式
 QQ群：745018774

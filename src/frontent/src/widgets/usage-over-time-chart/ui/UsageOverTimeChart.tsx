@@ -178,6 +178,7 @@ export const UsageOverTimeChart = ({
           markLine: isByHour
             ? undefined
             : {
+                animation: false,
                 data: [
                   {
                     yAxis: average,
