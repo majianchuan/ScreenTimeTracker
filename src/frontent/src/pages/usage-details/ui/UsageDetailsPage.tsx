@@ -111,7 +111,7 @@ export const UsageDetailsPage = ({
 
       <div className="border-border mt-4 rounded-lg border p-3">
         <UsageOverTimeChart
-          className="h-[50vh] w-full"
+          className="h-80! w-full"
           mode="details"
           timeFrame={search.timeFrame}
           dimension={search.dimension}

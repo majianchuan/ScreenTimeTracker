@@ -140,7 +140,7 @@ export const UsageSummaryPage = ({
 
       <div className="border-border mt-4 rounded-lg border p-3">
         <UsageOverTimeChart
-          className="h-[50vh] min-h-70 w-full"
+          className="h-80! w-full"
           mode="summary"
           timeFrame={search.timeFrame}
           dimension={search.dimension}
