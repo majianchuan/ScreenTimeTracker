@@ -90,17 +90,13 @@ export const AppPicker = ({
         <ComboboxEmpty>暂无</ComboboxEmpty>
         <ComboboxList>
           {(item) => (
-            <ComboboxItem
-              key={item.id}
-              value={item}
-              className="flex items-center"
-            >
+            <ComboboxItem key={item.id} value={item}>
               <AppIcon
                 className="size-5"
                 id={item.id}
                 iconPath={item.iconPath}
               />
-              <span>{item.name}</span>
+              <span className="wrap-anywhere">{item.name}</span>
             </ComboboxItem>
           )}
         </ComboboxList>

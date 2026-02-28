@@ -57,9 +57,9 @@ export const SettingsManagementPage = () => {
         <FieldSet>
           <FieldLegend>系统</FieldLegend>
           <FieldGroup>
-            <Field orientation="horizontal">
+            {/* <Field orientation="horizontal">
               <FieldLabel>语言</FieldLabel>
-            </Field>
+            </Field> */}
             <Field orientation="horizontal">
               <FieldLabel>
                 界面打开模式
@@ -371,7 +371,7 @@ export const SettingsManagementPage = () => {
           <FieldGroup>
             <Field orientation="horizontal">
               <FieldLabel>
-                使用数据获取间隔（秒）
+                使用数据重新获取间隔（秒）
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
