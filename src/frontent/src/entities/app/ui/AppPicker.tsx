@@ -53,7 +53,6 @@ export const AppPicker = ({
 
     // 有变化才触发
     if (nextValue.length !== value.length) {
-      console.log(value);
       onChange(nextValue);
     }
   }, [appsData, value, onChange]);

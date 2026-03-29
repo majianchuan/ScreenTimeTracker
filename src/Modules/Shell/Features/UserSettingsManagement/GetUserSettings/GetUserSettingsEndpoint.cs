@@ -5,7 +5,7 @@ namespace ScreenTimeTracker.Modules.Shell.Features.UserSettingsManagement.GetUse
 
 public class GetUserSettingsEndpoint(
     IMediator mediator
-    ) : Endpoint<EmptyRequest, GetUserSettingsResult>
+    ) : Endpoint<EmptyRequest, GetUserSettingsResponse>
 {
     public override void Configure()
     {
@@ -20,6 +20,12 @@ public class GetUserSettingsEndpoint(
             new GetUserSettingsQuery(),
             cancellationToken
         );
-        await Send.OkAsync(userSettings, cancellationToken);
+        await Send.OkAsync(new GetUserSettingsResponse(
+            userSettings.UIOpenMode.ToString(),
+            userSettings.AutoStart,
+            userSettings.SilentStart,
+            userSettings.Language,
+            userSettings.WindowDestroyOnClose
+        ), cancellationToken);
     }
 }

@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using ScreenTimeTracker.Modules.Shell.Features.UserSettingsManagement.GetUserSettings;
 using System.Diagnostics;
 using System.Windows;
@@ -10,9 +9,11 @@ using System.Windows;
 namespace ScreenTimeTracker.Hosts.Desktop;
 
 public partial class NotifyIconViewModel(
-    IOptions<NotifyIconOptions> options,
-    IServiceProvider serviceProvider) : ObservableObject
+    IServiceScopeFactory scopeFactory,
+    Func<MainView> mainViewFactory) : ObservableObject
 {
+    public string UIUrl { get; set; } = string.Empty;
+
     [RelayCommand]
     public static void OpenAppDirectory()
     {
@@ -32,11 +33,9 @@ public partial class NotifyIconViewModel(
     [RelayCommand]
     public void OpenUIInBrowser()
     {
-        string url = options.Value.UIUrl;
-
         Process.Start(new ProcessStartInfo
         {
-            FileName = url,
+            FileName = UIUrl,
             UseShellExecute = true
         });
     }
@@ -44,26 +43,27 @@ public partial class NotifyIconViewModel(
     [RelayCommand]
     public void OpenUIInWindow()
     {
-        if (App.Current.MainWindow is MainView mainView)
+        if (Application.Current.MainWindow is not MainView mainView)
         {
-            mainView.Show();
-            mainView.Activate();
-            return;
+            mainView = mainViewFactory();
+            mainView.LoadUrl(UIUrl);
+            Application.Current.MainWindow = mainView;
         }
-        string url = options.Value.UIUrl;
-        mainView = serviceProvider.GetRequiredService<MainView>();
-        mainView.LoadUrl(url);
+        else if (mainView.WindowState == WindowState.Minimized)
+        {
+            mainView.WindowState = WindowState.Normal;
+        }
         mainView.Show();
-        App.Current.MainWindow = mainView;
+        mainView.Activate();
     }
 
     [RelayCommand]
     public async Task OpenUI()
     {
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         GetUserSettingsResult userSettings = await mediator.Send(new GetUserSettingsQuery());
-        if (userSettings.UIOpenMode == "Browser")
+        if (userSettings.UIOpenMode == UIOpenModeDto.Browser)
             OpenUIInBrowser();
         else
             OpenUIInWindow();

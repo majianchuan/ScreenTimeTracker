@@ -55,7 +55,6 @@ export const AppCategoryPicker = ({
 
     // 有变化才触发
     if (nextValue.length !== value.length) {
-      console.log(value);
       onChange(nextValue);
     }
   }, [appCategoriesData, value, onChange]);

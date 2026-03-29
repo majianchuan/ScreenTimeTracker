@@ -6,16 +6,16 @@ using ScreenTimeTracker.Modules.ScreenTime.Domain;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-public class ScreenTimeDbMigrationService(ILogger<ScreenTimeDbMigrationService> logger, IServiceProvider serviceProvider) : IHostedLifecycleService
+public class ScreenTimeDbMigrationService(ILogger<ScreenTimeDbMigrationService> logger, IServiceScopeFactory scopeFactory) : IHostedLifecycleService
 {
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger<ScreenTimeDbMigrationService> _logger = logger;
 
     // 在所有服务启动之前执行
     public async Task StartingAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("ScreenTimeDbMigrationService is Starting");
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
         // 确保数据库目录存在
         var connectionString = context.Database.GetConnectionString();

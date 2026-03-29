@@ -8,7 +8,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActiv
 
 public class RecordActivityJob(
     ILogger<RecordActivityJob> logger,
-    IServiceProvider serviceProvider
+     IServiceScopeFactory scopeFactory
     ) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -23,10 +23,15 @@ public class RecordActivityJob(
             while (!cancellationToken.IsCancellationRequested)
             {
                 // 先记录，然后等待
-                using (var scope = serviceProvider.CreateScope())
+                try
                 {
+                    using var scope = scopeFactory.CreateScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(new RecordActivityCommand(activeInterval), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error occurred while recording activity.");
                 }
                 await timer.WaitForNextTickAsync(cancellationToken);
                 // 获取最新间隔
@@ -49,7 +54,7 @@ public class RecordActivityJob(
 
     private async Task<TimeSpan> GetSamplingIntervalAsync(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var userSettings = await mediator.Send(new GetUserSettingsQuery(), cancellationToken);
 

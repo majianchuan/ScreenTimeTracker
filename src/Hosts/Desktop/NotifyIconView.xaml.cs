@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace ScreenTimeTracker.Hosts.Desktop
 {
@@ -7,38 +8,20 @@ namespace ScreenTimeTracker.Hosts.Desktop
     /// </summary>
     public partial class NotifyIconView : UserControl, IDisposable
     {
-        private bool _disposed = false;
-
         public NotifyIconView(NotifyIconViewModel vm)
         {
             InitializeComponent();
             DataContext = vm;
+            TrayIcon.ForceCreate();
         }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-
-            if (disposing)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                // 释放托管资源
                 TrayIcon?.Dispose();
-
-                // 如果 ViewModel 也实现了 IDisposable
-                (DataContext as IDisposable)?.Dispose();
-            }
-
-            _disposed = true;
-        }
-
-        ~NotifyIconView()
-        {
-            Dispose(false);
+            });
+            GC.SuppressFinalize(this);
         }
     }
 }

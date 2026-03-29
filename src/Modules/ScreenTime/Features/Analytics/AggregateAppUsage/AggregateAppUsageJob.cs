@@ -8,7 +8,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Analytics.AggregateAppUs
 
 public class AggregateAppUsageJob(
     ILogger<AggregateAppUsageJob> logger,
-    IServiceProvider serviceProvider
+    IServiceScopeFactory scopeFactory
     ) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -23,10 +23,15 @@ public class AggregateAppUsageJob(
             while (!cancellationToken.IsCancellationRequested)
             {
                 // 先聚合，再等待下一个间隔
-                using (var scope = serviceProvider.CreateScope())
+                try
                 {
+                    using var scope = scopeFactory.CreateScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(new AggregateAppUsageCommand(), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error occurred while aggregating app usage.");
                 }
                 await timer.WaitForNextTickAsync(cancellationToken);
                 // 获取最新间隔
@@ -49,7 +54,7 @@ public class AggregateAppUsageJob(
 
     private async Task<TimeSpan> GetAggregationIntervalAsync(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var userSettings = await mediator.Send(new GetUserSettingsQuery(), cancellationToken);
 

@@ -15,7 +15,14 @@ public class GetUserSettingsHandler(
 
 
         return new GetUserSettingsResult(
-            userSettings.UIOpenMode.ToString(),
+            userSettings.UIOpenMode switch
+            {
+                UIOpenMode.Window => UIOpenModeDto.Window,
+                UIOpenMode.Browser => UIOpenModeDto.Browser,
+                _ => throw new ArgumentOutOfRangeException(nameof(request),
+                    userSettings.UIOpenMode,
+                    "Unhandled UIOpenMode value")
+            },
             userSettings.AutoStart,
             userSettings.SilentStart,
             userSettings.Language,

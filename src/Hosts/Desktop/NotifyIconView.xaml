@@ -7,11 +7,10 @@
              xmlns:tb="http://www.hardcodet.net/taskbar"
              mc:Ignorable="d">
 
-
     <tb:TaskbarIcon
         x:Name="TrayIcon"
         IconSource="/Resources/Icon.ico"
-        ToolTipText="ScreenTimeTracker"
+        ToolTipText="Screen Time Tracker"
         LeftClickCommand="{Binding OpenUICommand}"
         NoLeftClickDelay="True">
 
@@ -33,6 +32,5 @@
                     Command="{Binding ExitApplicationCommand}"/>
             </ContextMenu>
         </tb:TaskbarIcon.ContextMenu>
-
     </tb:TaskbarIcon>
 </UserControl>

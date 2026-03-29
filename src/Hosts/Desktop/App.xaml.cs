@@ -1,16 +1,18 @@
 ﻿using FastEndpoints;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ScreenTimeTracker.Modules.ScreenTime;
 using ScreenTimeTracker.Modules.Shell;
 using ScreenTimeTracker.Modules.Shell.Features.UserSettingsManagement.GetUserSettings;
 using Serilog;
+using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Windows;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
@@ -20,119 +22,228 @@ namespace ScreenTimeTracker.Hosts.Desktop;
 /// </summary>
 public partial class App : Application
 {
-    private static Mutex? _mutex;
+    private const string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
+    private Mutex? _mutex;
+    private bool _isMutexOwner;
     private WebApplication? _app;
+
+    public App()
+    {
+        // 切换工作目录为程序所在目录
+        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
+        // 临时日志配置
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(
+                "./startup.log",
+                shared: true,
+                fileSizeLimitBytes: 1 * 1024 * 1024,
+                rollOnFileSizeLimit: true,
+                retainedFileCountLimit: 2
+            )
+            .CreateBootstrapLogger();
+
+        Log.Information("App Started.");
+
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            Log.Fatal(e.ExceptionObject as Exception, "AppDomain Unhandled Exception occurred.");
+            Log.CloseAndFlush();
+        };
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Log.Fatal(e.Exception, "Unobserved task exception occurred.");
+        };
+        DispatcherUnhandledException += (sender, e) =>
+        {
+            Log.Fatal(e.Exception, "WPF UI thread terminated unexpectedly.");
+            Log.CloseAndFlush();
+        };
+        SessionEnding += (s, e) =>
+        {
+            Log.Information("System shutting down, stopping...");
+            Current.Shutdown();
+        };
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+
+        Log.Information("App Stopping.");
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        try
+        {
+            Task.Run(() => _app?.StopAsync(cts.Token)).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Web Application stopped with timeout or error.");
+        }
+
+        if (_isMutexOwner)
+            _mutex?.ReleaseMutex();
+        _mutex?.Dispose();
+
+        Log.Information("App Exited.");
+        Log.CloseAndFlush();
+    }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // 防止重复运行
-        _mutex = new(true, "ScreenTimeTrackerDesktopUniqueMutexName", out bool createdNew);
-        if (!createdNew)
+        try
         {
-            MessageBox.Show("程序已经运行，请查看托盘处图标", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            // 防止重复运行
+            _mutex = new(true, MutexName, out bool createdNew);
+            if (!createdNew)
+            {
+                _isMutexOwner = false;
+                Log.Information("App is already running. Exiting...");
+                MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Current.Shutdown();
+                return;
+            }
+            _isMutexOwner = true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _isMutexOwner = false;
             Current.Shutdown();
+            Log.Error("UnauthorizedAccessException occurred.");
+            MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        // 切换工作目录为程序所在目录
-        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-
-        var builder = WebApplication.CreateBuilder();
-
-        ConfigureCommonServices(builder.Services, builder.Configuration);
-        ConfigureWebApiServices(builder.Services, builder.Configuration);
-        ConfigureWpfServices(builder.Services, builder.Configuration);
-        builder.Services.AddScreenTimeServices(builder.Configuration);
-        builder.Services.AddShellServices(builder.Configuration);
-
-        _app = builder.Build();
-
-        if (_app.Environment.IsDevelopment())
-            _app.MapOpenApi();  // 文档默认url: /openapi/v1.json
-        _app.UseStaticFiles(); // 托管前端静态文件
-        _app.UseCors(builder => builder // 允许所有来源、方法、头
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
-        _app.UseFastEndpoints(config =>
-        {
-            config.Endpoints.RoutePrefix = "api";
-        });
-        _app.MapFallbackToFile("index.html"); // SPA回退
 
         try
         {
+            _app = BuildWebApplication();
+            ConfigureMiddleware(_app);
+
+            // 如果WebApplication意外停止，退出WPF应用
+            var lifetime = _app.Services.GetRequiredService<IHostApplicationLifetime>();
+            lifetime.ApplicationStopped.Register(() =>
+            {
+                Log.Information("WebApplication Stopped.");
+                Current.Dispatcher.BeginInvoke(() => Current.Shutdown());
+            });
+
             await _app.StartAsync();
+
+            var server = _app.Services.GetRequiredService<IServer>();
+            string? serverUrl = server.Features.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
+            if (serverUrl is null)
+            {
+                Log.Error("Kestrel server addresses not found.");
+                MessageBox.Show("Kestrel 服务器地址未找到，请检查配置", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Current.Shutdown();
+                return;
+            }
+            Log.Information("Kestrel server address: {address}", serverUrl);
+
+            InitializeTrayIcon(_app, serverUrl);
+            await OpenUIIfNotSilentStartAsync(_app, serverUrl);
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            var logger = _app.Services.GetRequiredService<ILogger<App>>();
-            logger.LogError(ex, "Web Application start failed.");
-            MessageBox.Show("端口已被占用，请检查是否有其他实例正在运行", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Log.Fatal(ex, "App Startup terminated unexpectedly.");
+            MessageBox.Show("程序启动时出错，请检查日志", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Current.Shutdown();
             return;
         }
-
-        _app.Services.GetRequiredService<NotifyIconView>();
-
-        OpenMainViewIfNeed();
     }
 
-    private async void OpenMainViewIfNeed()
+    private static WebApplication BuildWebApplication()
     {
-        if (_app is null)
-            return;
-        // 如果不是静默启动，就打开主窗口
-        using var scope = _app.Services.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var userSettings = await mediator.Send(new GetUserSettingsQuery());
-        if (userSettings.SilentStart)
-            return;
-        var options = _app.Services.GetRequiredService<IOptions<NotifyIconOptions>>();
-        var mainView = _app.Services.GetRequiredService<MainView>();
-        mainView.LoadUrl(options.Value.UIUrl);
-        mainView.Show();
-        mainView.Activate();
-        Current.MainWindow = mainView;
-    }
-
-    private static void ConfigureCommonServices(IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddSerilog((services, loggerConfig) =>
+        var builder = WebApplication.CreateBuilder();
+        // 系统分配端口
+        builder.WebHost.ConfigureKestrel(options =>
         {
-            loggerConfig.ReadFrom.Configuration(configuration);
+            options.Listen(IPAddress.Loopback, 0);
         });
-        services.AddMediator(options =>
+        // 日志
+        builder.Services.AddSerilog((services, loggerConfig) =>
+        {
+            loggerConfig.ReadFrom.Configuration(builder.Configuration);
+        });
+        // 通用服务
+        builder.Services.AddMediator(options =>
         {
             options.Namespace = "ScreenTimeTracker.Mediator";
             options.ServiceLifetime = ServiceLifetime.Scoped;
         });
-        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        builder.Services.AddSingleton(TimeProvider.System);
+        // Web API
+        builder.Services.AddOpenApi();
+        builder.Services.AddFastEndpoints();
+        builder.Services.AddCors();
+        // WPF
+        builder.Services.AddTransient<MainView>();
+        builder.Services.AddSingleton<Func<MainView>>(sp =>
+            () => sp.GetRequiredService<MainView>());
+        builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
+        builder.Services.AddSingleton<NotifyIconView>();
+        builder.Services.AddSingleton<NotifyIconViewModel>();
+        builder.Services.Configure<WebViewOptions>(builder.Configuration.GetSection(WebViewOptions.SectionName));
+        // 模块注册
+        builder.Services.AddScreenTimeServices(builder.Configuration);
+        builder.Services.AddShellServices(builder.Configuration);
+
+        return builder.Build();
     }
 
-    private static void ConfigureWebApiServices(IServiceCollection services, IConfiguration configuration)
+    private static void ConfigureMiddleware(WebApplication app)
     {
-        services.AddOpenApi();
-        services.AddFastEndpoints();
-        services.AddCors();
+        if (app.Environment.IsDevelopment())
+            app.MapOpenApi();  // 文档默认url: /openapi/v1.json
+        app.UseStaticFiles();
+        app.UseCors(cors =>
+        {
+            cors.AllowAnyMethod().AllowAnyHeader();
+            if (app.Environment.IsDevelopment())
+                cors.AllowAnyOrigin();
+        });
+        app.UseFastEndpoints(config =>
+        {
+            config.Endpoints.RoutePrefix = "api";
+        });
+        app.MapFallbackToFile("index.html"); // SPA回退
     }
 
-    private static void ConfigureWpfServices(IServiceCollection services, IConfiguration configuration)
+    private static void InitializeTrayIcon(WebApplication app, string serverUrl)
     {
-        // 注册 Views
-        services.AddTransient<MainView>();
-        services.AddSingleton<NotifyIconView>();
+        var notifyIconViewModel = app.Services.GetRequiredService<NotifyIconViewModel>();
+        notifyIconViewModel.UIUrl = serverUrl;
+        app.Services.GetRequiredService<NotifyIconView>();
+    }
 
-        // 注册 ViewModels
-        services.AddSingleton<NotifyIconViewModel>();
-
-        // 注册 服务
-        services.AddSingleton<WindowPlacementStore>();
-
-        // 注册配置
-        services.Configure<NotifyIconOptions>(configuration.GetSection(NotifyIconOptions.SectionName));
-        services.Configure<WebViewOptions>(configuration.GetSection(WebViewOptions.SectionName));
+    private static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverUrl)
+    {
+        using var scope = app.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        GetUserSettingsResult userSettings = await mediator.Send(new GetUserSettingsQuery());
+        if (!userSettings.SilentStart)
+        {
+            if (userSettings.UIOpenMode == UIOpenModeDto.Browser)
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = serverUrl,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                var mainViewFactory = app.Services.GetRequiredService<Func<MainView>>();
+                var mainView = mainViewFactory();
+                mainView.LoadUrl(serverUrl);
+                mainView.Show();
+                Current.MainWindow = mainView;
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActivity;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using Windows.Win32;
@@ -31,9 +32,15 @@ public class WindowsForegroundWindowService(ILogger<WindowsForegroundWindowServi
         {
             executablePath = process.MainModule?.FileName;
         }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
+        {
+            logger.LogDebug(ex,
+                "Access denied when getting executable path for process {ProcessName}.",
+                processName);
+        }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Failed to get executable path for process {ProcessName}.", processName);
+            logger.LogWarning(ex, "Failed to get executable path for process {ProcessName}.", processName);
         }
 
         return new WindowInfo(process.ProcessName, executablePath);
