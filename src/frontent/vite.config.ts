@@ -8,7 +8,7 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig({
   build: {
-    outDir: "../Hosts/Desktop/Resources/wwwroot",
+    outDir: "../Hosts/Desktop/wwwroot",
     emptyOutDir: true,
   },
   plugins: [

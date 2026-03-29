@@ -59,6 +59,7 @@ public partial class App : Application
         {
             Log.Fatal(e.Exception, "WPF UI thread terminated unexpectedly.");
             Log.CloseAndFlush();
+            MessageBox.Show("程序发生未知错误，即将退出", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         };
         SessionEnding += (s, e) =>
         {
