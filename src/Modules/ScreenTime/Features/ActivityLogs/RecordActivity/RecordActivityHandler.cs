@@ -27,16 +27,10 @@ public class RecordActivityHandler(
             // 修正空闲开始以来的使用记录为空闲进程
             var idleStartTime = now.Add(-idleTime);
             var logsToUpdate = await context.ActivityLogs
-                .Where(x => idleStartTime >= x.LoggedAt && x.LoggedAt < now && x.AppId != idleAppId)
+                .Where(x => idleStartTime <= x.LoggedAt && x.LoggedAt < now && x.AppId != idleAppId)
                 .ToListAsync(cancellationToken);
             foreach (var log in logsToUpdate)
                 log.MarkAsIdle(idleAppId);
-
-            // await context.ActivityLogs
-            //     .Where(x => idleStartTime >= x.LoggedAt && x.LoggedAt < now && x.AppId != idleAppId)
-            //     .ExecuteUpdateAsync(s => s  // 批量方法会立刻执行SQL语句，此时IdleApp没有在数据库中存在，导致外键绑定失败
-            //         .SetProperty(t => t.AppId, idleAppId),
-            //         cancellationToken);
 
             // 新的也是空闲进程
             newActivityLog = ActivityLog.Create(idleAppId, now, request.Interval);
@@ -58,7 +52,7 @@ public class RecordActivityHandler(
         }
 
         if (newActivityLog is not null)
-            await context.ActivityLogs.AddAsync(newActivityLog, cancellationToken);
+            context.ActivityLogs.Add(newActivityLog);
         await context.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
@@ -113,7 +107,7 @@ public class RecordActivityHandler(
                 string? iconPath = await EnsureIconUpdated(app, metadata, settings, cancellationToken);
                 app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Description);
             }
-            await context.Apps.AddAsync(app, cancellationToken);
+            context.Apps.Add(app);
         }
         // 已有 App 信息
         else
