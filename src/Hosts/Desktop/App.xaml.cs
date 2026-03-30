@@ -74,14 +74,17 @@ public partial class App : Application
 
         Log.Information("App Stopping.");
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        try
+        if (_app is not null)
         {
-            Task.Run(() => _app?.StopAsync(cts.Token)).GetAwaiter().GetResult();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Web Application stopped with timeout or error.");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            try
+            {
+                Task.Run(() => _app.StopAsync(cts.Token)).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Web Application stopped with timeout or error.");
+            }
         }
 
         if (_isMutexOwner)
@@ -113,9 +116,9 @@ public partial class App : Application
         catch (UnauthorizedAccessException)
         {
             _isMutexOwner = false;
-            Current.Shutdown();
             Log.Error("UnauthorizedAccessException occurred.");
             MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Current.Shutdown();
             return;
         }
 
