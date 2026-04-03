@@ -64,7 +64,8 @@ public partial class App : Application
         SessionEnding += (s, e) =>
         {
             Log.Information("System shutting down, stopping...");
-            Current.Shutdown();
+            var lifetime = _app?.Services.GetRequiredService<IHostApplicationLifetime>();
+            lifetime?.StopApplication();
         };
     }
 
@@ -98,10 +99,10 @@ public partial class App : Application
             }
             _isMutexOwner = true;
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
             _isMutexOwner = false;
-            Log.Error("UnauthorizedAccessException occurred.");
+            Log.Error(ex, "UnauthorizedAccessException occurred.");
             MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Current.Shutdown();
             return;
