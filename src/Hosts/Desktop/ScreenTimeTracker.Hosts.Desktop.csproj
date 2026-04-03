@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-		<Resource Include="Resources\Icon.ico" />
+		<EmbeddedResource Include="Resources\Icon.ico" />
     <None Update="appsettings*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -30,7 +30,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="FastEndpoints" />
-    <PackageReference Include="H.NotifyIcon.Wpf" />
+    <PackageReference Include="H.NotifyIcon" />
     <PackageReference Include="Mediator.Abstractions" />
     <PackageReference Include="Mediator.SourceGenerator">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

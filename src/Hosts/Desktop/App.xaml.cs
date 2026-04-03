@@ -22,7 +22,7 @@ namespace ScreenTimeTracker.Hosts.Desktop;
 /// </summary>
 public partial class App : Application
 {
-    private const string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
+    private const string MutexName = @"Local\1231231ScreenTimeTrackerDesktopUniqueMutexName";
     private Mutex? _mutex;
     private bool _isMutexOwner;
     private WebApplication? _app;
@@ -72,21 +72,6 @@ public partial class App : Application
     {
         base.OnExit(e);
 
-        Log.Information("App Stopping.");
-
-        if (_app is not null)
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            try
-            {
-                Task.Run(() => _app.StopAsync(cts.Token)).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Web Application stopped with timeout or error.");
-            }
-        }
-
         if (_isMutexOwner)
             _mutex?.ReleaseMutex();
         _mutex?.Dispose();
@@ -127,16 +112,17 @@ public partial class App : Application
             _app = BuildWebApplication();
             ConfigureMiddleware(_app);
 
-            // 如果WebApplication意外停止，退出WPF应用
-            var lifetime = _app.Services.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopped.Register(() =>
-            {
-                Log.Information("WebApplication Stopped.");
-                Current.Dispatcher.BeginInvoke(() => Current.Shutdown());
-            });
-
             await _app.StartAsync();
 
+            _ = Task.Run(async () =>
+            {
+                // 等待 WebApplication 停止，然后退出 WPF 应用
+                await _app.WaitForShutdownAsync();
+                Log.Information("Web Application Stopped.");
+                Current.Dispatcher.Invoke(() => Current.Shutdown());
+            });
+
+            // 获取后端监听的地址
             var server = _app.Services.GetRequiredService<IServer>();
             string? serverUrl = server.Features.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
             if (serverUrl is null)
@@ -185,12 +171,9 @@ public partial class App : Application
         builder.Services.AddFastEndpoints();
         builder.Services.AddCors();
         // WPF
-        builder.Services.AddTransient<MainView>();
-        builder.Services.AddSingleton<Func<MainView>>(sp =>
-            () => sp.GetRequiredService<MainView>());
+        builder.Services.AddTransient<IViewFactory, ViewFactory>();
         builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
-        builder.Services.AddSingleton<NotifyIconView>();
-        builder.Services.AddSingleton<NotifyIconViewModel>();
+        builder.Services.AddSingleton<TrayService>();
         builder.Services.Configure<WebViewOptions>(builder.Configuration.GetSection(WebViewOptions.SectionName));
         // 模块注册
         builder.Services.AddScreenTimeServices(builder.Configuration);
@@ -219,9 +202,9 @@ public partial class App : Application
 
     private static void InitializeTrayIcon(WebApplication app, string serverUrl)
     {
-        var notifyIconViewModel = app.Services.GetRequiredService<NotifyIconViewModel>();
-        notifyIconViewModel.UIUrl = serverUrl;
-        app.Services.GetRequiredService<NotifyIconView>();
+        var trayService = app.Services.GetRequiredService<TrayService>();
+        trayService.UIUrl = serverUrl;
+        trayService.ShowTrayIcon();
     }
 
     private static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverUrl)
@@ -241,8 +224,8 @@ public partial class App : Application
             }
             else
             {
-                var mainViewFactory = app.Services.GetRequiredService<Func<MainView>>();
-                var mainView = mainViewFactory();
+                var viewFactory = app.Services.GetRequiredService<IViewFactory>();
+                var mainView = viewFactory.Create<MainView>();
                 mainView.LoadUrl(serverUrl);
                 mainView.Show();
                 Current.MainWindow = mainView;
