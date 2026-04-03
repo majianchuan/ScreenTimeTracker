@@ -1,5 +1,4 @@
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 

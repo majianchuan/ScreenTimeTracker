@@ -1,14 +1,12 @@
-using System.Diagnostics;
-using System.Drawing;
-using System.Reflection;
-using System.Windows;
-using System.Windows.Threading;
 using H.NotifyIcon.Core;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ScreenTimeTracker.Modules.Shell.Features.UserSettingsManagement.GetUserSettings;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
 

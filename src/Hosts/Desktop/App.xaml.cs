@@ -22,7 +22,7 @@ namespace ScreenTimeTracker.Hosts.Desktop;
 /// </summary>
 public partial class App : Application
 {
-    private const string MutexName = @"Local\1231231ScreenTimeTrackerDesktopUniqueMutexName";
+    private const string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
     private Mutex? _mutex;
     private bool _isMutexOwner;
     private WebApplication? _app;

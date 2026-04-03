@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
 
