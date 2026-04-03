@@ -73,7 +73,7 @@ public partial class MainView : Window
         if (userSettings.WindowDestroyOnClose)
         {
             _isClosingConfirmed = true;
-            _ = Dispatcher.BeginInvoke(Close); // 触发第二次 Closing，这次放行
+            await Dispatcher.InvokeAsync(Close); // 触发第二次 Closing，这次放行
         }
         else
             Hide();

@@ -120,7 +120,7 @@ public partial class App : Application
                 // 等待 WebApplication 停止，然后退出 WPF 应用
                 await _app.WaitForShutdownAsync();
                 Log.Information("Web Application Stopped.");
-                Current.Dispatcher.Invoke(() => Current.Shutdown());
+                await Current.Dispatcher.InvokeAsync(() => Current.Shutdown());
             });
 
             // 获取后端监听的地址
@@ -174,8 +174,9 @@ public partial class App : Application
         // WPF
         builder.Services.AddTransient<IViewFactory, ViewFactory>();
         builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
-        builder.Services.AddSingleton<TrayService>();
         builder.Services.Configure<WebViewOptions>(builder.Configuration.GetSection(WebViewOptions.SectionName));
+        // 托盘服务
+        builder.Services.AddSingleton<TrayService>();
         // 模块注册
         builder.Services.AddScreenTimeServices(builder.Configuration);
         builder.Services.AddShellServices(builder.Configuration);
