@@ -1,3 +1,4 @@
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
@@ -6,8 +7,14 @@ public class ViewFactory(IServiceProvider provider) : IViewFactory
 {
     private readonly IServiceProvider _provider = provider;
 
-    T IViewFactory.Create<T>()
+    public T Create<T>() where T : Window
     {
-        return ActivatorUtilities.CreateInstance<T>(_provider);
+        var scope = _provider.CreateScope();
+        var view = ActivatorUtilities.CreateInstance<T>(scope.ServiceProvider);
+        view.Closed += (sender, args) =>
+        {
+            scope.Dispose();
+        };
+        return view;
     }
 }

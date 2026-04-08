@@ -1,6 +1,8 @@
+using System.Windows;
+
 namespace ScreenTimeTracker.Hosts.Desktop;
 
 public interface IViewFactory
 {
-    T Create<T>() where T : class;
+    T Create<T>() where T : Window;
 }

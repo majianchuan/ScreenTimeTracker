@@ -55,7 +55,24 @@ public sealed class TrayService(
             if (e.MouseEvent == MouseEvent.IconLeftMouseUp)
                 await OpenUIAsync();
         };
-        _trayIcon.Create();
+
+        int maxRetries = 10; // 最大重试10次
+        int delayMilliseconds = 1500; // 每次间隔1.5秒
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                _trayIcon.Create();
+                break; // 创建成功，跳出循环
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("TryCreate failed"))
+            {
+                logger.LogWarning(ex, "Failed to create tray icon, retry... ({Retry}/{MaxRetries})", i + 1, maxRetries);
+                if (i == maxRetries - 1)
+                    throw;
+                Thread.Sleep(delayMilliseconds);
+            }
+        }
     }
 
     public void ShowTrayIcon()

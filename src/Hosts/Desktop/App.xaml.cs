@@ -73,6 +73,28 @@ public partial class App : Application
     {
         base.OnExit(e);
 
+        if (_app is not null)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            try
+            {
+                // 使用Task.Run脱离WPF的UI线程上下文（Dispatcher），防止内部await引发死锁
+                Task.Run(async () =>
+                {
+                    await _app.StopAsync(cts.Token);
+                    await _app.DisposeAsync();
+                }).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Web Application shutdown timed out or failed.");
+            }
+            finally
+            {
+                _app = null;
+            }
+        }
+
         if (_isMutexOwner)
             _mutex?.ReleaseMutex();
         _mutex?.Dispose();
