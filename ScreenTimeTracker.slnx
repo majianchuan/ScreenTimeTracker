@@ -5,7 +5,7 @@
   </Folder>
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/ScreenTime/ScreenTimeTracker.Modules.ScreenTime.csproj" />
-    <Project Path="src/Modules/Shell/ScreenTimeTracker.Modules.Shell.csproj" />
+    <Project Path="src/Modules/AppBehavior/ScreenTimeTracker.Modules.AppBehavior.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Desktop/ScreenTimeTracker.Hosts.Desktop.csproj" />

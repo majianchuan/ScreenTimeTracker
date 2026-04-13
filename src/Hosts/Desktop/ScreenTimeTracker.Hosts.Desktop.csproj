@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-  <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
-  <OutputType Condition="'$(Configuration)' == 'Release'">WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Release'">WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -10,6 +10,7 @@
     <ApplicationIcon>Resources/Icon.ico</ApplicationIcon>
     <AssemblyName>ScreenTimeTracker</AssemblyName>
 		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,18 +18,18 @@
     <None Update="appsettings*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="wwwroot\**">
+    <Content Include="..\..\frontend\dist\**">
+      <Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\ScreenTime\ScreenTimeTracker.Modules.ScreenTime.csproj" />
-    <ProjectReference Include="..\..\Modules\Shell\ScreenTimeTracker.Modules.Shell.csproj" />
+    <ProjectReference Include="..\..\Modules\AppBehavior\ScreenTimeTracker.Modules.AppBehavior.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="FastEndpoints" />
     <PackageReference Include="H.NotifyIcon" />
     <PackageReference Include="Mediator.Abstractions" />

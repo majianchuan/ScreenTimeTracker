@@ -2,7 +2,7 @@ using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.GetUserSettings;
+using ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.GetUserSettings;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActivity;
 

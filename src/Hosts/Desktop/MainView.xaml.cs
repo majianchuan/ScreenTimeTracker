@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Web.WebView2.Core;
-using ScreenTimeTracker.Modules.Shell.Features.UserSettingsManagement.GetUserSettings;
+using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 using System.ComponentModel;
 using System.Windows;
 
@@ -16,7 +16,10 @@ public partial class MainView : Window
     private readonly TaskCompletionSource _webViewReady = new();
     private bool _isClosingConfirmed = false;
 
-    public MainView(IServiceScopeFactory scopeFactory, IOptions<WebViewOptions> webViewOptions, IWindowPlacementStore windowLayoutStore)
+    public MainView(
+        IServiceScopeFactory scopeFactory,
+        IOptions<WebViewOptions> webViewOptions,
+        IWindowPlacementStore windowLayoutStore)
     {
         _scopeFactory = scopeFactory;
         _webViewOptions = webViewOptions;
@@ -69,7 +72,7 @@ public partial class MainView : Window
         // 是否销毁窗口
         using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var userSettings = await mediator.Send(new GetUserSettingsQuery());
+        var userSettings = await mediator.Send(new GetUserPreferencesQuery());
         if (userSettings.WindowDestroyOnClose)
         {
             _isClosingConfirmed = true;

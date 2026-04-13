@@ -8,8 +8,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Analytics.AggregateAppUs
 
 public class AggregateAppUsageHandler(
     ScreenTimeDbContext context,
-    TimeProvider timeProvider,
-    ILogger<AggregateAppUsageHandler> logger
+    TimeProvider timeProvider
     ) : IRequestHandler<AggregateAppUsageCommand>
 {
     public async ValueTask<Unit> Handle(AggregateAppUsageCommand request, CancellationToken cancellationToken)

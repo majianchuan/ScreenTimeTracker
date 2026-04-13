@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.GetUserSettings;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.GetUserSettings;
 
 public class GetUserSettingsHandler(
     ScreenTimeDbContext context
