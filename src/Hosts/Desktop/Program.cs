@@ -16,8 +16,9 @@ using Mediator;
 using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 using System.Diagnostics;
 
-
-string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
+//==========================================================
+string MutexName = @"Local\1ScreenTimeTrackerDesktopUniqueMutexName";
+Mutex? mutex;
 
 // 切换工作目录为程序所在目录
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -52,7 +53,7 @@ try
     // 单实例检查，防止重复运行
     try
     {
-        using Mutex mutex = new(true, MutexName, out bool createdNew);
+        mutex = new(true, MutexName, out bool createdNew);
         if (!createdNew)
         {
             Log.Information("Application is already running. Exiting...");
@@ -96,13 +97,14 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application Startup terminated unexpectedly.");
+    Log.Fatal(ex, "Application terminated unexpectedly.");
     MessageBox.Show("程序启动时出错，请检查日志", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-}
-finally
-{
     Log.CloseAndFlush();
+    Environment.Exit(1);
 }
+
+Log.CloseAndFlush();
+
 
 static WebApplication BuildWebApplication()
 {
@@ -165,9 +167,9 @@ static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverU
     using var scope = app.Services.CreateScope();
     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
     GetUserPreferencesResult userSettings = await mediator.Send(new GetUserPreferencesQuery());
-    if (!userSettings.SilentStart)
+    if (!userSettings.IsSilentStartEnabled)
     {
-        if (userSettings.UIOpenMode == UIOpenModeDto.Browser)
+        if (userSettings.DefaultUIOpenMode == UIOpenModeDto.Browser)
         {
             Process.Start(new ProcessStartInfo
             {

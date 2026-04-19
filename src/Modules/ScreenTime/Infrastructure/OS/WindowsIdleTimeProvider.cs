@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActivity;
+using ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSession;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Windows.Win32;

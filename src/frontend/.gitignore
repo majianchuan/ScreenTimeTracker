@@ -1,3 +1,9 @@
+# Tanstack Router generated files
+src/app/routeTree.gen.ts
+
+# Tanstack Temp
+.tanstack/
+
 # Logs
 logs
 *.log
@@ -22,12 +28,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Tanstack Router generated files
-src/app/routeTree.gen.ts
-
-# Tanstack Temp
-.tanstack/
-
-# pnpm
-.pnpm-store/

@@ -16,6 +16,7 @@ public class App : Entity
     public string? ExecutablePath { get; private set; }
     public string? IconPath { get; private set; }
     public string? Description { get; private set; }
+    public bool IsSystem { get; private set; }
 
     // EF Core
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -41,36 +42,39 @@ public class App : Entity
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = executablePath,
             IconPath = iconPath,
-            Description = description
+            Description = description,
+            IsSystem = false
         };
     }
 
-    public static App CreateIdleApp(DateTime now) =>
+    public static App CreateIdleApp() =>
         new()
         {
             Id = IdleAppId,
             Name = "Idle",
             ProcessName = "Idle",
             IsAutoUpdateEnabled = false,
-            LastAutoUpdated = now,
+            LastAutoUpdated = DateTime.MinValue,
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
-            Description = "Shows when the user is idle"
+            Description = "Shows when the user is idle",
+            IsSystem = true
         };
 
-    public static App CreateUnknownApp(DateTime now) =>
+    public static App CreateUnknownApp() =>
         new()
         {
             Id = UnknownAppId,
             Name = "Unknown",
             ProcessName = "Unknown",
             IsAutoUpdateEnabled = false,
-            LastAutoUpdated = now,
+            LastAutoUpdated = DateTime.MinValue,
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
-            Description = "Represents unknown or restricted apps"
+            Description = "Represents unknown or restricted apps",
+            IsSystem = true
         };
 
     public void UpdateName(string name) => Name = name;

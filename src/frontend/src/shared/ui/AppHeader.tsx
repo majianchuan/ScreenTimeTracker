@@ -45,7 +45,7 @@ export const AppHeader = () => {
         </Button>
         <Button variant="ghost" size="icon">
           <a
-            href="https://discord.gg/3xftZ9dJ"
+            href="https://discord.gg/PxqGwcsVuh"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Discord"

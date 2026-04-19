@@ -10,7 +10,8 @@ public class WpfHostedService(
 {
     private Thread? _wpfThread;
     private App? _wpfApp;
-    private bool _isShutdownInitiatedByHost = false;
+    private bool _isExitInitiatedByHost = false;
+    private bool _isExitInitiatedByEndSession = false;
 
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     public Task StartedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -25,10 +26,18 @@ public class WpfHostedService(
                 _wpfApp = new App();
                 _wpfApp.InitializeComponent();
 
-                _wpfApp.Exit += (s, e) =>
+                _wpfApp.SessionEnding += (_, _) =>
+                {
+                    _isExitInitiatedByEndSession = true;
+                    logger.LogInformation("WPF Session Ending. Stopping WebHost...");
+                    // 关机时阻塞等待 WebHost 停止
+                    Task.Run(() => lifetime.StopApplication()).Wait();
+                };
+
+                _wpfApp.Exit += (_, _) =>
                 {
                     logger.LogInformation("WPF Application Exited.");
-                    if (!_isShutdownInitiatedByHost)
+                    if (!_isExitInitiatedByHost && !_isExitInitiatedByEndSession)
                     {
                         logger.LogInformation("Shutting down WebHost...");
                         lifetime.StopApplication();
@@ -53,15 +62,15 @@ public class WpfHostedService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
     public Task StoppedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public async Task StoppingAsync(CancellationToken cancellationToken)
     {
-        _isShutdownInitiatedByHost = true;
+        _isExitInitiatedByHost = true;
         if (_wpfApp is not null && !_wpfApp.Dispatcher.HasShutdownStarted)
-            _wpfApp.Dispatcher.Invoke(_wpfApp.Shutdown);
-        await Task.Run(() => _wpfThread?.Join(TimeSpan.FromSeconds(3)), cancellationToken);
+            await _wpfApp.Dispatcher.InvokeAsync(_wpfApp.Shutdown);
+        if (_wpfThread is not null && _wpfThread.IsAlive)
+            await Task.Run(() => _wpfThread?.Join(TimeSpan.FromSeconds(3)));
         return;
     }
 }

@@ -16,11 +16,8 @@ public class DeleteAppHandler(
             return Unit.Value;
 
         // 把所有 App 的数据都删除
-        await context.ActivityLogs
+        await context.AppUsageSessions
             .Where(log => log.AppId == request.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-        await context.AppHourlyUsages
-            .Where(usage => usage.AppId == request.Id)
             .ExecuteDeleteAsync(cancellationToken);
 
         context.Apps.Remove(App);

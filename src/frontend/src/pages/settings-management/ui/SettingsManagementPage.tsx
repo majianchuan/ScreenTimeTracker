@@ -62,7 +62,7 @@ export const SettingsManagementPage = () => {
             </Field> */}
             <Field orientation="horizontal">
               <FieldLabel>
-                界面打开模式
+                默认界面打开模式
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
@@ -73,11 +73,14 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Select
-                value={appBehaviorUserPreferencesDtoData?.uiOpenMode ?? "Window"}
+                value={
+                  appBehaviorUserPreferencesDtoData?.defaultUIOpenMode ??
+                  "Window"
+                }
                 onValueChange={async (value) => {
                   if (!value) return;
                   await patchAppBehaviorUserPreferencesAsync({
-                    uiOpenMode: value as "Window" | "Browser",
+                    defaultUIOpenMode: value as "Window" | "Browser",
                   });
                 }}
               >
@@ -112,13 +115,17 @@ export const SettingsManagementPage = () => {
               </FieldLabel>
               <Switch
                 checked={
-                  appBehaviorUserPreferencesDtoData?.windowDestroyOnClose ?? false
+                  appBehaviorUserPreferencesDtoData?.shouldDestroyWindowOnClose ??
+                  false
                 }
                 onCheckedChange={async (value) => {
-                  if (value === appBehaviorUserPreferencesDtoData?.windowDestroyOnClose)
+                  if (
+                    value ===
+                    appBehaviorUserPreferencesDtoData?.shouldDestroyWindowOnClose
+                  )
                     return;
                   await patchAppBehaviorUserPreferencesAsync({
-                    windowDestroyOnClose: value,
+                    shouldDestroyWindowOnClose: value,
                   });
                 }}
               />
@@ -157,14 +164,20 @@ export const SettingsManagementPage = () => {
                 </AlertDialog>
               </FieldLabel>
               <Switch
-                checked={appBehaviorUserPreferencesDtoData?.autoStart ?? false}
+                checked={
+                  appBehaviorUserPreferencesDtoData?.isAutoStartEnabled ?? false
+                }
                 onCheckedChange={async (value) => {
-                  if (value === appBehaviorUserPreferencesDtoData?.autoStart) return;
+                  if (
+                    value ===
+                    appBehaviorUserPreferencesDtoData?.isAutoStartEnabled
+                  )
+                    return;
                   if (value === true) {
                     setAutoStartAlertDialogOpen(true);
                   }
                   await patchAppBehaviorUserPreferencesAsync({
-                    autoStart: value,
+                    isAutoStartEnabled: value,
                   });
                 }}
               />
@@ -182,11 +195,18 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Switch
-                checked={appBehaviorUserPreferencesDtoData?.silentStart ?? false}
+                checked={
+                  appBehaviorUserPreferencesDtoData?.isSilentStartEnabled ??
+                  false
+                }
                 onCheckedChange={async (value) => {
-                  if (value === appBehaviorUserPreferencesDtoData?.silentStart) return;
+                  if (
+                    value ===
+                    appBehaviorUserPreferencesDtoData?.isSilentStartEnabled
+                  )
+                    return;
                   await patchAppBehaviorUserPreferencesAsync({
-                    silentStart: value,
+                    isSilentStartEnabled: value,
                   });
                 }}
               />
@@ -199,90 +219,32 @@ export const SettingsManagementPage = () => {
           <FieldGroup>
             <Field orientation="horizontal">
               <FieldLabel>
-                采样间隔(毫秒)
+                应用图标文件夹
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      每隔这里设定的时间后获取一次顶层窗口对应的应用，并认为这段时间内一直使用的就是这个应用。
-                    </p>
-                    <p>
-                      间隔越短统计结果越精确但对电脑资源占用越大，反之越不精确占用越小
+                      程序自动获取的应用图标将会保存在这里设定的文件夹路径下，修改后并不会改变已有图标的路径，只会影响新获取到的应用图标包括更新信息时获取的图标（如果图标有变化）。
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
               <BlurInput
-                className="w-30"
-                type="number"
-                value={
-                  screenTimeUserSettingsDtoData?.samplingIntervalMilliseconds ??
-                  1000
-                }
-                onBlurUpdate={async (value: number) => {
+                className="w-50"
+                value={screenTimeUserSettingsDtoData?.appIconDirectory ?? ""}
+                onBlurUpdate={async (value: string) => {
                   if (!value) return;
                   await patchScreenTimeUserSettingsAsync({
-                    samplingIntervalMilliseconds: value,
+                    appIconDirectory: value,
                   });
                 }}
               />
             </Field>
             <Field orientation="horizontal">
               <FieldLabel>
-                空闲检测
-                <Tooltip>
-                  <TooltipTrigger>
-                    <CircleQuestionMark className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </FieldLabel>
-              <Switch
-                checked={screenTimeUserSettingsDtoData?.idleDetection ?? false}
-                onCheckedChange={async (value) => {
-                  if (value === screenTimeUserSettingsDtoData?.idleDetection)
-                    return;
-                  await patchScreenTimeUserSettingsAsync({
-                    idleDetection: value,
-                  });
-                }}
-              />
-            </Field>
-            <Field orientation="horizontal">
-              <FieldLabel>
-                空闲超时(秒)
-                <Tooltip>
-                  <TooltipTrigger>
-                    <CircleQuestionMark className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </FieldLabel>
-              <BlurInput
-                className="w-30"
-                type="number"
-                value={screenTimeUserSettingsDtoData?.idleTimeoutSeconds ?? 600}
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
-                  await patchScreenTimeUserSettingsAsync({
-                    idleTimeoutSeconds: value,
-                  });
-                }}
-              />
-            </Field>
-            <Field orientation="horizontal">
-              <FieldLabel>
-                应用信息过期时间(分钟)
+                应用信息过期时间 (分钟)
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
@@ -311,14 +273,14 @@ export const SettingsManagementPage = () => {
             </Field>
             <Field orientation="horizontal">
               <FieldLabel>
-                数据聚合间隔(分钟)
+                活跃会话自动保存时间 (秒)
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      每隔这里设定的时间后，把采样的数据聚合为更方便统计的数据，不建议修改。
+                      自动保存当前活动应用使用会话的时间间隔，防止意外崩溃时数据丢失，确保屏幕时间统计准确。
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -327,38 +289,209 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 type="number"
                 value={
-                  screenTimeUserSettingsDtoData?.aggregationIntervalMinutes ??
-                  60
+                  screenTimeUserSettingsDtoData?.activeSessionAutoSaveSeconds ??
+                  600
                 }
                 onBlurUpdate={async (value: number) => {
                   if (!value) return;
                   await patchScreenTimeUserSettingsAsync({
-                    aggregationIntervalMinutes: value,
+                    activeSessionAutoSaveSeconds: value,
                   });
                 }}
               />
             </Field>
             <Field orientation="horizontal">
               <FieldLabel>
-                应用图标文件夹
+                空闲检测
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      程序自动获取的应用图标将会保存在这里设定的文件夹路径下，修改后并不会改变已有图标的路径，只会影响新获取到的应用图标包括更新信息时获取的图标（如果图标有变化）。
+                      程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <Switch
+                checked={
+                  screenTimeUserSettingsDtoData?.isIdleDetectionEnabled ?? false
+                }
+                onCheckedChange={async (value) => {
+                  if (
+                    value ===
+                    screenTimeUserSettingsDtoData?.isIdleDetectionEnabled
+                  )
+                    return;
+                  await patchScreenTimeUserSettingsAsync({
+                    isIdleDetectionEnabled: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                空闲阈值 (秒)
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
               <BlurInput
-                className="w-50"
-                value={screenTimeUserSettingsDtoData?.appIconDirectory ?? ""}
-                onBlurUpdate={async (value: string) => {
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.idleThresholdSeconds ?? 600
+                }
+                onBlurUpdate={async (value: number) => {
                   if (!value) return;
                   await patchScreenTimeUserSettingsAsync({
-                    appIconDirectory: value,
+                    idleThresholdSeconds: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                空闲检测轮询间隔 (秒)
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>每隔这里设定的时间后，检测一次用户是否空闲。</p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <BlurInput
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.idleDetectionPollingIntervalSeconds ??
+                  10
+                }
+                onBlurUpdate={async (value: number) => {
+                  if (!value) return;
+                  await patchScreenTimeUserSettingsAsync({
+                    idleDetectionPollingIntervalSeconds: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                最小有效会话时长 (秒)
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      每次触发优化时，会自动过滤掉持续时间短于此值的会话记录
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <BlurInput
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.minValidSessionDurationSeconds ??
+                  60
+                }
+                onBlurUpdate={async (value: number) => {
+                  if (!value) return;
+                  await patchScreenTimeUserSettingsAsync({
+                    minValidSessionDurationSeconds: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                会话合并容差时间 (秒)
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      每次触发优化时，会合并两个短时间间断的同应用使用会话，超过这里设置的间隔则不合并。
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <BlurInput
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.sessionMergeToleranceSeconds ??
+                  60
+                }
+                onBlurUpdate={async (value: number) => {
+                  if (!value) return;
+                  await patchScreenTimeUserSettingsAsync({
+                    sessionMergeToleranceSeconds: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                会话优化间隔 (秒)
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>每个这里设定的时间后，会触发一次会话优化。</p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <BlurInput
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.sessionOptimizationIntervalSeconds ??
+                  60
+                }
+                onBlurUpdate={async (value: number) => {
+                  if (!value) return;
+                  await patchScreenTimeUserSettingsAsync({
+                    sessionOptimizationIntervalSeconds: value,
+                  });
+                }}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <FieldLabel>
+                日期边界偏移小时
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleQuestionMark className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>定义了一天的开始时间偏移量</p>
+                  </TooltipContent>
+                </Tooltip>
+              </FieldLabel>
+              <BlurInput
+                className="w-30"
+                type="number"
+                value={
+                  screenTimeUserSettingsDtoData?.dayBoundaryOffsetHours ?? 60
+                }
+                onBlurUpdate={async (value: number) => {
+                  if (!value) return;
+                  await patchScreenTimeUserSettingsAsync({
+                    dayBoundaryOffsetHours: value,
                   });
                 }}
               />

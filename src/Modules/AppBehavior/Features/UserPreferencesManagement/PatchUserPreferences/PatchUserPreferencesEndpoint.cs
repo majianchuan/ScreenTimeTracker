@@ -18,11 +18,11 @@ public class PatchUserPreferencesEndpoint(
     {
         await mediator.Send(
             new PatchUserPreferencesCommand(
-                req.UIOpenMode,
-                req.AutoStart,
-                req.SilentStart,
+                req.DefaultUIOpenMode,
+                req.IsAutoStartEnabled,
+                req.IsSilentStartEnabled,
                 req.Language,
-                req.WindowDestroyOnClose
+                req.ShouldDestroyWindowOnClose
             ),
             cancellationToken
         );

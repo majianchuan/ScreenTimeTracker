@@ -3,10 +3,10 @@ using Mediator;
 namespace ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.PatchUserPreferences;
 
 public record PatchUserPreferencesCommand(
-    string? UIOpenMode,
-    bool? AutoStart,
-    bool? SilentStart,
+    string? DefaultUIOpenMode,
+    bool? IsAutoStartEnabled,
+    bool? IsSilentStartEnabled,
     string? Language,
-    bool? WindowDestroyOnClose
+    bool? ShouldDestroyWindowOnClose
 ) : IRequest;
 

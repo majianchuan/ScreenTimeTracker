@@ -6,7 +6,10 @@ using ScreenTimeTracker.Modules.ScreenTime.Domain;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-public class ScreenTimeDbMigrationService(ILogger<ScreenTimeDbMigrationService> logger, IServiceScopeFactory scopeFactory) : IHostedLifecycleService
+public class ScreenTimeDbMigrationService(
+    ILogger<ScreenTimeDbMigrationService> logger,
+    IServiceScopeFactory scopeFactory
+    ) : IHostedLifecycleService
 {
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger<ScreenTimeDbMigrationService> _logger = logger;
@@ -38,10 +41,8 @@ public class ScreenTimeDbMigrationService(ILogger<ScreenTimeDbMigrationService> 
         }
     }
 
-    private async Task SeedDefaultCategoriesAsync(ScreenTimeDbContext context, CancellationToken ct)
+    private static async Task SeedDefaultCategoriesAsync(ScreenTimeDbContext context, CancellationToken ct)
     {
-        _logger.LogInformation("Seeding default app categories...");
-
         var defaults = new List<AppCategory>
         {
             AppCategory.Create("Study","./PrePreparedAppCategoryIcons/study.svg"),
@@ -54,8 +55,6 @@ public class ScreenTimeDbMigrationService(ILogger<ScreenTimeDbMigrationService> 
 
         await context.AppCategories.AddRangeAsync(defaults, ct);
         await context.SaveChangesAsync(ct);
-
-        _logger.LogInformation("Default app categories seeded successfully.");
     }
 
     private static string? GetDatabasePath(string? connectionString)

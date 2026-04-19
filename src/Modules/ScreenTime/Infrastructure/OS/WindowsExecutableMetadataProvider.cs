@@ -1,8 +1,8 @@
-using ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActivity;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.Versioning;
+using ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSession;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.OS;
 

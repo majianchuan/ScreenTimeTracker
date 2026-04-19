@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 import { kebabCase } from "case-anything";
 
-export const baseUrl = import.meta.env.DEV ? "http://localhost:5124" : "";
+export const baseUrl = import.meta.env.DEV ? "http://127.0.0.1:52046" : "";
 
 export const baseApiUrl = `${baseUrl}/api`;
 

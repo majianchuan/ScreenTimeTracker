@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.GetUserSettings;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.GetUserSettings;
 
 public class GetUserSettingsEndpoint(
     IMediator mediator
@@ -22,12 +22,19 @@ public class GetUserSettingsEndpoint(
         );
         await Send.OkAsync(
             new GetUserSettingsResponse(
-                SamplingIntervalMilliseconds: (int)userSettings.SamplingInterval.TotalMilliseconds,
-                IdleDetection: userSettings.IdleDetection,
-                IdleTimeoutSeconds: (int)userSettings.IdleTimeout.TotalSeconds,
-                AggregationIntervalMinutes: (int)userSettings.AggregationInterval.TotalMinutes,
+                AppIconDirectory: userSettings.AppIconDirectory,
                 AppInfoStaleThresholdMinutes: (int)userSettings.AppInfoStaleThreshold.TotalMinutes,
-                AppIconDirectory: userSettings.AppIconDirectory
+                ActiveSessionAutoSaveSeconds: (int)userSettings.ActiveSessionAutoSaveInterval.TotalSeconds,
+
+                IsIdleDetectionEnabled: userSettings.IsIdleDetectionEnabled,
+                IdleThresholdSeconds: (int)userSettings.IdleThreshold.TotalSeconds,
+                IdleDetectionPollingIntervalSeconds: (int)userSettings.IdleDetectionPollingInterval.TotalSeconds,
+
+                MinValidSessionDurationSeconds: (int)userSettings.MinValidSessionDuration.TotalSeconds,
+                SessionMergeToleranceSeconds: (int)userSettings.SessionMergeTolerance.TotalSeconds,
+                SessionOptimizationIntervalSeconds: (int)userSettings.SessionOptimizationInterval.TotalSeconds,
+
+                DayBoundaryOffsetHours: userSettings.DayBoundaryOffsetHours
             ),
             cancellationToken);
     }

@@ -2,10 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ScreenTimeTracker.Modules.ScreenTime.Features.ActivityLogs.RecordActivity;
-using ScreenTimeTracker.Modules.ScreenTime.Features.Analytics.AggregateAppUsage;
+using ScreenTimeTracker.Modules.ScreenTime.Domain;
+using ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSession;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.OS;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
+using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.State;
 using ScreenTimeTracker.Shared.Infrastructure.Options;
 
 namespace ScreenTimeTracker.Modules.ScreenTime;
@@ -25,14 +26,24 @@ public static class ServiceCollectionExtensions
         });
         services.AddHostedService<ScreenTimeDbMigrationService>();
 
-        // 其他服务
-        services.AddHostedService<RecordActivityJob>();
-        services.AddHostedService<AggregateAppUsageJob>();
-        if (OperatingSystem.IsWindowsVersionAtLeast(5, 0))
+        // 后台服务
+        services.AddHostedService<ActiveSessionTracker>();
+        services.AddHostedService<ActiveSessionAutoSaver>();
+        services.AddHostedService<AppUsageSessionOptimizer>();
+
+        // 状态存储
+        services.AddSingleton<IActiveSessionStore, InMemoryActiveSessionStore>();
+
+        // 平台
+        if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))
         {
+            services.AddSingleton<IForegroundWindowMonitor, WindowsForegroundWindowMonitor>();
             services.AddSingleton<IExecutableMetadataProvider, WindowsExecutableMetadataProvider>();
-            services.AddSingleton<IForegroundWindowService, WindowsForegroundWindowService>();
             services.AddSingleton<IIdleTimeProvider, WindowsIdleTimeProvider>();
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Only Windows XP RTM or later is supported.");
         }
 
         return services;

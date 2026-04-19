@@ -21,11 +21,11 @@ public class GetUserPreferencesEndpoint(
             cancellationToken
         );
         await Send.OkAsync(new GetUserPreferencesResponse(
-            userSettings.UIOpenMode.ToString(),
-            userSettings.AutoStart,
-            userSettings.SilentStart,
+            userSettings.DefaultUIOpenMode.ToString(),
+            userSettings.IsAutoStartEnabled,
+            userSettings.IsSilentStartEnabled,
             userSettings.Language,
-            userSettings.WindowDestroyOnClose
+            userSettings.ShouldDestroyWindowOnClose
         ), cancellationToken);
     }
 }

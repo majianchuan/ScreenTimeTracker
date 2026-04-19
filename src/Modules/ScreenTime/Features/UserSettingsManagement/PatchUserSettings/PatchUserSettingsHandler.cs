@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.PatchUserSettings;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.PatchUserSettings;
 
 public class PatchUserSettingsHandler(
     ScreenTimeDbContext context
@@ -13,18 +13,22 @@ public class PatchUserSettingsHandler(
     {
         UserSettings userSettings = await context.UserSettings.SingleAsync(cancellationToken);
 
-        if (request.SamplingInterval is not null)
-            userSettings.UpdateSamplingInterval(request.SamplingInterval.Value);
-        if (request.IdleDetection is not null)
-            userSettings.UpdateIdleDetection(request.IdleDetection.Value);
-        if (request.IdleTimeout is not null)
-            userSettings.UpdateIdleTimeout(request.IdleTimeout.Value);
-        if (request.AppInfoStaleThreshold is not null)
-            userSettings.UpdateAppInfoStaleThreshold(request.AppInfoStaleThreshold.Value);
-        if (request.AggregationInterval is not null)
-            userSettings.UpdateAggregationInterval(request.AggregationInterval.Value);
         if (request.AppIconDirectory is not null)
             userSettings.UpdateAppIconDirectory(request.AppIconDirectory);
+        if (request.AppInfoStaleThreshold is not null)
+            userSettings.UpdateAppInfoStaleThreshold(request.AppInfoStaleThreshold.Value);
+        if (request.ActiveSessionAutoSaveInterval is not null)
+            userSettings.UpdateActiveSessionAutoSaveInterval(request.ActiveSessionAutoSaveInterval.Value);
+
+        if (request.IsIdleDetectionEnabled is not null)
+            userSettings.UpdateIsIdleDetectionEnabled(request.IsIdleDetectionEnabled.Value);
+        if (request.IdleThreshold is not null)
+            userSettings.UpdateIdleThreshold(request.IdleThreshold.Value);
+        if (request.IdleDetectionPollingInterval is not null)
+            userSettings.UpdateIdleDetectionPollingInterval(request.IdleDetectionPollingInterval.Value);
+
+        if (request.DayBoundaryOffsetHours is not null)
+            userSettings.UpdateDayBoundaryOffsetHours(request.DayBoundaryOffsetHours.Value);
 
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;

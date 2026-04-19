@@ -73,7 +73,7 @@ public partial class MainView : Window
         using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var userSettings = await mediator.Send(new GetUserPreferencesQuery());
-        if (userSettings.WindowDestroyOnClose)
+        if (userSettings.ShouldDestroyWindowOnClose)
         {
             _isClosingConfirmed = true;
             await Dispatcher.InvokeAsync(Close); // 触发第二次 Closing，这次放行

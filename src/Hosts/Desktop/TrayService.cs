@@ -45,7 +45,7 @@ public class TrayService(
                     new PopupMenuItem("在浏览器打开界面", (_, _) => OpenUIInBrowser()),
                     new PopupMenuItem("在窗口打开界面", (_, _) => OpenUIInWindow()),
                     new PopupMenuSeparator(),
-                    new PopupMenuItem("退出", (_, _) => lifetime.StopApplication()),
+                    new PopupMenuItem("退出", (_, _) => ExitApplication()),
                 }
             }
         };
@@ -99,6 +99,11 @@ public class TrayService(
 
     public void Hide() => _trayIcon?.Hide();
 
+    private void ExitApplication()
+    {
+        lifetime.StopApplication();
+    }
+
     private async void OpenUI()
     {
         try
@@ -106,7 +111,7 @@ public class TrayService(
             using var scope = scopeFactory.CreateScope();
             var settings = await scope.ServiceProvider.GetRequiredService<IMediator>().Send(new GetUserPreferencesQuery());
 
-            if (settings.UIOpenMode == UIOpenModeDto.Browser)
+            if (settings.DefaultUIOpenMode == UIOpenModeDto.Browser)
                 OpenUIInBrowser();
             else
                 OpenUIInWindow();

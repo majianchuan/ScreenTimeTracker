@@ -6,8 +6,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
 public class ScreenTimeDbContext(DbContextOptions<ScreenTimeDbContext> options) : ModuleDbContext(options, "ScreenTime")
 {
-    public DbSet<ActivityLog> ActivityLogs { get; set; }
-    public DbSet<AppHourlyUsage> AppHourlyUsages { get; set; }
+    public DbSet<AppUsageSession> AppUsageSessions { get; set; }
     public DbSet<App> Apps { get; set; }
     public DbSet<AppCategory> AppCategories { get; set; }
     public DbSet<UserSettings> UserSettings { get; set; }

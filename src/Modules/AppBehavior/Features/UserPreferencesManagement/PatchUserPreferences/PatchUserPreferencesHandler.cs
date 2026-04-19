@@ -14,22 +14,22 @@ public class PatchUserPreferencesHandler(
     {
         UserPreferences userPreferences = await context.UserPreferences.SingleAsync(cancellationToken);
 
-        if (request.UIOpenMode is not null)
-            userPreferences.UpdateUIOpenMode(request.UIOpenMode);
-        if (request.AutoStart is not null)
+        if (request.DefaultUIOpenMode is not null)
+            userPreferences.UpdateUIOpenMode(request.DefaultUIOpenMode);
+        if (request.IsAutoStartEnabled is not null)
         {
-            if (request.AutoStart.Value && !windowsStartupManager.IsEnabled())
+            if (request.IsAutoStartEnabled.Value && !windowsStartupManager.IsEnabled())
                 windowsStartupManager.Enable();
-            else if (!request.AutoStart.Value && windowsStartupManager.IsEnabled())
+            else if (!request.IsAutoStartEnabled.Value && windowsStartupManager.IsEnabled())
                 windowsStartupManager.Disable();
-            userPreferences.UpdateAutoStart(request.AutoStart.Value);
+            userPreferences.UpdateAutoStart(request.IsAutoStartEnabled.Value);
         }
-        if (request.SilentStart is not null)
-            userPreferences.UpdateSilentStart(request.SilentStart.Value);
+        if (request.IsSilentStartEnabled is not null)
+            userPreferences.UpdateSilentStart(request.IsSilentStartEnabled.Value);
         if (request.Language is not null)
             userPreferences.UpdateLanguage(request.Language);
-        if (request.WindowDestroyOnClose is not null)
-            userPreferences.UpdateWindowDestroyOnClose(request.WindowDestroyOnClose.Value);
+        if (request.ShouldDestroyWindowOnClose is not null)
+            userPreferences.UpdateWindowDestroyOnClose(request.ShouldDestroyWindowOnClose.Value);
 
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;

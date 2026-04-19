@@ -1,25 +1,34 @@
 import { z } from "zod";
 
 export const screenTimeUserSettingsDtoSchema = z.object({
-  samplingIntervalMilliseconds: z.int(),
-  idleDetection: z.boolean(),
-  idleTimeoutSeconds: z.int(),
-  appInfoStaleThresholdMinutes: z.int(),
-  aggregationIntervalMinutes: z.int(),
   appIconDirectory: z.string(),
+  appInfoStaleThresholdMinutes: z.int(),
+  activeSessionAutoSaveSeconds: z.int(),
+
+  isIdleDetectionEnabled: z.boolean(),
+  idleThresholdSeconds: z.int(),
+  idleDetectionPollingIntervalSeconds: z.int(),
+
+  minValidSessionDurationSeconds: z.int(),
+  sessionMergeToleranceSeconds: z.int(),
+  sessionOptimizationIntervalSeconds: z.int(),
+
+  dayBoundaryOffsetHours: z.int(),
 });
 export type ScreenTimeUserSettingsDto = z.infer<
   typeof screenTimeUserSettingsDtoSchema
 >;
 
 export const appBehaviorUserPreferencesDtoSchema = z.object({
-  uiOpenMode: z.enum(["Window", "Browser"]),
-  autoStart: z.boolean(),
-  silentStart: z.boolean(),
+  defaultUIOpenMode: z.enum(["Window", "Browser"]),
+  isAutoStartEnabled: z.boolean(),
+  isSilentStartEnabled: z.boolean(),
   language: z.string(),
-  windowDestroyOnClose: z.boolean(),
+  shouldDestroyWindowOnClose: z.boolean(),
 });
-export type AppBehaviorUserPreferencesDto = z.infer<typeof appBehaviorUserPreferencesDtoSchema>;
+export type AppBehaviorUserPreferencesDto = z.infer<
+  typeof appBehaviorUserPreferencesDtoSchema
+>;
 
 // api 参数类型
 export const patchScreenTimeUserSettingsParamsSchema =

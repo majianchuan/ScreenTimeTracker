@@ -15,32 +15,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
-
-            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.ActivityLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("AppId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("DurationMilliseconds")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("LoggedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppId");
-
-                    b.HasIndex("LoggedAt")
-                        .IsUnique();
-
-                    b.ToTable("ScreenTime_ActivityLogs");
-                });
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.App", b =>
                 {
@@ -63,6 +38,9 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<bool>("IsAutoUpdateEnabled")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("LastAutoUpdated")
                         .HasColumnType("TEXT");
 
@@ -82,6 +60,30 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         .IsUnique();
 
                     b.ToTable("ScreenTime_Apps");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            AppCategoryId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Represents unknown or restricted apps",
+                            IsAutoUpdateEnabled = false,
+                            IsSystem = true,
+                            LastAutoUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Unknown",
+                            ProcessName = "Unknown"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            AppCategoryId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Shows when the user is idle",
+                            IsAutoUpdateEnabled = false,
+                            IsSystem = true,
+                            LastAutoUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Idle",
+                            ProcessName = "Idle"
+                        });
                 });
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.AppCategory", b =>
@@ -113,7 +115,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.AppHourlyUsage", b =>
+            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.AppUsageSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -122,20 +124,24 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<Guid>("AppId")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("DurationMilliseconds")
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsOptimized")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("Hour")
+                    b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Hour");
+                    b.HasIndex("EndTime");
 
-                    b.HasIndex("AppId", "Hour")
-                        .IsUnique();
+                    b.HasIndex("StartTime");
 
-                    b.ToTable("ScreenTime_AppHourlyUsages");
+                    b.HasIndex("AppId", "EndTime");
+
+                    b.ToTable("ScreenTime_AppUsageSessions");
                 });
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.UserSettings", b =>
@@ -144,7 +150,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("AggregationInterval")
+                    b.Property<TimeSpan>("ActiveSessionAutoSaveInterval")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AppIconDirectory")
@@ -154,13 +160,25 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<TimeSpan>("AppInfoStaleThreshold")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IdleDetection")
+                    b.Property<int>("DayBoundaryOffsetHours")
                         .HasColumnType("INTEGER");
 
-                    b.Property<TimeSpan>("IdleTimeout")
+                    b.Property<TimeSpan>("IdleDetectionPollingInterval")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("SamplingInterval")
+                    b.Property<TimeSpan>("IdleThreshold")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsIdleDetectionEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("MinValidSessionDuration")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("SessionMergeTolerance")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("SessionOptimizationInterval")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -171,24 +189,17 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            AggregationInterval = new TimeSpan(0, 1, 0, 0, 0),
+                            ActiveSessionAutoSaveInterval = new TimeSpan(0, 0, 0, 10, 0),
                             AppIconDirectory = "./Data/Icons",
                             AppInfoStaleThreshold = new TimeSpan(1, 0, 0, 0, 0),
-                            IdleDetection = false,
-                            IdleTimeout = new TimeSpan(0, 0, 10, 0, 0),
-                            SamplingInterval = new TimeSpan(0, 0, 0, 1, 0)
+                            DayBoundaryOffsetHours = 5,
+                            IdleDetectionPollingInterval = new TimeSpan(0, 0, 0, 10, 0),
+                            IdleThreshold = new TimeSpan(0, 0, 10, 0, 0),
+                            IsIdleDetectionEnabled = false,
+                            MinValidSessionDuration = new TimeSpan(0, 0, 0, 3, 0),
+                            SessionMergeTolerance = new TimeSpan(0, 0, 0, 6, 0),
+                            SessionOptimizationInterval = new TimeSpan(0, 1, 0, 0, 0)
                         });
-                });
-
-            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.ActivityLog", b =>
-                {
-                    b.HasOne("ScreenTimeTracker.Modules.ScreenTime.Domain.App", "App")
-                        .WithMany()
-                        .HasForeignKey("AppId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("App");
                 });
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.App", b =>
@@ -202,7 +213,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Navigation("AppCategory");
                 });
 
-            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.AppHourlyUsage", b =>
+            modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.AppUsageSession", b =>
                 {
                     b.HasOne("ScreenTimeTracker.Modules.ScreenTime.Domain.App", "App")
                         .WithMany()

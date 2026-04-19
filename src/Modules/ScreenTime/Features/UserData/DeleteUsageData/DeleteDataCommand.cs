@@ -4,5 +4,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserData.DeleteUsageData
 
 public record DeleteUsageDataCommand(
     DateOnly StartDate,
-    DateOnly EndDate
+    DateOnly EndDate,
+    TimeSpan MinDuration = default
 ) : IRequest;

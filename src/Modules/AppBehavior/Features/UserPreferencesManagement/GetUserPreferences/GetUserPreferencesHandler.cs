@@ -15,18 +15,18 @@ public class GetUserPreferencesHandler(
 
 
         return new GetUserPreferencesResult(
-            userPreferences.UIOpenMode switch
+            userPreferences.DefaultUIOpenMode switch
             {
                 UIOpenMode.Window => UIOpenModeDto.Window,
                 UIOpenMode.Browser => UIOpenModeDto.Browser,
                 _ => throw new ArgumentOutOfRangeException(nameof(request),
-                    userPreferences.UIOpenMode,
+                    userPreferences.DefaultUIOpenMode,
                     "Unhandled UIOpenMode value")
             },
-            userPreferences.AutoStart,
-            userPreferences.SilentStart,
+            userPreferences.IsAutoStartEnabled,
+            userPreferences.IsSilentStartEnabled,
             userPreferences.Language,
-            userPreferences.WindowDestroyOnClose
+            userPreferences.ShouldDestroyWindowOnClose
         );
     }
 }

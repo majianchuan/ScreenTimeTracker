@@ -1,9 +1,9 @@
 namespace ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 
 public record GetUserPreferencesResponse(
-    string UIOpenMode,
-    bool AutoStart,
-    bool SilentStart,
+    string DefaultUIOpenMode,
+    bool IsAutoStartEnabled,
+    bool IsSilentStartEnabled,
     string Language,
-    bool WindowDestroyOnClose
+    bool ShouldDestroyWindowOnClose
 );

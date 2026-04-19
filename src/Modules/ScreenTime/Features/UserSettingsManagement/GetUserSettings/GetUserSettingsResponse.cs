@@ -1,10 +1,17 @@
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.GetUserSettings;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.GetUserSettings;
 
 public record GetUserSettingsResponse(
-    int SamplingIntervalMilliseconds,
-    bool IdleDetection,
-    int IdleTimeoutSeconds,
+    string AppIconDirectory,
     int AppInfoStaleThresholdMinutes,
-    int AggregationIntervalMinutes,
-    string AppIconDirectory
+    int ActiveSessionAutoSaveSeconds,
+
+    bool IsIdleDetectionEnabled,
+    int IdleThresholdSeconds,
+    int IdleDetectionPollingIntervalSeconds,
+
+    int MinValidSessionDurationSeconds,
+    int SessionMergeToleranceSeconds,
+    int SessionOptimizationIntervalSeconds,
+
+    int DayBoundaryOffsetHours
 );

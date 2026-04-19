@@ -23,20 +23,20 @@ namespace ScreenTimeTracker.Modules.AppBehavior.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("AutoStart")
+                    b.Property<int>("DefaultUIOpenMode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsAutoStartEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSilentStartEnabled")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("SilentStart")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UIOpenMode")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("WindowDestroyOnClose")
+                    b.Property<bool>("ShouldDestroyWindowOnClose")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -47,11 +47,11 @@ namespace ScreenTimeTracker.Modules.AppBehavior.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            AutoStart = false,
+                            DefaultUIOpenMode = 0,
+                            IsAutoStartEnabled = false,
+                            IsSilentStartEnabled = false,
                             Language = "en-US",
-                            SilentStart = false,
-                            UIOpenMode = 0,
-                            WindowDestroyOnClose = false
+                            ShouldDestroyWindowOnClose = false
                         });
                 });
 #pragma warning restore 612, 618

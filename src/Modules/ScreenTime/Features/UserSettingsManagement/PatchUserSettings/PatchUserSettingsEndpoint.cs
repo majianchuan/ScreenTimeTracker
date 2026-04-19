@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserPreferencesManagement.PatchUserSettings;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserSettingsManagement.PatchUserSettings;
 
 public class PatchUserSettingsEndpoint(
     IMediator mediator
@@ -18,12 +18,19 @@ public class PatchUserSettingsEndpoint(
     {
         await mediator.Send(
             new PatchUserSettingsCommand(
-                SamplingInterval: req.SamplingIntervalMilliseconds is null ? null : TimeSpan.FromMilliseconds(req.SamplingIntervalMilliseconds.Value),
-                IdleDetection: req.IdleDetection,
-                IdleTimeout: req.IdleTimeoutSeconds is null ? null : TimeSpan.FromSeconds(req.IdleTimeoutSeconds.Value),
+                AppIconDirectory: req.AppIconDirectory,
                 AppInfoStaleThreshold: req.AppInfoStaleThresholdMinutes is null ? null : TimeSpan.FromMinutes(req.AppInfoStaleThresholdMinutes.Value),
-                AggregationInterval: req.AggregationIntervalMinutes is null ? null : TimeSpan.FromMinutes(req.AggregationIntervalMinutes.Value),
-                AppIconDirectory: req.AppIconDirectory
+                ActiveSessionAutoSaveInterval: req.ActiveSessionAutoSaveSeconds is null ? null : TimeSpan.FromSeconds(req.ActiveSessionAutoSaveSeconds.Value),
+
+                IsIdleDetectionEnabled: req.IsIdleDetectionEnabled,
+                IdleThreshold: req.IdleThresholdSeconds is null ? null : TimeSpan.FromSeconds(req.IdleThresholdSeconds.Value),
+                IdleDetectionPollingInterval: req.IdleDetectionPollingIntervalSeconds is null ? null : TimeSpan.FromSeconds(req.IdleDetectionPollingIntervalSeconds.Value),
+
+                MinValidSessionDuration: req.MinValidSessionDurationSeconds is null ? null : TimeSpan.FromSeconds(req.MinValidSessionDurationSeconds.Value),
+                SessionMergeTolerance: req.SessionMergeToleranceSeconds is null ? null : TimeSpan.FromSeconds(req.SessionMergeToleranceSeconds.Value),
+                SessionOptimizationInterval: req.SessionOptimizationIntervalSeconds is null ? null : TimeSpan.FromSeconds(req.SessionOptimizationIntervalSeconds.Value),
+
+                DayBoundaryOffsetHours: req.DayBoundaryOffsetHours
             ),
             cancellationToken
         );
