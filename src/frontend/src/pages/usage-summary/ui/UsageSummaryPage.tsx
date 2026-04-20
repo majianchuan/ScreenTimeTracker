@@ -28,6 +28,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { AppIcon } from "@/entities/app";
 import { AppCategoryIcon } from "@/entities/app-category";
 import { formatSeconds } from "@/shared/lib/time";
+import { screenTimeUserSettingsQueries } from "@/pages/settings-management/api/queries";
+import { startOfDay, subHours } from "date-fns";
 
 interface UsageSummaryPageProps {
   search: SearchParams;
@@ -39,11 +41,22 @@ export const UsageSummaryPage = ({
   onSearchChange,
 }: UsageSummaryPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
+  const { data: settings } = useQuery(
+    screenTimeUserSettingsQueries.screenTimeUserSettings(),
+  );
+  const offsetHours = settings?.dayBoundaryOffsetHours ?? 0;
+  const logicalTodayDateOnly = useMemo(() => {
+    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
+    return dateToDateOnly(logicalToday);
+  }, [offsetHours]);
+  const effectiveStartDate = search.startDate ?? logicalTodayDateOnly;
+  const effectiveEndDate = search.endDate ?? logicalTodayDateOnly;
+
   const { handleTimeFrameChange, handleDateRangeChange } = useDateFilter({
     currentTimeFrame: search.timeFrame,
     currentDateRange: {
-      start: dateOnlyToDate(search.startDate),
-      end: dateOnlyToDate(search.endDate),
+      start: dateOnlyToDate(effectiveStartDate),
+      end: dateOnlyToDate(effectiveEndDate),
     },
     onChange: (newTimeFrame, newDateRange) => {
       onSearchChange({
@@ -91,8 +104,8 @@ export const UsageSummaryPage = ({
   const { data: rankingData } = useQuery({
     ...usageQueries.rankings({
       dimension: search.dimension,
-      startDate: search.startDate,
-      endDate: search.endDate,
+      startDate: effectiveStartDate,
+      endDate: effectiveEndDate,
       topN: search.topN,
       excludedIds: search.excludedIds,
     }),
@@ -130,8 +143,8 @@ export const UsageSummaryPage = ({
           <DateRangeSelector
             timeFrame={search.timeFrame}
             value={{
-              start: dateOnlyToDate(search.startDate),
-              end: dateOnlyToDate(search.endDate),
+              start: dateOnlyToDate(effectiveStartDate),
+              end: dateOnlyToDate(effectiveEndDate),
             }}
             onChange={handleDateRangeChange}
           />
@@ -144,8 +157,8 @@ export const UsageSummaryPage = ({
           mode="summary"
           timeFrame={search.timeFrame}
           dimension={search.dimension}
-          startDate={search.startDate}
-          endDate={search.endDate}
+          startDate={effectiveStartDate}
+          endDate={effectiveEndDate}
           excludedIds={search.excludedIds}
         />
       </div>

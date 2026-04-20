@@ -12,6 +12,9 @@ import {
 } from "@/features/dimension-control";
 import { useEffect, useMemo } from "react";
 import { UsageOverTimeChart } from "@/widgets/usage-over-time-chart";
+import { useQuery } from "@tanstack/react-query";
+import { screenTimeUserSettingsQueries } from "@/pages/settings-management/api/queries";
+import { startOfDay, subHours } from "date-fns";
 
 interface UsageDetailsPageProps {
   search: SearchParams;
@@ -23,11 +26,22 @@ export const UsageDetailsPage = ({
   onSearchChange,
 }: UsageDetailsPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_details_page_dimension_cache";
+  const { data: settings } = useQuery(
+    screenTimeUserSettingsQueries.screenTimeUserSettings(),
+  );
+  const offsetHours = settings?.dayBoundaryOffsetHours ?? 0;
+  const logicalTodayDateOnly = useMemo(() => {
+    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
+    return dateToDateOnly(logicalToday);
+  }, [offsetHours]);
+  const effectiveStartDate = search.startDate ?? logicalTodayDateOnly;
+  const effectiveEndDate = search.endDate ?? logicalTodayDateOnly;
+
   const { handleTimeFrameChange, handleDateRangeChange } = useDateFilter({
     currentTimeFrame: search.timeFrame,
     currentDateRange: {
-      start: dateOnlyToDate(search.startDate),
-      end: dateOnlyToDate(search.endDate),
+      start: dateOnlyToDate(effectiveStartDate),
+      end: dateOnlyToDate(effectiveEndDate),
     },
     onChange: (newTimeFrame, newDateRange) => {
       onSearchChange({
@@ -101,8 +115,8 @@ export const UsageDetailsPage = ({
           <DateRangeSelector
             timeFrame={search.timeFrame}
             value={{
-              start: dateOnlyToDate(search.startDate),
-              end: dateOnlyToDate(search.endDate),
+              start: dateOnlyToDate(effectiveStartDate),
+              end: dateOnlyToDate(effectiveEndDate),
             }}
             onChange={handleDateRangeChange}
           />
@@ -115,8 +129,8 @@ export const UsageDetailsPage = ({
           mode="details"
           timeFrame={search.timeFrame}
           dimension={search.dimension}
-          startDate={search.startDate}
-          endDate={search.endDate}
+          startDate={effectiveStartDate}
+          endDate={effectiveEndDate}
           id={search.id}
         />
       </div>
