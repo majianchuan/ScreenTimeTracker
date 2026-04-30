@@ -55,9 +55,11 @@ public class WpfHostedService(
                 wpfReady.TrySetException(ex);
                 lifetime.StopApplication();
             }
-        });
+        })
+        {
+            Name = "WPF UI Thread"
+        };
         _wpfThread.SetApartmentState(ApartmentState.STA);
-        _wpfThread.Name = "WPF UI Thread";
         _wpfThread.Start();
 
         return wpfReady.Task;

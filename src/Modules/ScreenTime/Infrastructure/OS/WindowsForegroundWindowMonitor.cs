@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32.SafeHandles;
 using ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSession;
@@ -6,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Threading;

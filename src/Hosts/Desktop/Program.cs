@@ -121,7 +121,6 @@ try
     app.Lifetime.ApplicationStopped.Register(() =>
     {
         Log.Information("Application Stopped.");
-        Log.CloseAndFlush();
     });
 
     await app.WaitForShutdownAsync();
@@ -132,6 +131,10 @@ catch (Exception ex)
     MessageBox.Show("程序启动时出错，请检查日志", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     Log.CloseAndFlush();
     Environment.Exit(1);
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
 static WebApplication BuildWebApplication()

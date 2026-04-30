@@ -10,7 +10,6 @@ public record ForegroundWindowChangedCommand(
     WindowInfo? WindowInfo
 ) : IRequest;
 
-
 public class ForegroundWindowChangedHandler(
     ScreenTimeDbContext context,
     IActiveSessionStore activeSessionStore,
@@ -18,31 +17,40 @@ public class ForegroundWindowChangedHandler(
     IMediator mediator,
     TimeProvider timeProvider) : IRequestHandler<ForegroundWindowChangedCommand>
 {
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+    private static readonly SemaphoreSlim _lock = new(1, 1);
 
     public async ValueTask<Unit> Handle(ForegroundWindowChangedCommand request, CancellationToken cancellationToken)
     {
-        var now = timeProvider.GetLocalNow().DateTime;
+        await _lock.WaitAsync(cancellationToken);
 
-        Guid appId;
-        if (request.WindowInfo is null)
-            appId = App.UnknownAppId;
-        else
-            appId = await IdentifyApp(now, request.WindowInfo, cancellationToken);
-
-        if (activeSessionStore.Current is null)
+        try
         {
-            activeSessionStore.Current = new ActiveSessionState(appId, now);
+            var now = timeProvider.GetLocalNow().DateTime;
+
+            Guid appId;
+            if (request.WindowInfo is null)
+                appId = App.UnknownAppId;
+            else
+                appId = await IdentifyApp(now, request.WindowInfo, cancellationToken);
+
+            if (activeSessionStore.Current is null)
+            {
+                activeSessionStore.Current = new ActiveSessionState(appId, now);
+                return Unit.Value;
+            }
+            else if (activeSessionStore.Current.AppId == appId)
+                return Unit.Value;
+            else
+            {
+                await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
+                activeSessionStore.Current = new ActiveSessionState(appId, now);
+            }
             return Unit.Value;
         }
-        else if (activeSessionStore.Current.AppId == appId)
-            return Unit.Value;
-        else
+        finally
         {
-            await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
-            activeSessionStore.Current = new ActiveSessionState(appId, now);
+            _lock.Release();
         }
-        return Unit.Value;
     }
 
 
@@ -53,9 +61,6 @@ public class ForegroundWindowChangedHandler(
     {
         string processName = windowInfo.ProcessName;
         string? executablePath = windowInfo.ExecutablePath;
-
-        var sem = _locks.GetOrAdd(processName, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync(cancellationToken);
 
         UserSettings settings = await context.UserSettings
             .AsNoTracking().SingleAsync(cancellationToken: cancellationToken);
@@ -94,7 +99,6 @@ public class ForegroundWindowChangedHandler(
                 await context.SaveChangesAsync(cancellationToken);
             }
         }
-        sem.Release();
         return app.Id;
     }
 

@@ -17,3 +17,9 @@ GetForegroundWindow
 GetWindowThreadProcessId
 GetLastInputInfo
 GetTickCount
+WNDCLASSEXW
+CreateWindowEx
+RegisterClassEx
+DefWindowProc
+GetModuleHandle
+DestroyWindow

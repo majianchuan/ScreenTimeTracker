@@ -31,7 +31,27 @@ public class ActiveSessionTracker(
 
         foregroundWindowMonitor.ForegroundWindowChanged += OnForegroundWindowChanged;
 
+        var idleDetectionTask = RunIdleDetectionLoopAsync(cancellationToken);
+        var timeJumpDetectionTask = RunSystemSuspendResumeDetectionLoopAsync(cancellationToken);
+
+        await Task.WhenAll(idleDetectionTask, timeJumpDetectionTask);
+
         // 空闲检测循环
+        foregroundWindowMonitor.ForegroundWindowChanged -= OnForegroundWindowChanged;
+
+        // 退出时保存当前会话数据
+        if (activeSessionStore.Current is null) return;
+        using (var scope = scopeFactory.CreateScope())
+        {
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
+            activeSessionStore.Current = null;
+        }
+    }
+
+    // 空闲检测循环
+    private async Task RunIdleDetectionLoopAsync(CancellationToken cancellationToken)
+    {
         var settings = await GetUserSettingsAsync(cancellationToken);
         using var timer = new PeriodicTimer(settings.IdleDetectionPollingInterval);
         try
@@ -42,8 +62,12 @@ public class ActiveSessionTracker(
                 if (latestSettings.IdleDetectionPollingInterval != settings.IdleDetectionPollingInterval)
                     timer.Period = latestSettings.IdleDetectionPollingInterval;
 
-                // 后续要用到 settings 中的 IdleThreshold，这里一定更新
+                // 后续要用到 settings 中的其他属性，这里一定更新
                 settings = latestSettings;
+
+                // 空闲检测未启用，跳过
+                if (!settings.IsIdleDetectionEnabled)
+                    continue;
 
                 var now = timeProvider.GetLocalNow().DateTime;
                 var systemIdleTime = await idleTimeProvider.GetSystemIdleTimeAsync();
@@ -78,16 +102,35 @@ public class ActiveSessionTracker(
         }
         catch (OperationCanceledException) { }
 
-        foregroundWindowMonitor.ForegroundWindowChanged -= OnForegroundWindowChanged;
+    }
 
-        // 退出时保存当前会话数据
-        if (activeSessionStore.Current is null) return;
-        using (var scope = scopeFactory.CreateScope())
+    // 系统睡眠/恢复检测循环
+    private async Task RunSystemSuspendResumeDetectionLoopAsync(CancellationToken cancellationToken)
+    {
+        var pollingInterval = TimeSpan.FromSeconds(1);
+        var jumpThreshold = TimeSpan.FromSeconds(3);
+
+        using var timer = new PeriodicTimer(pollingInterval);
+        var lastTickTime = timeProvider.GetLocalNow().DateTime;
+        try
         {
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
-            activeSessionStore.Current = null;
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                var currentTickTime = timeProvider.GetLocalNow().DateTime;
+                var timeElapsed = currentTickTime - lastTickTime;
+
+                if (timeElapsed > jumpThreshold)
+                {
+                    logger.LogWarning("System likely suspended at {SuspendTime} and resumed.", lastTickTime);
+                    using var scope = scopeFactory.CreateScope();
+                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                    await mediator.Send(new SystemResumeFromSuspendCommand(lastTickTime), cancellationToken);
+                }
+
+                lastTickTime = currentTickTime;
+            }
         }
+        catch (OperationCanceledException) { }
     }
 
     private async void OnForegroundWindowChanged(object? sender, WindowInfo? windowInfo)
