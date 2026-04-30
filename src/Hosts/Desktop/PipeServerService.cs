@@ -1,4 +1,6 @@
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -16,8 +18,25 @@ public class PipeServerService(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var server = new NamedPipeServerStream(PipeName);
+            var pipeSecurity = new PipeSecurity();
 
+            // 允许所有用户读写
+            pipeSecurity.AddAccessRule(new PipeAccessRule(
+                new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                PipeAccessRights.ReadWrite,
+                AccessControlType.Allow
+            ));
+
+            using var server = NamedPipeServerStreamAcl.Create(
+                pipeName: PipeName,
+                direction: PipeDirection.InOut,
+                maxNumberOfServerInstances: 1,
+                transmissionMode: PipeTransmissionMode.Byte,
+                options: PipeOptions.Asynchronous,
+                inBufferSize: 0,
+                outBufferSize: 0,
+                pipeSecurity: pipeSecurity
+            );
             await server.WaitForConnectionAsync(stoppingToken);
 
             byte[] buffer = new byte[256];

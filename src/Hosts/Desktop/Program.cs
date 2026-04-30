@@ -16,9 +16,11 @@ using Mediator;
 using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 using System.IO.Pipes;
 using System.Text;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 
-string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
+string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
 Mutex? mutex;
 
 // 切换工作目录为程序所在目录
@@ -55,7 +57,17 @@ try
     // 单实例检查，防止重复运行
     try
     {
-        mutex = new(true, MutexName, out bool createdNew);
+        var mutexSecurity = new MutexSecurity();
+
+        // 允许所有用户读取/修改 Mutex 状态
+        mutexSecurity.AddAccessRule(new MutexAccessRule(
+            new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+            MutexRights.FullControl,
+            AccessControlType.Allow
+        ));
+        mutex = new Mutex(false, MutexName, out _);
+        mutex.SetAccessControl(mutexSecurity);
+        bool createdNew = mutex.WaitOne(0);
         if (!createdNew)
         {
             Log.Information("Application is already running. Exiting...");

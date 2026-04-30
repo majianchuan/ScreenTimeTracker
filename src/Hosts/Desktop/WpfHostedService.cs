@@ -10,8 +10,9 @@ public class WpfHostedService(
 {
     private Thread? _wpfThread;
     private App? _wpfApp;
-    private bool _isExitInitiatedByHost = false;
-    private bool _isExitInitiatedByEndSession = false;
+    private volatile bool _isExitInitiatedByHost = false;
+    private volatile bool _isExitInitiatedByEndSession = false;
+    private readonly TaskCompletionSource _hostStopped = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     public Task StartedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -30,8 +31,9 @@ public class WpfHostedService(
                 {
                     _isExitInitiatedByEndSession = true;
                     logger.LogInformation("WPF Session Ending. Stopping WebHost...");
+                    lifetime.StopApplication();
                     // 关机时阻塞等待 WebHost 停止
-                    Task.Run(() => lifetime.StopApplication()).Wait();
+                    _hostStopped.Task.Wait(TimeSpan.FromSeconds(3));
                 };
 
                 _wpfApp.Exit += (_, _) =>
@@ -61,16 +63,13 @@ public class WpfHostedService(
         return wpfReady.Task;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-    public Task StoppedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    public async Task StoppingAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         _isExitInitiatedByHost = true;
-        if (_wpfApp is not null && !_wpfApp.Dispatcher.HasShutdownStarted)
+        if (!_isExitInitiatedByEndSession && _wpfApp is not null && !_wpfApp.Dispatcher.HasShutdownStarted)
             await _wpfApp.Dispatcher.InvokeAsync(_wpfApp.Shutdown);
-        if (_wpfThread is not null && _wpfThread.IsAlive)
-            await Task.Run(() => _wpfThread?.Join(TimeSpan.FromSeconds(3)));
-        return;
     }
+
+    public async Task StoppedAsync(CancellationToken cancellationToken) => _hostStopped.TrySetResult();
+    public Task StoppingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
