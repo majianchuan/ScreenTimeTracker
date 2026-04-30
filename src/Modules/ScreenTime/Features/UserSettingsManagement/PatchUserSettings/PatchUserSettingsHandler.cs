@@ -27,8 +27,15 @@ public class PatchUserSettingsHandler(
         if (request.IdleDetectionPollingInterval is not null)
             userSettings.UpdateIdleDetectionPollingInterval(request.IdleDetectionPollingInterval.Value);
 
+        if (request.MinValidSessionDuration is not null)
+            userSettings.UpdateMinValidSessionDuration(request.MinValidSessionDuration.Value);
+        if (request.SessionMergeTolerance is not null)
+            userSettings.UpdateSessionMergeTolerance(request.SessionMergeTolerance.Value);
+        if (request.SessionOptimizationInterval is not null)
+            userSettings.UpdateSessionOptimizationInterval(request.SessionOptimizationInterval.Value);
+
         if (request.DayBoundaryOffsetHours is not null)
-            userSettings.UpdateDayBoundaryOffsetHours(request.DayBoundaryOffsetHours.Value);
+            userSettings.UpdateDayCutoffHour(request.DayBoundaryOffsetHours.Value);
 
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;

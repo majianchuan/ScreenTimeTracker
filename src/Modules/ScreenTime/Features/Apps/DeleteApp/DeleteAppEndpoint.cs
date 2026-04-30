@@ -9,7 +9,7 @@ public class DeleteAppEndpoint(
 {
     public override void Configure()
     {
-        Delete("apps/{Id}");
+        Delete("apps/{appId}");
         Group<ScreenTimeGroup>();
         AllowAnonymous();
     }
@@ -18,7 +18,7 @@ public class DeleteAppEndpoint(
     {
         await mediator.Send(
             new DeleteAppCommand(
-                Id: req.Id
+                AppId: req.AppId
             ),
             cancellationToken
         );

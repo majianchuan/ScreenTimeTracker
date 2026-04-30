@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
@@ -17,6 +18,8 @@ public class ForegroundWindowChangedHandler(
     IMediator mediator,
     TimeProvider timeProvider) : IRequestHandler<ForegroundWindowChangedCommand>
 {
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+
     public async ValueTask<Unit> Handle(ForegroundWindowChangedCommand request, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetLocalNow().DateTime;
@@ -26,7 +29,6 @@ public class ForegroundWindowChangedHandler(
             appId = App.UnknownAppId;
         else
             appId = await IdentifyApp(now, request.WindowInfo, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
 
         if (activeSessionStore.Current is null)
         {
@@ -51,6 +53,10 @@ public class ForegroundWindowChangedHandler(
     {
         string processName = windowInfo.ProcessName;
         string? executablePath = windowInfo.ExecutablePath;
+
+        var sem = _locks.GetOrAdd(processName, _ => new SemaphoreSlim(1, 1));
+        await sem.WaitAsync(cancellationToken);
+
         UserSettings settings = await context.UserSettings
             .AsNoTracking().SingleAsync(cancellationToken: cancellationToken);
         App? app = await context.Apps
@@ -70,6 +76,7 @@ public class ForegroundWindowChangedHandler(
                 app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Description);
             }
             context.Apps.Add(app);
+            await context.SaveChangesAsync(cancellationToken);
         }
         // 已有 App 信息
         else
@@ -84,8 +91,10 @@ public class ForegroundWindowChangedHandler(
                     string? iconPath = await EnsureIconUpdated(app, metadata, settings, cancellationToken);
                     app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Description);
                 }
+                await context.SaveChangesAsync(cancellationToken);
             }
         }
+        sem.Release();
         return app.Id;
     }
 

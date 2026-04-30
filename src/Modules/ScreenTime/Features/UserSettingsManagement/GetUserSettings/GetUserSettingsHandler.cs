@@ -26,7 +26,7 @@ public class GetUserSettingsHandler(
             SessionMergeTolerance: userSettings.SessionMergeTolerance,
             SessionOptimizationInterval: userSettings.SessionOptimizationInterval,
 
-            DayBoundaryOffsetHours: userSettings.DayBoundaryOffsetHours
+            DayCutoffHour: userSettings.DayCutoffHour
         );
     }
 }

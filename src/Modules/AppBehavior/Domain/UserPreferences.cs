@@ -26,7 +26,7 @@ public class UserPreferences : Entity
         IsAutoStartEnabled = false,
         IsSilentStartEnabled = false,
         Language = "en-US",
-        ShouldDestroyWindowOnClose = false,
+        ShouldDestroyWindowOnClose = true,
     };
 
     public void UpdateUIOpenMode(UIOpenMode uiOpenMode) => DefaultUIOpenMode = uiOpenMode;

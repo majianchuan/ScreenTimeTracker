@@ -9,7 +9,7 @@ public class DeleteAppCategoryEndpoint(
 {
     public override void Configure()
     {
-        Delete("app-categories/{Id}");
+        Delete("app-categories/{appCategoryId}");
         Group<ScreenTimeGroup>();
         AllowAnonymous();
     }
@@ -18,7 +18,7 @@ public class DeleteAppCategoryEndpoint(
     {
         await mediator.Send(
             new DeleteAppCategoryCommand(
-                Id: req.Id
+                AppCategoryId: req.AppCategoryId
             ),
             cancellationToken
         );

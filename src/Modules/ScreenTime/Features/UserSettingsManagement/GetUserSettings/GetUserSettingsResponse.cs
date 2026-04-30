@@ -11,7 +11,7 @@ public record GetUserSettingsResponse(
 
     int MinValidSessionDurationSeconds,
     int SessionMergeToleranceSeconds,
-    int SessionOptimizationIntervalSeconds,
+    int SessionOptimizationIntervalMinutes,
 
-    int DayBoundaryOffsetHours
+    int DayCutoffHour
 );

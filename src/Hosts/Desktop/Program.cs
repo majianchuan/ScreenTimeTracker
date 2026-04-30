@@ -14,10 +14,11 @@ using System.Net;
 using System.Windows;
 using Mediator;
 using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
-using System.Diagnostics;
+using System.IO.Pipes;
+using System.Text;
 
-//==========================================================
-string MutexName = @"Local\1ScreenTimeTrackerDesktopUniqueMutexName";
+
+string MutexName = @"Local\ScreenTimeTrackerDesktopUniqueMutexName";
 Mutex? mutex;
 
 // 切换工作目录为程序所在目录
@@ -26,6 +27,7 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 // 临时日志配置
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
+    .WriteTo.Console()
     .WriteTo.File(
         "./startup.log",
         shared: true,
@@ -57,7 +59,18 @@ try
         if (!createdNew)
         {
             Log.Information("Application is already running. Exiting...");
-            MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            try
+            {
+                using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
+                client.Connect(1000);
+                byte[] msg = Encoding.UTF8.GetBytes("SHOW");
+                client.Write(msg, 0, msg.Length);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to connect to pipe server.");
+                MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             Log.CloseAndFlush();
             return;
         }
@@ -88,12 +101,18 @@ try
 
     // 初始化托盘图标
     var trayService = app.Services.GetRequiredService<TrayService>();
-    _ = trayService.InitializeAsync(serverUrl);
+    _ = trayService.InitializeAsync();
     // 非静默启动时打开UI
     _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
     // 等待应用关闭
+
+    app.Lifetime.ApplicationStopped.Register(() =>
+    {
+        Log.Information("Application Stopped.");
+        Log.CloseAndFlush();
+    });
+
     await app.WaitForShutdownAsync();
-    Log.Information("Application Stopped.");
 }
 catch (Exception ex)
 {
@@ -102,9 +121,6 @@ catch (Exception ex)
     Log.CloseAndFlush();
     Environment.Exit(1);
 }
-
-Log.CloseAndFlush();
-
 
 static WebApplication BuildWebApplication()
 {
@@ -130,13 +146,17 @@ static WebApplication BuildWebApplication()
     builder.Services.AddOpenApi();
     builder.Services.AddFastEndpoints();
     builder.Services.AddCors();
+    builder.Services.AddSingleton<IServerUrlProvider, ServerUrlProvider>();
     // WPF
     builder.Services.AddHostedService<WpfHostedService>();
-    builder.Services.AddTransient<ViewFactory>();
+    builder.Services.AddTransient<IViewFactory, ViewFactory>();
+    builder.Services.AddSingleton<IAppUIManager, AppUIManager>();
     builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
     builder.Services.Configure<WebViewOptions>(builder.Configuration.GetSection(WebViewOptions.SectionName));
     // 托盘服务
     builder.Services.AddSingleton<TrayService>();
+    // 管道服务
+    builder.Services.AddHostedService<PipeServerService>();
     // 模块注册
     builder.Services.AddScreenTimeServices(builder.Configuration);
     builder.Services.AddAppBehaviorServices(builder.Configuration);
@@ -169,24 +189,7 @@ static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverU
     GetUserPreferencesResult userSettings = await mediator.Send(new GetUserPreferencesQuery());
     if (!userSettings.IsSilentStartEnabled)
     {
-        if (userSettings.DefaultUIOpenMode == UIOpenModeDto.Browser)
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = serverUrl,
-                UseShellExecute = true
-            });
-        }
-        else
-        {
-            await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                var viewFactory = app.Services.GetRequiredService<ViewFactory>();
-                var mainView = viewFactory.Create<MainView>();
-                mainView.LoadUrl(serverUrl);
-                mainView.Show();
-                Application.Current.MainWindow = mainView;
-            });
-        }
+        var appUIManager = scope.ServiceProvider.GetRequiredService<IAppUIManager>();
+        await appUIManager.OpenUIAsync();
     }
 }

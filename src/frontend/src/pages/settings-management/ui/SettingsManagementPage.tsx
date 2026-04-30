@@ -1,11 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  screenTimeUserSettingsQueries,
-  appBehaviorUserPreferencesQueries,
-  usePatchScreenTimeUserSettings,
-  usePatchAppBehaviorUserPreferences,
-} from "../api/queries";
-import {
   FieldLegend,
   FieldSet,
   FieldSeparator,
@@ -33,7 +27,14 @@ import {
 import { BlurInput } from "@/shared/ui/BlurInput";
 import { CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
-import { useUsageConfig } from "@/entities/usage";
+import {
+  screenTimeUserSettingsQueries,
+  usePatchScreenTimeUserSettings,
+} from "@/entities/screen-time-user-settings";
+import {
+  appBehaviorUserPreferencesQueries,
+  usePatchAppBehaviorUserPreferences,
+} from "@/entities/app-behavior-user-preferences";
 
 export const SettingsManagementPage = () => {
   const { data: screenTimeUserSettingsDtoData } = useQuery(
@@ -48,8 +49,6 @@ export const SettingsManagementPage = () => {
     usePatchAppBehaviorUserPreferences();
   const [autoStartAlertDialogOpen, setAutoStartAlertDialogOpen] =
     useState(false);
-  const { refetchIntervalSeconds, setRefetchIntervalSeconds } =
-    useUsageConfig();
 
   return (
     <>
@@ -472,33 +471,31 @@ export const SettingsManagementPage = () => {
             </Field>
             <Field orientation="horizontal">
               <FieldLabel>
-                日期边界偏移小时
+                日期切换小时
                 <Tooltip>
                   <TooltipTrigger>
                     <CircleQuestionMark className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>定义了一天的开始时间偏移量</p>
+                    <p>定义了这一天从几点开始，到第二天几点结束</p>
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
               <BlurInput
                 className="w-30"
                 type="number"
-                value={
-                  screenTimeUserSettingsDtoData?.dayBoundaryOffsetHours ?? 60
-                }
+                value={screenTimeUserSettingsDtoData?.dayCutoffHour ?? 60}
                 onBlurUpdate={async (value: number) => {
                   if (!value) return;
                   await patchScreenTimeUserSettingsAsync({
-                    dayBoundaryOffsetHours: value,
+                    dayCutoffHour: value,
                   });
                 }}
               />
             </Field>
           </FieldGroup>
         </FieldSet>
-        <FieldSeparator />
+        {/* <FieldSeparator />
         <FieldSet>
           <FieldLegend>界面</FieldLegend>
           <FieldGroup>
@@ -528,7 +525,7 @@ export const SettingsManagementPage = () => {
               />
             </Field>
           </FieldGroup>
-        </FieldSet>
+        </FieldSet> */}
       </FieldGroup>
     </>
   );

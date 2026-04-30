@@ -160,7 +160,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<TimeSpan>("AppInfoStaleThreshold")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DayBoundaryOffsetHours")
+                    b.Property<int>("DayCutoffHour")
                         .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("IdleDetectionPollingInterval")
@@ -192,13 +192,13 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                             ActiveSessionAutoSaveInterval = new TimeSpan(0, 0, 0, 10, 0),
                             AppIconDirectory = "./Data/Icons",
                             AppInfoStaleThreshold = new TimeSpan(1, 0, 0, 0, 0),
-                            DayBoundaryOffsetHours = 5,
+                            DayCutoffHour = 5,
                             IdleDetectionPollingInterval = new TimeSpan(0, 0, 0, 10, 0),
                             IdleThreshold = new TimeSpan(0, 0, 10, 0, 0),
                             IsIdleDetectionEnabled = false,
                             MinValidSessionDuration = new TimeSpan(0, 0, 0, 3, 0),
                             SessionMergeTolerance = new TimeSpan(0, 0, 0, 6, 0),
-                            SessionOptimizationInterval = new TimeSpan(0, 1, 0, 0, 0)
+                            SessionOptimizationInterval = new TimeSpan(0, 0, 10, 0, 0)
                         });
                 });
 

@@ -1,32 +1,23 @@
 using H.NotifyIcon.Core;
-using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 using System.Diagnostics;
 using System.Drawing;
-using System.Windows;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
 
 public class TrayService(
     ILogger<TrayService> logger,
-    IServiceScopeFactory scopeFactory,
-    ViewFactory viewFactory,
+    IAppUIManager appUIManager,
     IHostApplicationLifetime lifetime) : IDisposable
 {
-    private string _uiUrl = string.Empty;
     private Icon? _iconHandle;
     private TrayIconWithContextMenu? _trayIcon;
 
-    public async Task InitializeAsync(string uiUrl, CancellationToken cancellationToken = default)
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         if (_trayIcon is not null) return;
-
-        _uiUrl = string.IsNullOrWhiteSpace(uiUrl)
-            ? throw new ArgumentException("UI URL cannot be null or empty.", nameof(uiUrl))
-            : uiUrl;
 
         using var iconStream = typeof(App).Assembly.GetManifestResourceStream("ScreenTimeTracker.Hosts.Desktop.Resources.Icon.ico")
             ?? throw new InvalidOperationException("Icon resource not found.");
@@ -76,6 +67,9 @@ public class TrayService(
         }
     }
 
+    public void Show() => _trayIcon?.Show();
+
+    public void Hide() => _trayIcon?.Hide();
 
     private static void OpenAppDirectory()
     {
@@ -86,19 +80,6 @@ public class TrayService(
         });
     }
 
-    private void OpenUIInBrowser()
-    {
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = _uiUrl,
-            UseShellExecute = true
-        });
-    }
-
-    public void Show() => _trayIcon?.Show();
-
-    public void Hide() => _trayIcon?.Hide();
-
     private void ExitApplication()
     {
         lifetime.StopApplication();
@@ -108,13 +89,7 @@ public class TrayService(
     {
         try
         {
-            using var scope = scopeFactory.CreateScope();
-            var settings = await scope.ServiceProvider.GetRequiredService<IMediator>().Send(new GetUserPreferencesQuery());
-
-            if (settings.DefaultUIOpenMode == UIOpenModeDto.Browser)
-                OpenUIInBrowser();
-            else
-                OpenUIInWindow();
+            await appUIManager.OpenUIAsync();
         }
         catch (Exception ex)
         {
@@ -122,31 +97,28 @@ public class TrayService(
         }
     }
 
-    private void OpenUIInWindow()
+    private async void OpenUIInBrowser()
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        try
         {
-            if (Application.Current.MainWindow is not MainView mainView)
-            {
-                mainView = viewFactory.Create<MainView>();
-                mainView.LoadUrl(_uiUrl);
-                Application.Current.MainWindow = mainView;
-            }
-            else if (mainView.WindowState == WindowState.Minimized)
-            {
-                mainView.WindowState = WindowState.Normal;
-            }
+            await appUIManager.OpenUIInBrowserAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to open UI in browser.");
+        }
+    }
 
-            mainView.Show();
-            mainView.Activate();
-
-            // 解决 Windows 偶尔不置顶的问题
-            if (!mainView.Topmost)
-            {
-                mainView.Topmost = true;
-                mainView.Topmost = false;
-            }
-        });
+    private async void OpenUIInWindow()
+    {
+        try
+        {
+            await appUIManager.OpenUIInWindowAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to open UI in window.");
+        }
     }
 
     public void Dispose()

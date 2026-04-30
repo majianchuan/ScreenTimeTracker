@@ -14,10 +14,10 @@ public class CreateAppCategoryHandler(
         context.AppCategories.Add(appCategory);
         await context.SaveChangesAsync(cancellationToken);
         return new CreateAppCategoryResponse(
-            Id: appCategory.Id,
-            Name: appCategory.Name,
-            IconPath: appCategory.IconPath,
-            IsSystem: appCategory.IsSystem
+            appCategory.Id,
+            appCategory.Name,
+            appCategory.IconPath,
+            appCategory.IsSystem
         );
     }
 }

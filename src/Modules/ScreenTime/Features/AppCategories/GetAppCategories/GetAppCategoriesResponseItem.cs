@@ -3,6 +3,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCate
 public record GetAppCategoriesResponseItem(
     Guid Id,
     string Name,
-    string IconPath,
+    string? IconPath,
     bool IsSystem
 );

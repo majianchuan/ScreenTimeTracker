@@ -21,12 +21,12 @@ public class GetAppsEndpoint(
 
     public override async Task HandleAsync(GetAppsRequest req, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(
+        var apps = await mediator.Send(
             new GetAppsQuery(
                 req.Fields
             ),
             cancellationToken
         );
-        await Send.OkAsync(result, cancellationToken);
+        await Send.OkAsync(apps, cancellationToken);
     }
 }

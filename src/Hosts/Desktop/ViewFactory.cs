@@ -3,7 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ScreenTimeTracker.Hosts.Desktop;
 
-public class ViewFactory(IServiceProvider provider)
+public interface IViewFactory
+{
+    T Create<T>() where T : Window;
+}
+
+public class ViewFactory(IServiceProvider provider) : IViewFactory
 {
     private readonly IServiceProvider _provider = provider;
 

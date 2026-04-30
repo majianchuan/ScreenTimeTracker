@@ -26,8 +26,8 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { screenTimeUserSettingsQueries } from "@/pages/settings-management/api/queries";
 import { useQuery } from "@tanstack/react-query";
+import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
 
 export type DateRangeSelectorProps = {
   className?: string;
@@ -45,8 +45,7 @@ export const DateRangeSelector = ({
   const { data: screenTimeUserSettingsDtoData } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
   );
-  const offsetHours =
-    screenTimeUserSettingsDtoData?.dayBoundaryOffsetHours ?? 0;
+  const offsetHours = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
 
   const shiftDateRange = (direction: "forward" | "backward") => {
     const logicalToday = startOfDay(subHours(new Date(), offsetHours));

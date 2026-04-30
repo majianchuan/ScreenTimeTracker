@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Mediator;
 using Microsoft.AspNetCore.StaticFiles;
+using ScreenTimeTracker.Modules.ScreenTime.Features.Apps.GetApp;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.Apps.GetAppIcon;
 
@@ -10,17 +11,18 @@ public class GetAppIconEndpoint(
 {
     public override void Configure()
     {
-        Get("apps/{id}/icon");
+        Get("apps/{appId}/icon");
         Group<ScreenTimeGroup>();
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetAppIconRequest req, CancellationToken cancellationToken)
     {
-        string? iconPath = await mediator.Send(
-            new GetAppIconPathQuery(req.Id),
+        var app = await mediator.Send(
+            new GetAppQuery(req.AppId),
             cancellationToken
         );
+        var iconPath = app?.IconPath;
 
         if (string.IsNullOrEmpty(iconPath) || !File.Exists(iconPath))
         {

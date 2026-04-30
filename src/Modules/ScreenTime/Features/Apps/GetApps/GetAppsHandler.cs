@@ -22,7 +22,8 @@ public class GetAppsHandler(
         { nameof(GetAppsResponseItem.AppCategoryId), [nameof(App.AppCategoryId)] },
         { nameof(GetAppsResponseItem.ExecutablePath), [nameof(App.ExecutablePath)] },
         { nameof(GetAppsResponseItem.IconPath), [nameof(App.IconPath)] },
-        { nameof(GetAppsResponseItem.Description), [nameof(App.Description)] }
+        { nameof(GetAppsResponseItem.Description), [nameof(App.Description)] },
+        { nameof(GetAppsResponseItem.IsSystem), [nameof(App.IsSystem)] }
     };
 
     // 各字段的计算方式字典
@@ -37,6 +38,7 @@ public class GetAppsHandler(
         [nameof(GetAppsResponseItem.IconPath)] = e => e.IconPath,
         [nameof(GetAppsResponseItem.ExecutablePath)] = e => e.ExecutablePath,
         [nameof(GetAppsResponseItem.Description)] = e => e.Description,
+        [nameof(GetAppsResponseItem.IsSystem)] = e => e.IsSystem,
     };
 
     public async ValueTask<List<Dictionary<string, object?>>> Handle(GetAppsQuery request, CancellationToken cancellationToken)

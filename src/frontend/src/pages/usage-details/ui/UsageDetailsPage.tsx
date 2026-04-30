@@ -11,10 +11,10 @@ import {
   useDimensionControl,
 } from "@/features/dimension-control";
 import { useEffect, useMemo } from "react";
-import { UsageOverTimeChart } from "@/widgets/usage-over-time-chart";
 import { useQuery } from "@tanstack/react-query";
-import { screenTimeUserSettingsQueries } from "@/pages/settings-management/api/queries";
 import { startOfDay, subHours } from "date-fns";
+import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
+import { UsageChart } from "@/features/usage-chart";
 
 interface UsageDetailsPageProps {
   search: SearchParams;
@@ -29,7 +29,7 @@ export const UsageDetailsPage = ({
   const { data: settings } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
   );
-  const offsetHours = settings?.dayBoundaryOffsetHours ?? 0;
+  const offsetHours = settings?.dayCutoffHour ?? 0;
   const logicalTodayDateOnly = useMemo(() => {
     const logicalToday = startOfDay(subHours(new Date(), offsetHours));
     return dateToDateOnly(logicalToday);
@@ -124,15 +124,24 @@ export const UsageDetailsPage = ({
       </div>
 
       <div className="border-border mt-4 rounded-lg border p-3">
-        <UsageOverTimeChart
-          className="h-80! w-full"
-          mode="details"
-          timeFrame={search.timeFrame}
-          dimension={search.dimension}
-          startDate={effectiveStartDate}
-          endDate={effectiveEndDate}
-          id={search.id}
-        />
+        {search.id ? (
+          <UsageChart
+            type={search.dimension}
+            granularity={search.timeFrame === "day" ? "hour" : "day"}
+            xAxisType={
+              search.timeFrame === "day"
+                ? "hour"
+                : search.timeFrame === "week"
+                  ? "week"
+                  : "day"
+            }
+            startDate={effectiveStartDate}
+            endDate={effectiveEndDate}
+            includedIds={[search.id]}
+          />
+        ) : (
+          <div className="text-center">请选择查看项</div>
+        )}
       </div>
     </>
   );

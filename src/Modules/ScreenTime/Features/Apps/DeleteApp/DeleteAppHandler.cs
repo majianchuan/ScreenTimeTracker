@@ -11,13 +11,13 @@ public class DeleteAppHandler(
 {
     public async ValueTask<Unit> Handle(DeleteAppCommand request, CancellationToken cancellationToken)
     {
-        App? App = await context.Apps.FindAsync([request.Id], cancellationToken);
+        App? App = await context.Apps.FindAsync([request.AppId], cancellationToken);
         if (App is null)
             return Unit.Value;
 
         // 把所有 App 的数据都删除
         await context.AppUsageSessions
-            .Where(log => log.AppId == request.Id)
+            .Where(log => log.AppId == request.AppId)
             .ExecuteDeleteAsync(cancellationToken);
 
         context.Apps.Remove(App);

@@ -11,7 +11,6 @@ import {
   useDimensionControl,
 } from "@/features/dimension-control";
 import { useEffect, useMemo } from "react";
-import { UsageOverTimeChart } from "@/widgets/usage-over-time-chart";
 import {
   SelectTrigger,
   SelectContent,
@@ -19,17 +18,14 @@ import {
   SelectValue,
   SelectItem,
   SelectGroup,
-  Button,
-  Progress,
 } from "@/shared/lib/shadcn";
 import { useQuery } from "@tanstack/react-query";
-import { usageQueries, useUsageConfig } from "@/entities/usage";
 import { useNavigate } from "@tanstack/react-router";
-import { AppIcon } from "@/entities/app";
-import { AppCategoryIcon } from "@/entities/app-category";
-import { formatSeconds } from "@/shared/lib/time";
-import { screenTimeUserSettingsQueries } from "@/pages/settings-management/api/queries";
 import { startOfDay, subHours } from "date-fns";
+import { UsageRanking } from "@/features/usage-ranking";
+import { UsageTimeline } from "@/features/usage-timeline";
+import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
+import { UsageChart } from "@/features/usage-chart";
 
 interface UsageSummaryPageProps {
   search: SearchParams;
@@ -44,7 +40,7 @@ export const UsageSummaryPage = ({
   const { data: settings } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
   );
-  const offsetHours = settings?.dayBoundaryOffsetHours ?? 0;
+  const offsetHours = settings?.dayCutoffHour ?? 0;
   const logicalTodayDateOnly = useMemo(() => {
     const logicalToday = startOfDay(subHours(new Date(), offsetHours));
     return dateToDateOnly(logicalToday);
@@ -66,7 +62,6 @@ export const UsageSummaryPage = ({
       });
     },
   });
-  const { refetchIntervalSeconds } = useUsageConfig();
 
   const getSavedDimensionCache = () => {
     if (typeof window === "undefined") return {};
@@ -101,16 +96,6 @@ export const UsageSummaryPage = ({
   });
 
   const navigate = useNavigate();
-  const { data: rankingData } = useQuery({
-    ...usageQueries.rankings({
-      dimension: search.dimension,
-      startDate: effectiveStartDate,
-      endDate: effectiveEndDate,
-      topN: search.topN,
-      excludedIds: search.excludedIds,
-    }),
-    refetchInterval: refetchIntervalSeconds * 1000,
-  });
 
   return (
     <>
@@ -151,18 +136,39 @@ export const UsageSummaryPage = ({
         </div>
       </div>
 
+      {/* 使用时间柱状图 */}
       <div className="border-border mt-4 rounded-lg border p-3">
-        <UsageOverTimeChart
-          className="h-80! w-full"
-          mode="summary"
-          timeFrame={search.timeFrame}
-          dimension={search.dimension}
+        <UsageChart
+          type={search.dimension}
+          granularity={search.timeFrame === "day" ? "hour" : "day"}
+          xAxisType={
+            search.timeFrame === "day"
+              ? "hour"
+              : search.timeFrame === "week"
+                ? "week"
+                : "day"
+          }
           startDate={effectiveStartDate}
           endDate={effectiveEndDate}
           excludedIds={search.excludedIds}
         />
       </div>
 
+      {/* 日使用时间线 */}
+      {search.timeFrame === "day" ? (
+        <div className="border-border mt-4 rounded-lg border p-3">
+          <UsageTimeline
+            className="h-30! w-full"
+            type={search.dimension}
+            date={effectiveStartDate}
+            excludedIds={search.excludedIds}
+          />
+        </div>
+      ) : (
+        <></>
+      )}
+
+      {/* 使用排名 */}
       <div className="border-border mt-4 rounded-lg border p-3">
         <div className="flex flex-row justify-end">
           <Select
@@ -181,51 +187,26 @@ export const UsageSummaryPage = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-2 flex flex-col gap-1">
-          {rankingData?.map((item) => (
-            <Button
-              variant="ghost"
-              className="flex h-auto w-full flex-row px-2.5 py-1"
-              key={`${search.dimension}-${item.id}`}
-              onClick={() =>
-                navigate({
-                  to: "/usage/details",
-                  search: {
-                    dimension: search.dimension,
-                    id: item.id,
-                    timeFrame: search.timeFrame,
-                    startDate: search.startDate,
-                    endDate: search.endDate,
-                  },
-                })
-              }
-            >
-              {search.dimension === "app" ? (
-                <AppIcon
-                  className="size-8"
-                  id={item.id}
-                  iconPath={item.iconPath}
-                />
-              ) : (
-                <AppCategoryIcon
-                  className="size-8"
-                  id={item.id}
-                  iconPath={item.iconPath}
-                />
-              )}
-              <div className="flex flex-1 flex-col">
-                <div className="flex w-full flex-1 flex-row items-center justify-between">
-                  <div className="text-base">{item.name}</div>
-                  <div>{formatSeconds(item.durationSeconds)}</div>
-                </div>
-                <div className="flex w-full flex-row items-center gap-2">
-                  <Progress value={item.percentage} className="flex-1" />
-                  <div>{item.percentage}%</div>
-                </div>
-              </div>
-            </Button>
-          ))}
-        </div>
+        <UsageRanking
+          className="mt-4"
+          type={search.dimension}
+          startDate={effectiveStartDate}
+          endDate={effectiveEndDate}
+          topN={search.topN}
+          onItemClick={(id) =>
+            navigate({
+              to: "/usage/details",
+              search: {
+                dimension: search.dimension,
+                id: id,
+                timeFrame: search.timeFrame,
+                startDate: search.startDate,
+                endDate: search.endDate,
+              },
+            })
+          }
+          excludedIds={search.excludedIds}
+        />
       </div>
     </>
   );

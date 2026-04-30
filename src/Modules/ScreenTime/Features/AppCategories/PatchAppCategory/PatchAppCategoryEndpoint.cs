@@ -9,7 +9,7 @@ public class PatchAppCategoryEndpoint(
 {
     public override void Configure()
     {
-        Patch("app-categories/{Id}");
+        Patch("app-categories/{appCategoryId}");
         Group<ScreenTimeGroup>();
         AllowAnonymous();
     }
@@ -18,7 +18,7 @@ public class PatchAppCategoryEndpoint(
     {
         await mediator.Send(
             new PatchAppCategoryCommand(
-                Id: req.Id,
+                AppCategoryId: req.AppCategoryId,
                 Name: req.Name,
                 IconPath: req.IconPath
             ),

@@ -1,6 +1,6 @@
 import { Button } from "@/shared/lib/shadcn/components/button";
 import { Separator } from "@/shared/lib/shadcn/components/separator";
-import { Moon, Sun } from "lucide-react";
+import { Moon, RotateCw, Sun } from "lucide-react";
 import { SiDiscord, SiGithub, SiQq } from "@icons-pack/react-simple-icons";
 import { useTheme } from "next-themes";
 import { LogoIcon } from "./icons";
@@ -24,6 +24,10 @@ export const AppHeader = () => {
         <span className="ml-1 text-xl font-bold">Screen Time Tracker</span>
       </a>
       <div className="mr-3 flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => location.reload()}>
+          <RotateCw />
+        </Button>
+        <Separator orientation="vertical" className="h-5 self-center!" />
         <Button asChild variant="ghost" size="icon">
           <a
             href="https://qm.qq.com/q/uiwJZiQRAm"

@@ -38,12 +38,12 @@ public class ActiveSessionTracker(
         {
             while (await timer.WaitForNextTickAsync(cancellationToken))
             {
-                var newSettings = await GetUserSettingsAsync(cancellationToken);
-                if (newSettings.IdleDetectionPollingInterval != settings.IdleDetectionPollingInterval)
-                    timer.Period = newSettings.IdleDetectionPollingInterval;
+                var latestSettings = await GetUserSettingsAsync(cancellationToken);
+                if (latestSettings.IdleDetectionPollingInterval != settings.IdleDetectionPollingInterval)
+                    timer.Period = latestSettings.IdleDetectionPollingInterval;
 
                 // 后续要用到 settings 中的 IdleThreshold，这里一定更新
-                settings = newSettings;
+                settings = latestSettings;
 
                 var now = timeProvider.GetLocalNow().DateTime;
                 var systemIdleTime = await idleTimeProvider.GetSystemIdleTimeAsync();

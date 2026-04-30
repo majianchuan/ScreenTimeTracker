@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Mediator;
+using ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategory;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.CreateAppCategory;
 
@@ -23,6 +24,9 @@ public class CreateAppCategoryEndpoint(
             ),
             cancellationToken
         );
-        await Send.OkAsync(result, cancellationToken);
+        await Send.CreatedAtAsync<GetAppCategoryEndpoint>(
+            new { id = result.Id },
+            result,
+            cancellation: cancellationToken);
     }
 }

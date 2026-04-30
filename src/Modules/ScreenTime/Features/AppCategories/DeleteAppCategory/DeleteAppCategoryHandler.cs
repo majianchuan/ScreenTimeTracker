@@ -11,13 +11,13 @@ public class DeleteAppCategoryHandler(
 {
     public async ValueTask<Unit> Handle(DeleteAppCategoryCommand request, CancellationToken cancellationToken)
     {
-        AppCategory? appCategory = await context.AppCategories.FindAsync([request.Id], cancellationToken);
+        AppCategory? appCategory = await context.AppCategories.FindAsync([request.AppCategoryId], cancellationToken);
         if (appCategory is null || appCategory.IsSystem)
             return Unit.Value;
 
         // 把所有这个类别的 App 都设置为默认类别
         await context.Apps
-            .Where(app => app.AppCategoryId == request.Id)
+            .Where(app => app.AppCategoryId == request.AppCategoryId)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(app => app.AppCategoryId, AppCategory.UncategorizedId),
                 cancellationToken

@@ -8,5 +8,6 @@ export const dateToDateOnly = (date: Date): DateOnly => {
 };
 
 export const dateOnlyToDate = (dateOnly: DateOnly): Date => {
-  return new Date(dateOnly);
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  return new Date(year, month - 1, day);
 };

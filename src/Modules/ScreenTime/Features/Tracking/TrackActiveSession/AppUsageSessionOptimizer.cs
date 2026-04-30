@@ -17,22 +17,20 @@ public class AppUsageSessionOptimizer(
     {
         logger.LogInformation("AppUsageSessionOptimizer is starting.");
 
-        var interval = await GetOptimizationIntervalAsync(cancellationToken);
-        using var timer = new PeriodicTimer(interval);
+        var settings = await GetUserSettingsAsync(cancellationToken);
+        using var timer = new PeriodicTimer(settings.SessionOptimizationInterval);
         try
         {
             while (await timer.WaitForNextTickAsync(cancellationToken))
             {
-                var latestInterval = await GetOptimizationIntervalAsync(cancellationToken);
-                if (latestInterval != interval)
-                {
-                    interval = latestInterval;
-                    timer.Period = interval;
-                }
+                var latestSettings = await GetUserSettingsAsync(cancellationToken);
+                if (latestSettings.SessionOptimizationInterval != settings.SessionOptimizationInterval)
+                    timer.Period = latestSettings.SessionOptimizationInterval;
+
+                settings = latestSettings;
 
                 using var scope = scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
-                var settings = await context.UserSettings.AsNoTracking().SingleAsync(cancellationToken);
 
                 // 安全边界：不干涉ActiveSession因自动保存的数据，也不影响空闲检测
                 var now = timeProvider.GetLocalNow().DateTime;
@@ -115,11 +113,11 @@ public class AppUsageSessionOptimizer(
         catch (OperationCanceledException) { }
     }
 
-    private async Task<TimeSpan> GetOptimizationIntervalAsync(CancellationToken cancellationToken)
+    private async Task<UserSettings> GetUserSettingsAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
-        var settings = await context.UserSettings.AsNoTracking().SingleAsync(cancellationToken);
-        return settings.SessionOptimizationInterval;
+        ScreenTimeDbContext context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
+        var userSettings = await context.UserSettings.AsNoTracking().SingleAsync(cancellationToken);
+        return userSettings;
     }
 }

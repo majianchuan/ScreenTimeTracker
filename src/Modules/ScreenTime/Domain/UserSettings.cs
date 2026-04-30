@@ -23,7 +23,7 @@ public class UserSettings : Entity
     public TimeSpan SessionOptimizationInterval { get; private set; }
 
     // 数据呈现
-    public int DayBoundaryOffsetHours { get; private set; }
+    public int DayCutoffHour { get; private set; }
 
     // EF Core 构造函数
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -41,8 +41,8 @@ public class UserSettings : Entity
         IdleDetectionPollingInterval = TimeSpan.FromSeconds(10),
         MinValidSessionDuration = TimeSpan.FromSeconds(3),
         SessionMergeTolerance = TimeSpan.FromSeconds(6),
-        SessionOptimizationInterval = TimeSpan.FromHours(1),
-        DayBoundaryOffsetHours = 5,
+        SessionOptimizationInterval = TimeSpan.FromMinutes(10),
+        DayCutoffHour = 5,
     };
 
     public void UpdateAppIconDirectory(string appIconDirectory) => AppIconDirectory = appIconDirectory;
@@ -98,5 +98,10 @@ public class UserSettings : Entity
         SessionOptimizationInterval = sessionOptimizationInterval;
     }
 
-    public void UpdateDayBoundaryOffsetHours(int dayBoundaryOffsetHours) => DayBoundaryOffsetHours = dayBoundaryOffsetHours;
+    public void UpdateDayCutoffHour(int dayCutoffHour)
+    {
+        if (dayCutoffHour < 0 || dayCutoffHour > 23)
+            throw new ArgumentException("Day cutoff hour must be between 0 and 23.", nameof(dayCutoffHour));
+        DayCutoffHour = dayCutoffHour;
+    }
 }

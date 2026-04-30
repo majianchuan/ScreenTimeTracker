@@ -32,9 +32,9 @@ public class GetUserSettingsEndpoint(
 
                 MinValidSessionDurationSeconds: (int)userSettings.MinValidSessionDuration.TotalSeconds,
                 SessionMergeToleranceSeconds: (int)userSettings.SessionMergeTolerance.TotalSeconds,
-                SessionOptimizationIntervalSeconds: (int)userSettings.SessionOptimizationInterval.TotalSeconds,
+                SessionOptimizationIntervalMinutes: (int)userSettings.SessionOptimizationInterval.TotalMinutes,
 
-                DayBoundaryOffsetHours: userSettings.DayBoundaryOffsetHours
+                DayCutoffHour: userSettings.DayCutoffHour
             ),
             cancellationToken);
     }

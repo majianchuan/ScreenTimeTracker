@@ -51,7 +51,7 @@ namespace ScreenTimeTracker.Modules.AppBehavior.Migrations
                             IsAutoStartEnabled = false,
                             IsSilentStartEnabled = false,
                             Language = "en-US",
-                            ShouldDestroyWindowOnClose = false
+                            ShouldDestroyWindowOnClose = true
                         });
                 });
 #pragma warning restore 612, 618

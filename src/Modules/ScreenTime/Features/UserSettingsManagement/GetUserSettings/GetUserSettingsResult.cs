@@ -13,5 +13,5 @@ public record GetUserSettingsResult(
     TimeSpan SessionMergeTolerance,
     TimeSpan SessionOptimizationInterval,
 
-    int DayBoundaryOffsetHours
+    int DayCutoffHour
 );

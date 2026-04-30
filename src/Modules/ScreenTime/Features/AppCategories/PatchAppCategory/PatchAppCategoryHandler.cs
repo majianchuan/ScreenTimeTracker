@@ -10,11 +10,11 @@ public class PatchAppCategoryHandler(
 {
     public async ValueTask<Unit> Handle(PatchAppCategoryCommand request, CancellationToken cancellationToken)
     {
-        AppCategory? appCategory = await context.AppCategories.FindAsync([request.Id], cancellationToken);
+        AppCategory? appCategory = await context.AppCategories.FindAsync([request.AppCategoryId], cancellationToken);
         if (appCategory is null)
             return Unit.Value;
 
-        if (request.Name.HasValue && request.Name.Value is not null)
+        if (request.Name.HasValue)
             appCategory.UpdateName(request.Name.Value);
         if (request.IconPath.HasValue)
             appCategory.UpdateIconPath(request.IconPath.Value);

@@ -1,4 +1,4 @@
-import { useDeleteData } from "@/entities/usage";
+import { useDeleteData } from "../api/queries";
 import { dateToDateOnly } from "@/shared/lib/date-only";
 import {
   AlertDialog,

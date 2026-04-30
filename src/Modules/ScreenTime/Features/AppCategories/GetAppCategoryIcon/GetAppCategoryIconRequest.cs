@@ -3,5 +3,5 @@ using FastEndpoints;
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryIcon;
 
 public record GetAppCategoryIconRequest(
-    [property: RouteParam] Guid Id
+    [property: RouteParam] Guid AppCategoryId
 );

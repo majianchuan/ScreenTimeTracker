@@ -28,9 +28,9 @@ public class PatchUserSettingsEndpoint(
 
                 MinValidSessionDuration: req.MinValidSessionDurationSeconds is null ? null : TimeSpan.FromSeconds(req.MinValidSessionDurationSeconds.Value),
                 SessionMergeTolerance: req.SessionMergeToleranceSeconds is null ? null : TimeSpan.FromSeconds(req.SessionMergeToleranceSeconds.Value),
-                SessionOptimizationInterval: req.SessionOptimizationIntervalSeconds is null ? null : TimeSpan.FromSeconds(req.SessionOptimizationIntervalSeconds.Value),
+                SessionOptimizationInterval: req.SessionOptimizationIntervalMinutes is null ? null : TimeSpan.FromMinutes(req.SessionOptimizationIntervalMinutes.Value),
 
-                DayBoundaryOffsetHours: req.DayBoundaryOffsetHours
+                DayBoundaryOffsetHours: req.DayCutoffHour
             ),
             cancellationToken
         );
