@@ -25,19 +25,19 @@ public class SaveActiveSessionHandler(
                 x.StartTime == activeSessionStore.Current.StartTime,
                 cancellationToken);
 
-        if (existing is not null)
+        if (existing is null)
         {
-            existing.UpdateEndTime(now);
-            return Unit.Value;
+            var sessionEntity = AppUsageSession.Create(
+                appId: activeSessionStore.Current.AppId,
+                startTime: activeSessionStore.Current.StartTime,
+                endTime: now
+            );
+
+            context.AppUsageSessions.Add(sessionEntity);
         }
+        else
+            existing.UpdateEndTime(now);
 
-        var sessionEntity = AppUsageSession.Create(
-            appId: activeSessionStore.Current.AppId,
-            startTime: activeSessionStore.Current.StartTime,
-            endTime: now
-        );
-
-        context.AppUsageSessions.Add(sessionEntity);
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;
     }

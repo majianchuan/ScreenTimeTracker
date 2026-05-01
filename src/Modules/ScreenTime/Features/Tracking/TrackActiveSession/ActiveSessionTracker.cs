@@ -125,6 +125,9 @@ public class ActiveSessionTracker(
                     using var scope = scopeFactory.CreateScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(new SystemResumeFromSuspendCommand(lastTickTime), cancellationToken);
+
+                    var windowInfo = foregroundWindowMonitor.GetForegroundWindow();
+                    await mediator.Send(new ForegroundWindowChangedCommand(windowInfo), cancellationToken);
                 }
 
                 lastTickTime = currentTickTime;
