@@ -15,7 +15,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.App", b =>
                 {
@@ -189,14 +189,14 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            ActiveSessionAutoSaveInterval = new TimeSpan(0, 0, 0, 10, 0),
+                            ActiveSessionAutoSaveInterval = new TimeSpan(0, 0, 0, 15, 0),
                             AppIconDirectory = "./Data/Icons",
                             AppInfoStaleThreshold = new TimeSpan(1, 0, 0, 0, 0),
                             DayCutoffHour = 5,
                             IdleDetectionPollingInterval = new TimeSpan(0, 0, 0, 10, 0),
                             IdleThreshold = new TimeSpan(0, 0, 10, 0, 0),
                             IsIdleDetectionEnabled = false,
-                            MinValidSessionDuration = new TimeSpan(0, 0, 0, 3, 0),
+                            MinValidSessionDuration = new TimeSpan(0, 0, 0, 5, 0),
                             SessionMergeTolerance = new TimeSpan(0, 0, 0, 6, 0),
                             SessionOptimizationInterval = new TimeSpan(0, 0, 10, 0, 0)
                         });

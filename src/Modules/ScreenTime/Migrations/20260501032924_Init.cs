@@ -103,7 +103,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
             migrationBuilder.InsertData(
                 table: "ScreenTime_UserSettings",
                 columns: new[] { "Id", "ActiveSessionAutoSaveInterval", "AppIconDirectory", "AppInfoStaleThreshold", "DayCutoffHour", "IdleDetectionPollingInterval", "IdleThreshold", "IsIdleDetectionEnabled", "MinValidSessionDuration", "SessionMergeTolerance", "SessionOptimizationInterval" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new TimeSpan(0, 0, 0, 10, 0), "./Data/Icons", new TimeSpan(1, 0, 0, 0, 0), 5, new TimeSpan(0, 0, 0, 10, 0), new TimeSpan(0, 0, 10, 0, 0), false, new TimeSpan(0, 0, 0, 3, 0), new TimeSpan(0, 0, 0, 6, 0), new TimeSpan(0, 0, 10, 0, 0) });
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new TimeSpan(0, 0, 0, 15, 0), "./Data/Icons", new TimeSpan(1, 0, 0, 0, 0), 5, new TimeSpan(0, 0, 0, 10, 0), new TimeSpan(0, 0, 10, 0, 0), false, new TimeSpan(0, 0, 0, 5, 0), new TimeSpan(0, 0, 0, 6, 0), new TimeSpan(0, 0, 10, 0, 0) });
 
             migrationBuilder.InsertData(
                 table: "ScreenTime_Apps",

@@ -107,8 +107,8 @@ public class ActiveSessionTracker(
     // 系统睡眠/恢复检测循环
     private async Task RunSystemSuspendResumeDetectionLoopAsync(CancellationToken cancellationToken)
     {
-        var pollingInterval = TimeSpan.FromSeconds(1);
-        var jumpThreshold = TimeSpan.FromSeconds(3);
+        var pollingInterval = TimeSpan.FromSeconds(2);
+        var jumpThreshold = TimeSpan.FromSeconds(5);
 
         using var timer = new PeriodicTimer(pollingInterval);
         var lastTickTime = timeProvider.GetLocalNow().DateTime;
@@ -121,7 +121,7 @@ public class ActiveSessionTracker(
 
                 if (timeElapsed > jumpThreshold)
                 {
-                    logger.LogWarning("System likely suspended at {SuspendTime} and resumed.", lastTickTime);
+                    logger.LogInformation("System likely suspended at {SuspendTime} and resumed.", lastTickTime);
                     using var scope = scopeFactory.CreateScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(new SystemResumeFromSuspendCommand(lastTickTime), cancellationToken);
