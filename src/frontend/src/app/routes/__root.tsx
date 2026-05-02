@@ -22,6 +22,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RootComponent() {
   const [headerHeightNum] = useState<number>(50);
   const headerHeight = `${headerHeightNum}px`;

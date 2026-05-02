@@ -5,6 +5,7 @@ export const Route = createFileRoute("/data")({
   component: RouteComponent,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RouteComponent() {
   return <DataManagementPage />;
 }

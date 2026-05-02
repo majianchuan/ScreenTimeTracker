@@ -5,6 +5,7 @@ export const Route = createFileRoute("/settings")({
   component: RouteComponent,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RouteComponent() {
   return <SettingsManagementPage />;
 }

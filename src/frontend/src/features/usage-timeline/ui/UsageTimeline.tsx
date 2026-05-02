@@ -132,8 +132,8 @@ export const UsageTimeline = ({
       grid: {
         top: 35,
         bottom: 60,
-        left: "5%",
-        right: "5%",
+        left: 40,
+        right: 40,
       },
       legend: {
         type: "scroll",
@@ -167,10 +167,12 @@ export const UsageTimeline = ({
         max: dayEndMs,
         axisLabel: {
           formatter: "{HH}:{mm}",
+          showMinLabel: true,
+          showMaxLabel: true,
         },
         splitLine: {
           show: true,
-          lineStyle: { type: "dashed", opacity: 0.2 },
+          lineStyle: { type: "dashed" },
         },
       },
       tooltip: {
