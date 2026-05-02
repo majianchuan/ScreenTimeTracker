@@ -71,7 +71,7 @@ export const UsageTimeline = ({
   const { data: screenTimeUserSettingsDtoData } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
   );
-  const offsetHours = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
+  const dayCutoffHour = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
   const { data: appUsageTimelineData } = useQuery({
     ...appUsageTimeline({
       startDate: date,
@@ -93,7 +93,7 @@ export const UsageTimeline = ({
     type === "app" ? appUsageTimelineData : appCategoryUsageTimelineData;
 
   const option = useMemo(() => {
-    const dayStart = addHours(dateOnlyToDate(date), offsetHours);
+    const dayStart = addHours(dateOnlyToDate(date), dayCutoffHour);
     const dayStartMs = dayStart.getTime();
     const dayEndMs = dayStartMs + 24 * 3600 * 1000;
 
@@ -194,7 +194,7 @@ export const UsageTimeline = ({
       },
       series: series,
     };
-  }, [timelineData, date, offsetHours]);
+  }, [timelineData, date, dayCutoffHour]);
 
   return (
     <ReactECharts

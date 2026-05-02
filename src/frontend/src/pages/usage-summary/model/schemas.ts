@@ -5,8 +5,8 @@ import { z } from "zod";
 
 export const searchParamsSchema = z.object({
   timeFrame: timeFrameSchema.default("day"),
-  startDate: dateOnlySchema.optional(),
-  endDate: dateOnlySchema.optional(),
+  startDate: dateOnlySchema,
+  endDate: dateOnlySchema,
   dimension: dimensionSchema.default("app"),
   excludedIds: z.array(z.string()).optional(),
   topN: z.number().int().default(10),

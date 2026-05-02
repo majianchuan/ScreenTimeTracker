@@ -5,8 +5,8 @@ import { z } from "zod";
 
 export const searchParamsSchema = z.object({
   timeFrame: timeFrameSchema.default("day"),
-  startDate: dateOnlySchema.optional(),
-  endDate: dateOnlySchema.optional(),
+  startDate: dateOnlySchema,
+  endDate: dateOnlySchema,
   dimension: dimensionSchema.default("app"),
   id: z.string().optional(),
 });

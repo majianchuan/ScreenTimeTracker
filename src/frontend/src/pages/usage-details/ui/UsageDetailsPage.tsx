@@ -11,9 +11,6 @@ import {
   useDimensionControl,
 } from "@/features/dimension-control";
 import { useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { startOfDay, subHours } from "date-fns";
-import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
 import { UsageChart } from "@/features/usage-chart";
 
 interface UsageDetailsPageProps {
@@ -26,22 +23,12 @@ export const UsageDetailsPage = ({
   onSearchChange,
 }: UsageDetailsPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_details_page_dimension_cache";
-  const { data: settings } = useQuery(
-    screenTimeUserSettingsQueries.screenTimeUserSettings(),
-  );
-  const offsetHours = settings?.dayCutoffHour ?? 0;
-  const logicalTodayDateOnly = useMemo(() => {
-    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
-    return dateToDateOnly(logicalToday);
-  }, [offsetHours]);
-  const effectiveStartDate = search.startDate ?? logicalTodayDateOnly;
-  const effectiveEndDate = search.endDate ?? logicalTodayDateOnly;
 
   const { handleTimeFrameChange, handleDateRangeChange } = useDateFilter({
     currentTimeFrame: search.timeFrame,
     currentDateRange: {
-      start: dateOnlyToDate(effectiveStartDate),
-      end: dateOnlyToDate(effectiveEndDate),
+      start: dateOnlyToDate(search.startDate),
+      end: dateOnlyToDate(search.endDate),
     },
     onChange: (newTimeFrame, newDateRange) => {
       onSearchChange({
@@ -115,8 +102,8 @@ export const UsageDetailsPage = ({
           <DateRangeSelector
             timeFrame={search.timeFrame}
             value={{
-              start: dateOnlyToDate(effectiveStartDate),
-              end: dateOnlyToDate(effectiveEndDate),
+              start: dateOnlyToDate(search.startDate),
+              end: dateOnlyToDate(search.endDate),
             }}
             onChange={handleDateRangeChange}
           />
@@ -135,8 +122,8 @@ export const UsageDetailsPage = ({
                   ? "week"
                   : "day"
             }
-            startDate={effectiveStartDate}
-            endDate={effectiveEndDate}
+            startDate={search.startDate}
+            endDate={search.endDate}
             includedIds={[search.id]}
           />
         ) : (

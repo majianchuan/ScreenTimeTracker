@@ -19,12 +19,9 @@ import {
   SelectItem,
   SelectGroup,
 } from "@/shared/lib/shadcn";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { startOfDay, subHours } from "date-fns";
 import { UsageRanking } from "@/features/usage-ranking";
 import { UsageTimeline } from "@/features/usage-timeline";
-import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
 import { UsageChart } from "@/features/usage-chart";
 
 interface UsageSummaryPageProps {
@@ -37,22 +34,12 @@ export const UsageSummaryPage = ({
   onSearchChange,
 }: UsageSummaryPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
-  const { data: settings } = useQuery(
-    screenTimeUserSettingsQueries.screenTimeUserSettings(),
-  );
-  const offsetHours = settings?.dayCutoffHour ?? 0;
-  const logicalTodayDateOnly = useMemo(() => {
-    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
-    return dateToDateOnly(logicalToday);
-  }, [offsetHours]);
-  const effectiveStartDate = search.startDate ?? logicalTodayDateOnly;
-  const effectiveEndDate = search.endDate ?? logicalTodayDateOnly;
 
   const { handleTimeFrameChange, handleDateRangeChange } = useDateFilter({
     currentTimeFrame: search.timeFrame,
     currentDateRange: {
-      start: dateOnlyToDate(effectiveStartDate),
-      end: dateOnlyToDate(effectiveEndDate),
+      start: dateOnlyToDate(search.startDate),
+      end: dateOnlyToDate(search.endDate),
     },
     onChange: (newTimeFrame, newDateRange) => {
       onSearchChange({
@@ -128,8 +115,8 @@ export const UsageSummaryPage = ({
           <DateRangeSelector
             timeFrame={search.timeFrame}
             value={{
-              start: dateOnlyToDate(effectiveStartDate),
-              end: dateOnlyToDate(effectiveEndDate),
+              start: dateOnlyToDate(search.startDate),
+              end: dateOnlyToDate(search.endDate),
             }}
             onChange={handleDateRangeChange}
           />
@@ -148,8 +135,8 @@ export const UsageSummaryPage = ({
                 ? "week"
                 : "day"
           }
-          startDate={effectiveStartDate}
-          endDate={effectiveEndDate}
+          startDate={search.startDate}
+          endDate={search.endDate}
           excludedIds={search.excludedIds}
         />
       </div>
@@ -160,7 +147,7 @@ export const UsageSummaryPage = ({
           <UsageTimeline
             className="h-30! w-full"
             type={search.dimension}
-            date={effectiveStartDate}
+            date={search.startDate}
             excludedIds={search.excludedIds}
           />
         </div>
@@ -190,8 +177,8 @@ export const UsageSummaryPage = ({
         <UsageRanking
           className="mt-4"
           type={search.dimension}
-          startDate={effectiveStartDate}
-          endDate={effectiveEndDate}
+          startDate={search.startDate}
+          endDate={search.endDate}
           topN={search.topN}
           onItemClick={(id) =>
             navigate({

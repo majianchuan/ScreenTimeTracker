@@ -186,9 +186,9 @@ static void ConfigureMiddleware(WebApplication app)
     app.UseStaticFiles();
     app.UseCors(cors =>
     {
-        cors.AllowAnyMethod().AllowAnyHeader();
-        if (app.Environment.IsDevelopment())
-            cors.AllowAnyOrigin();
+        cors.AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowAnyOrigin();
     });
     app.UseFastEndpoints(config =>
     {

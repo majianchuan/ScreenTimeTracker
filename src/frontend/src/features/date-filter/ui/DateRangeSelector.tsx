@@ -45,10 +45,10 @@ export const DateRangeSelector = ({
   const { data: screenTimeUserSettingsDtoData } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
   );
-  const offsetHours = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
+  const dayCutoffHour = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
 
   const shiftDateRange = (direction: "forward" | "backward") => {
-    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
+    const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
     const isBackward = direction === "backward";
     const isEndToday = isSameDay(value.end, logicalToday);
 
@@ -134,7 +134,7 @@ export const DateRangeSelector = ({
   };
 
   const dateLabel = useMemo(() => {
-    const logicalToday = startOfDay(subHours(new Date(), offsetHours));
+    const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
     const isEndToday = isSameDay(value.end, logicalToday);
 
     switch (timeFrame) {
@@ -158,7 +158,7 @@ export const DateRangeSelector = ({
       default:
         return "";
     }
-  }, [offsetHours, timeFrame, value.end, value.start]);
+  }, [dayCutoffHour, timeFrame, value.end, value.start]);
 
   return (
     <div className={cn(className, "flex justify-center")}>

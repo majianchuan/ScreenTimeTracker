@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   AppWindow,
@@ -12,8 +12,13 @@ import { NavMenu, type NavMenuItem } from "@/shared/ui/NavMenu";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppHeader } from "@/shared/ui/AppHeader";
 import { Toaster } from "@/shared/lib/shadcn";
+import type { QueryClient } from "@tanstack/react-query";
 
-export const Route = createRootRoute({
+interface RouterContext {
+  queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });
 
