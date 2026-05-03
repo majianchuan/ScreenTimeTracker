@@ -252,6 +252,9 @@ export const SettingsManagementPage = () => {
                     <p>
                       程序会在第一次遇到某应用时获取对应的可执行文件路径、图标、描述，下次遇到这个应用时，判断上次获取信息的时间距离现在是否超过了这里设定的过期时间，如果超过了则重新获取，否则不获取，保留旧信息。
                     </p>
+                    <p>
+                      注意：如果需要自定义应用图标，手动修改图标路径后一般关闭该应用的自动更新，否则更新时会覆盖自定义的图标路径。
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
@@ -393,7 +396,7 @@ export const SettingsManagementPage = () => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      每次触发优化时，会自动过滤掉持续时间短于此值的会话记录
+                      每次触发优化时，会自动过滤删除掉持续时间短于此值的会话记录
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -422,8 +425,9 @@ export const SettingsManagementPage = () => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      每次触发优化时，会合并两个短时间间断的同应用使用会话，超过这里设置的间隔则不合并。
+                      每次触发优化时，会合并两段间隔小于这里值且为相同App的记录为一段长记录。
                     </p>
+                    <p>注意：合并时无论中间是否有其他使用记录，都会被删除。</p>
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
