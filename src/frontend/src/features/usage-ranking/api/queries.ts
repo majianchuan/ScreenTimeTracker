@@ -5,14 +5,16 @@ import type {
 } from "./schemas";
 import { getAppCategoryUsageRanking, getAppUsageRanking } from "./requests";
 
-export const appUsageRanking = (params: GetAppUsageRankingParams) => {
+export const appUsageRankingQueryOptions = (
+  params: GetAppUsageRankingParams,
+) => {
   return queryOptions({
     queryKey: ["app-usage-ranking", params],
     queryFn: () => getAppUsageRanking(params),
   });
 };
 
-export const appCategoryUsageRanking = (
+export const appCategoryUsageRankingQueryOptions = (
   params: GetAppCategoryUsageRankingParams,
 ) => {
   return queryOptions({

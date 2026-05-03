@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { appCategoryUsageRanking, appUsageRanking } from "../api/queries";
+import {
+  appCategoryUsageRankingQueryOptions,
+  appUsageRankingQueryOptions,
+} from "../api/queries";
 import type { DateOnly } from "@/shared/lib/date-only";
 import { Button, cn, Progress } from "@/shared/lib/shadcn";
 import { AppIcon } from "@/entities/app";
@@ -26,7 +29,7 @@ export const UsageRanking = ({
   onItemClick,
 }: UsageRankingProps) => {
   const { data: appUsageRankingData } = useQuery({
-    ...appUsageRanking({
+    ...appUsageRankingQueryOptions({
       startDate: startDate,
       endDate: endDate,
       topN: topN,
@@ -36,7 +39,7 @@ export const UsageRanking = ({
   });
 
   const { data: appCategoryUsageRankingData } = useQuery({
-    ...appCategoryUsageRanking({
+    ...appCategoryUsageRankingQueryOptions({
       startDate: startDate,
       endDate: endDate,
       topN: topN,

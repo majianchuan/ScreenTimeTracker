@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserData.DeleteUsageData;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.DeleteUsageData;
 
 public class DeleteUsageDataEndpoint(
     IMediator mediator
@@ -9,7 +9,7 @@ public class DeleteUsageDataEndpoint(
 {
     public override void Configure()
     {
-        Delete("usage-data");
+        Delete("data");
         Group<ScreenTimeGroup>();
         AllowAnonymous();
     }

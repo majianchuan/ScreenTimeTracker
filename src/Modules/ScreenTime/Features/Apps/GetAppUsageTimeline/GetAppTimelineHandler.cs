@@ -60,8 +60,8 @@ public class GetAppUsageTimelineHandler(
             .Select(x => new GetAppUsageTimelineResponseItem(
                 Id: x.Id,
                 Name: x.Name,
-                StartTime: x.StartTime.ToString("o"),
-                EndTime: x.EndTime.ToString("o")
+                StartTime: x.StartTime.ToString("O"),
+                EndTime: x.EndTime.ToString("O")
             ))];
     }
 }

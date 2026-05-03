@@ -21,7 +21,8 @@ using System.Security.Principal;
 
 
 string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
-Mutex? mutex;
+Mutex? mutex = null;
+bool hasMutexOwnership = false;
 
 // 切换工作目录为程序所在目录
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -65,10 +66,21 @@ try
             MutexRights.FullControl,
             AccessControlType.Allow
         ));
-        mutex = new Mutex(false, MutexName, out _);
-        mutex.SetAccessControl(mutexSecurity);
-        bool createdNew = mutex.WaitOne(0);
-        if (!createdNew)
+        mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
+
+        try
+        {
+            hasMutexOwnership = mutex.WaitOne(0);
+        }
+        catch (AbandonedMutexException)
+        {
+            // 如果上一个实例崩溃退出，系统会废弃Mutex。
+            // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
+            Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
+            hasMutexOwnership = true;
+        }
+
+        if (!hasMutexOwnership)
         {
             Log.Information("Application is already running. Exiting...");
             try
@@ -98,32 +110,27 @@ try
     // 构建并启动 WebApplication
     using WebApplication app = BuildWebApplication();
     ConfigureMiddleware(app);
-    await app.StartAsync();
-    // 获取后端监听的地址
-    string? serverUrl = app.Services.GetRequiredService<IServer>()
-        .Features.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
-    if (serverUrl is null)
-    {
-        Log.Error("Kestrel server addresses not found.");
-        MessageBox.Show("Kestrel 服务器地址未找到，请检查配置", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        Log.CloseAndFlush();
-        return;
-    }
-    Log.Information("Kestrel server address: {address}", serverUrl);
-
-    // 初始化托盘图标
-    var trayService = app.Services.GetRequiredService<TrayService>();
-    _ = trayService.InitializeAsync();
-    // 非静默启动时打开UI
-    _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
-    // 等待应用关闭
 
     app.Lifetime.ApplicationStopped.Register(() =>
     {
         Log.Information("Application Stopped.");
     });
 
-    await app.WaitForShutdownAsync();
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        using var scope = app.Services.CreateScope();
+        var serverUrlProvider = scope.ServiceProvider.GetRequiredService<IServerUrlProvider>();
+        var serverUrl = serverUrlProvider.GetServerUrl();
+        Log.Information("Kestrel server address: {address}", serverUrl);
+
+        // 初始化托盘图标
+        var trayService = scope.ServiceProvider.GetRequiredService<TrayService>();
+        _ = trayService.InitializeAsync();
+        // 非静默启动时打开UI
+        _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
+    });
+
+    app.Run();
 }
 catch (Exception ex)
 {
@@ -134,6 +141,12 @@ catch (Exception ex)
 }
 finally
 {
+    if (mutex is not null)
+    {
+        if (hasMutexOwnership)
+            mutex.ReleaseMutex();
+        mutex.Dispose();
+    }
     Log.CloseAndFlush();
 }
 

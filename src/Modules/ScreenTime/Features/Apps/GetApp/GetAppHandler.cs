@@ -23,7 +23,7 @@ public class GetAppHandler(
                 app.Name,
                 app.ProcessName,
                 app.IsAutoUpdateEnabled,
-                app.LastAutoUpdated.ToString("o"),
+                app.LastAutoUpdated.ToString("O"),
                 app.AppCategoryId,
                 app.ExecutablePath,
                 app.IconPath,

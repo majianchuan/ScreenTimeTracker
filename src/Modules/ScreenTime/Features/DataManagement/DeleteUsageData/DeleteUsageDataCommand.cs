@@ -1,6 +1,6 @@
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserData.DeleteUsageData;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.DeleteUsageData;
 
 public record DeleteUsageDataCommand(
     DateOnly StartDate,

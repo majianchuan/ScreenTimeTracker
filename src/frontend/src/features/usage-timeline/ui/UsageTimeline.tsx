@@ -5,7 +5,10 @@ import { addHours, format } from "date-fns";
 import { type CustomSeriesRenderItem, graphic } from "echarts";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
-import { appCategoryUsageTimeline, appUsageTimeline } from "../api/queries";
+import {
+  appCategoryUsageTimelineQueryOptions,
+  appUsageTimelineQueryOptions,
+} from "../api/queries";
 import ReactECharts from "echarts-for-react";
 import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings/api/queries";
 import type {
@@ -73,7 +76,7 @@ export const UsageTimeline = ({
   );
   const dayCutoffHour = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
   const { data: appUsageTimelineData } = useQuery({
-    ...appUsageTimeline({
+    ...appUsageTimelineQueryOptions({
       startDate: date,
       endDate: date,
       excludedIds: excludedIds,
@@ -81,7 +84,7 @@ export const UsageTimeline = ({
     enabled: type === "app",
   });
   const { data: appCategoryUsageTimelineData } = useQuery({
-    ...appCategoryUsageTimeline({
+    ...appCategoryUsageTimelineQueryOptions({
       startDate: date,
       endDate: date,
       excludedIds: excludedIds,

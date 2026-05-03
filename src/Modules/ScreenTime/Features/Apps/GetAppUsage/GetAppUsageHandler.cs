@@ -104,7 +104,7 @@ public class GetAppUsageHandler(
 
         // 使用时长精度保留到秒
         return [.. usage
-            .Select(kvp => new GetAppUsageResponseItem(kvp.Key.ToString("o"), kvp.Value / 1000))
+            .Select(kvp => new GetAppUsageResponseItem(kvp.Key.ToString("O"), kvp.Value / 1000))
             .OrderBy(x => x.StartTime)];
     }
 }

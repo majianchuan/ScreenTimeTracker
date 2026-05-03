@@ -10,6 +10,7 @@
     <AssemblyName>ScreenTimeTracker</AssemblyName>
 		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <Version>4.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

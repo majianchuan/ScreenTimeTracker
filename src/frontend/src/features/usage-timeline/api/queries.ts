@@ -5,14 +5,16 @@ import type {
   GetAppCategoryUsageTimelineParams,
 } from "./schemas";
 
-export const appUsageTimeline = (params: GetAppUsageTimelineParams) => {
+export const appUsageTimelineQueryOptions = (
+  params: GetAppUsageTimelineParams,
+) => {
   return queryOptions({
     queryKey: ["app-usage-timeline", params],
     queryFn: () => getAppUsageTimeline(params),
   });
 };
 
-export const appCategoryUsageTimeline = (
+export const appCategoryUsageTimelineQueryOptions = (
   params: GetAppCategoryUsageTimelineParams,
 ) => {
   return queryOptions({

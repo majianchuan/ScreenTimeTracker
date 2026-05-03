@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import ReactECharts from "echarts-for-react";
-import { appCategoryUsage, appUsage } from "../api/queries";
+import {
+  appCategoryUsageQueryOptions,
+  appUsageQueryOptions,
+} from "../api/queries";
 import type { DateOnly } from "@/shared/lib/date-only";
 import { cn } from "@/shared/lib/shadcn";
 import { formatSecondsDuration } from "@/shared/lib/time";
@@ -30,7 +33,7 @@ export const UsageChart = ({
   excludedIds,
 }: UsageChartProps) => {
   const { data: appUsageData } = useQuery({
-    ...appUsage({
+    ...appUsageQueryOptions({
       granularity: granularity,
       startDate: startDate,
       endDate: endDate,
@@ -40,7 +43,7 @@ export const UsageChart = ({
     enabled: type === "app",
   });
   const { data: appCategoryUsageData } = useQuery({
-    ...appCategoryUsage({
+    ...appCategoryUsageQueryOptions({
       granularity: granularity,
       startDate: startDate,
       endDate: endDate,

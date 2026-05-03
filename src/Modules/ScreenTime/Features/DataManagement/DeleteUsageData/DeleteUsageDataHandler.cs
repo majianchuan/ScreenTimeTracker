@@ -2,7 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserData.DeleteUsageData;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.DeleteUsageData;
 
 public class DeleteUsageDataHandler(
     ScreenTimeDbContext context

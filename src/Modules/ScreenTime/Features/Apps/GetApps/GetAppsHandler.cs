@@ -33,7 +33,7 @@ public class GetAppsHandler(
         [nameof(GetAppsResponseItem.Name)] = e => e.Name,
         [nameof(GetAppsResponseItem.ProcessName)] = e => e.ProcessName,
         [nameof(GetAppsResponseItem.IsAutoUpdateEnabled)] = e => e.IsAutoUpdateEnabled,
-        [nameof(GetAppsResponseItem.LastAutoUpdated)] = e => e.LastAutoUpdated.ToString("o"),
+        [nameof(GetAppsResponseItem.LastAutoUpdated)] = e => e.LastAutoUpdated.ToString("O"),
         [nameof(GetAppsResponseItem.AppCategoryId)] = e => e.AppCategoryId,
         [nameof(GetAppsResponseItem.IconPath)] = e => e.IconPath,
         [nameof(GetAppsResponseItem.ExecutablePath)] = e => e.ExecutablePath,

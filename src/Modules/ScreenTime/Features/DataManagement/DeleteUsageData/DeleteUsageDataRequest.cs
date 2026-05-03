@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UserData.DeleteUsageData;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.DeleteUsageData;
 
 public record DeleteUsageDataRequest(
     [property: QueryParam] DateOnly StartDate,

@@ -6,3 +6,9 @@ export const deleteUsageDataParamsSchema = z.object({
   endDate: dateOnlySchema,
 });
 export type DeleteUsageDataParams = z.infer<typeof deleteUsageDataParamsSchema>;
+
+export const importDataDtoSchema = z.object({
+  importedCount: z.number(),
+  skippedCount: z.number(),
+});
+export type ImportDataDto = z.infer<typeof importDataDtoSchema>;
