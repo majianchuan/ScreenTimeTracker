@@ -156,7 +156,10 @@ static WebApplication BuildWebApplication()
     // 系统分配端口
     builder.WebHost.ConfigureKestrel(options =>
     {
-        options.Listen(IPAddress.Loopback, 0);
+        if (builder.Environment.IsDevelopment())
+            options.Listen(IPAddress.Loopback, 5124);
+        else
+            options.Listen(IPAddress.Loopback, 0);
     });
     // 日志
     builder.Services.AddSerilog((services, loggerConfig) =>
@@ -171,7 +174,8 @@ static WebApplication BuildWebApplication()
     });
     builder.Services.AddSingleton(TimeProvider.System);
     // Web API
-    builder.Services.AddOpenApi();
+    if (builder.Environment.IsDevelopment())
+        builder.Services.AddOpenApi();
     builder.Services.AddFastEndpoints();
     builder.Services.AddCors();
     builder.Services.AddSingleton<IServerUrlProvider, ServerUrlProvider>();
