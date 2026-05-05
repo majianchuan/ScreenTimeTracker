@@ -1,4 +1,3 @@
-// React19+TS+Vite+TanStack Router+TanStack Query+Axios+Zustand+shadcn+Tailwind+Zod+React Hook Form+Recharts
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/index.css";
