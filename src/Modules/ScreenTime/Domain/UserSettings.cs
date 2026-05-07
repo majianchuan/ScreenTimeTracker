@@ -49,8 +49,8 @@ public class UserSettings : Entity
 
     public void UpdateAppInfoStaleThreshold(TimeSpan appInfoStaleThreshold)
     {
-        if (appInfoStaleThreshold <= TimeSpan.Zero)
-            throw new ArgumentException("App info stale threshold must be greater than zero.", nameof(appInfoStaleThreshold));
+        if (appInfoStaleThreshold < TimeSpan.Zero)
+            throw new ArgumentException("App info stale threshold must be than or equal to zero.", nameof(appInfoStaleThreshold));
         AppInfoStaleThreshold = appInfoStaleThreshold;
     }
 
@@ -79,15 +79,15 @@ public class UserSettings : Entity
 
     public void UpdateMinValidSessionDuration(TimeSpan minValidSessionDuration)
     {
-        if (minValidSessionDuration <= TimeSpan.Zero)
-            throw new ArgumentException("Min valid session duration must be greater than zero.", nameof(minValidSessionDuration));
+        if (minValidSessionDuration < TimeSpan.Zero)
+            throw new ArgumentException("Min valid session duration must be than or equal to zero.", nameof(minValidSessionDuration));
         MinValidSessionDuration = minValidSessionDuration;
     }
 
     public void UpdateSessionMergeTolerance(TimeSpan sessionMergeTolerance)
     {
-        if (sessionMergeTolerance <= TimeSpan.Zero)
-            throw new ArgumentException("Session merge tolerance must be greater than zero.", nameof(sessionMergeTolerance));
+        if (sessionMergeTolerance < TimeSpan.Zero)
+            throw new ArgumentException("Session merge tolerance must be than or equal to zero.", nameof(sessionMergeTolerance));
         SessionMergeTolerance = sessionMergeTolerance;
     }
 

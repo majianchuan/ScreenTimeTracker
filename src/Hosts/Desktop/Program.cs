@@ -1,8 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ScreenTimeTracker.Hosts.Desktop;
@@ -10,7 +8,6 @@ using ScreenTimeTracker.Modules.ScreenTime;
 using ScreenTimeTracker.Modules.AppBehavior;
 using Serilog;
 using System.IO;
-using System.Net;
 using System.Windows;
 using Mediator;
 using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
@@ -18,6 +15,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Microsoft.AspNetCore.Connections;
 
 
 string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
@@ -56,56 +54,56 @@ TaskScheduler.UnobservedTaskException += (sender, e) =>
 try
 {
     // 单实例检查，防止重复运行
-    try
-    {
-        var mutexSecurity = new MutexSecurity();
+    // try
+    // {
+    //     var mutexSecurity = new MutexSecurity();
 
-        // 允许所有用户读取/修改 Mutex 状态
-        mutexSecurity.AddAccessRule(new MutexAccessRule(
-            new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-            MutexRights.FullControl,
-            AccessControlType.Allow
-        ));
-        mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
+    //     // 允许所有用户读取/修改 Mutex 状态
+    //     mutexSecurity.AddAccessRule(new MutexAccessRule(
+    //         new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+    //         MutexRights.FullControl,
+    //         AccessControlType.Allow
+    //     ));
+    //     mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
 
-        try
-        {
-            hasMutexOwnership = mutex.WaitOne(0);
-        }
-        catch (AbandonedMutexException)
-        {
-            // 如果上一个实例崩溃退出，系统会废弃Mutex。
-            // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
-            Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
-            hasMutexOwnership = true;
-        }
+    //     try
+    //     {
+    //         hasMutexOwnership = mutex.WaitOne(0);
+    //     }
+    //     catch (AbandonedMutexException)
+    //     {
+    //         // 如果上一个实例崩溃退出，系统会废弃Mutex。
+    //         // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
+    //         Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
+    //         hasMutexOwnership = true;
+    //     }
 
-        if (!hasMutexOwnership)
-        {
-            Log.Information("Application is already running. Exiting...");
-            try
-            {
-                using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
-                client.Connect(1000);
-                byte[] msg = Encoding.UTF8.GetBytes("SHOW");
-                client.Write(msg, 0, msg.Length);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to connect to pipe server.");
-                MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            Log.CloseAndFlush();
-            return;
-        }
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        Log.Error(ex, "Access denied when creating mutex. Likely another instance is running with higher privileges.");
-        MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        Log.CloseAndFlush();
-        return;
-    }
+    //     if (!hasMutexOwnership)
+    //     {
+    //         Log.Information("Application is already running. Exiting...");
+    //         try
+    //         {
+    //             using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
+    //             client.Connect(1000);
+    //             byte[] msg = Encoding.UTF8.GetBytes("SHOW");
+    //             client.Write(msg, 0, msg.Length);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Log.Error(ex, "Failed to connect to pipe server.");
+    //             MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    //         }
+    //         Log.CloseAndFlush();
+    //         return;
+    //     }
+    // }
+    // catch (UnauthorizedAccessException ex)
+    // {
+    //     Log.Error(ex, "Access denied when creating mutex. Likely another instance is running with higher privileges.");
+    //     MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    //     Log.CloseAndFlush();
+    //     return;
+    // }
 
     // 构建并启动 WebApplication
     using WebApplication app = BuildWebApplication();
@@ -130,7 +128,16 @@ try
         _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
     });
 
-    app.Run();
+    try
+    {
+        app.Run();
+    }
+    catch (IOException ex) when (ex.InnerException is AddressInUseException)
+    {
+        Log.Error(ex, "Address already in use.");
+        app.StopAsync().GetAwaiter().GetResult();
+        MessageBox.Show("端口已被占用，请修改程序目录下appsettings.json文件中Urls的端口号", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
 }
 catch (Exception ex)
 {
@@ -153,14 +160,6 @@ finally
 static WebApplication BuildWebApplication()
 {
     var builder = WebApplication.CreateBuilder();
-    // 系统分配端口
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        if (builder.Environment.IsDevelopment())
-            options.Listen(IPAddress.Loopback, 5124);
-        else
-            options.Listen(IPAddress.Loopback, 0);
-    });
     // 日志
     builder.Services.AddSerilog((services, loggerConfig) =>
     {
@@ -188,7 +187,7 @@ static WebApplication BuildWebApplication()
     // 托盘服务
     builder.Services.AddSingleton<TrayService>();
     // 管道服务
-    builder.Services.AddHostedService<PipeServerService>();
+    // builder.Services.AddHostedService<PipeServerService>();
     // 模块注册
     builder.Services.AddScreenTimeServices(builder.Configuration);
     builder.Services.AddAppBehaviorServices(builder.Configuration);
