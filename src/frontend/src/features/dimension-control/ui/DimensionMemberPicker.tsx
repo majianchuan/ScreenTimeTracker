@@ -7,7 +7,7 @@ export type DimensionMemberPickerProps = {
   mode: "multiple" | "single";
   dimension: Dimension;
   value: string[];
-  onChange: (value: string[]) => void;
+  onValueChange: (value: string[]) => void;
   placeholder?: string;
 };
 export const DimensionMemberPicker = ({
@@ -15,7 +15,7 @@ export const DimensionMemberPicker = ({
   mode,
   dimension,
   value,
-  onChange,
+  onValueChange,
   placeholder,
 }: DimensionMemberPickerProps) => {
   return dimension === "app" ? (
@@ -23,7 +23,7 @@ export const DimensionMemberPicker = ({
       className={className}
       mode={mode}
       value={value}
-      onChange={onChange}
+      onValueChange={onValueChange}
       placeholder={placeholder}
     />
   ) : (
@@ -31,7 +31,7 @@ export const DimensionMemberPicker = ({
       className={className}
       mode={mode}
       value={value}
-      onChange={onChange}
+      onValueChange={onValueChange}
       placeholder={placeholder}
     />
   );

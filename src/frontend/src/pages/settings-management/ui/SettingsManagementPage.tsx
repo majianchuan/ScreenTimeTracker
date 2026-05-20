@@ -24,7 +24,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/lib/shadcn";
-import { BlurInput } from "@/shared/ui/BlurInput";
 import { CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
 import {
@@ -35,20 +34,41 @@ import {
   appBehaviorUserPreferencesQueries,
   usePatchAppBehaviorUserPreferences,
 } from "@/entities/app-behavior-user-preferences";
+import { LazyInputText } from "@/shared/ui/LazyInputText";
+import { LazyInputNumber } from "@/shared/ui/LazyInputNumber";
 
 export const SettingsManagementPage = () => {
-  const { data: screenTimeUserSettingsDtoData } = useQuery(
-    screenTimeUserSettingsQueries.screenTimeUserSettings(),
-  );
-  const { data: appBehaviorUserPreferencesDtoData } = useQuery(
-    appBehaviorUserPreferencesQueries.appBehaviorUserPreferences(),
-  );
+  const {
+    data: screenTimeUserSettingsDtoData,
+    isLoading: isScreenTimeUserSettingsDataLoading,
+  } = useQuery(screenTimeUserSettingsQueries.screenTimeUserSettings());
+  const {
+    data: appBehaviorUserPreferencesDtoData,
+    isLoading: isAppBehaviorUserPreferencesDataLoading,
+  } = useQuery(appBehaviorUserPreferencesQueries.appBehaviorUserPreferences());
   const { mutateAsync: patchScreenTimeUserSettingsAsync } =
     usePatchScreenTimeUserSettings();
   const { mutateAsync: patchAppBehaviorUserPreferencesAsync } =
     usePatchAppBehaviorUserPreferences();
   const [autoStartAlertDialogOpen, setAutoStartAlertDialogOpen] =
     useState(false);
+
+  if (
+    isScreenTimeUserSettingsDataLoading ||
+    isAppBehaviorUserPreferencesDataLoading
+  )
+    return (
+      <div className="flex h-full items-center justify-center">
+        <span>正在获取数据，加载中。。。</span>
+      </div>
+    );
+
+  if (!screenTimeUserSettingsDtoData || !appBehaviorUserPreferencesDtoData)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <span>无法获取数据，请检查网络</span>
+      </div>
+    );
 
   return (
     <>
@@ -72,12 +92,8 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Select
-                value={
-                  appBehaviorUserPreferencesDtoData?.defaultUIOpenMode ??
-                  "Window"
-                }
+                value={appBehaviorUserPreferencesDtoData.defaultUIOpenMode}
                 onValueChange={async (value) => {
-                  if (!value) return;
                   await patchAppBehaviorUserPreferencesAsync({
                     defaultUIOpenMode: value as "Window" | "Browser",
                   });
@@ -114,15 +130,9 @@ export const SettingsManagementPage = () => {
               </FieldLabel>
               <Switch
                 checked={
-                  appBehaviorUserPreferencesDtoData?.shouldDestroyWindowOnClose ??
-                  false
+                  appBehaviorUserPreferencesDtoData.shouldDestroyWindowOnClose
                 }
                 onCheckedChange={async (value) => {
-                  if (
-                    value ===
-                    appBehaviorUserPreferencesDtoData?.shouldDestroyWindowOnClose
-                  )
-                    return;
                   await patchAppBehaviorUserPreferencesAsync({
                     shouldDestroyWindowOnClose: value,
                   });
@@ -163,18 +173,10 @@ export const SettingsManagementPage = () => {
                 </AlertDialog>
               </FieldLabel>
               <Switch
-                checked={
-                  appBehaviorUserPreferencesDtoData?.isAutoStartEnabled ?? false
-                }
+                checked={appBehaviorUserPreferencesDtoData.isAutoStartEnabled}
                 onCheckedChange={async (value) => {
-                  if (
-                    value ===
-                    appBehaviorUserPreferencesDtoData?.isAutoStartEnabled
-                  )
-                    return;
-                  if (value === true) {
-                    setAutoStartAlertDialogOpen(true);
-                  }
+                  if (value === true) setAutoStartAlertDialogOpen(true);
+
                   await patchAppBehaviorUserPreferencesAsync({
                     isAutoStartEnabled: value,
                   });
@@ -194,16 +196,8 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Switch
-                checked={
-                  appBehaviorUserPreferencesDtoData?.isSilentStartEnabled ??
-                  false
-                }
+                checked={appBehaviorUserPreferencesDtoData.isSilentStartEnabled}
                 onCheckedChange={async (value) => {
-                  if (
-                    value ===
-                    appBehaviorUserPreferencesDtoData?.isSilentStartEnabled
-                  )
-                    return;
                   await patchAppBehaviorUserPreferencesAsync({
                     isSilentStartEnabled: value,
                   });
@@ -230,11 +224,10 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputText
                 className="w-50"
-                value={screenTimeUserSettingsDtoData?.appIconDirectory ?? ""}
-                onBlurUpdate={async (value: string) => {
-                  if (!value) return;
+                value={screenTimeUserSettingsDtoData.appIconDirectory}
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     appIconDirectory: value,
                   });
@@ -258,15 +251,14 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={0}
+                step={1}
                 value={
-                  screenTimeUserSettingsDtoData?.appInfoStaleThresholdMinutes ??
-                  1440
+                  screenTimeUserSettingsDtoData.appInfoStaleThresholdMinutes
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     appInfoStaleThresholdMinutes: value,
                   });
@@ -287,15 +279,14 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={1}
+                step={1}
                 value={
-                  screenTimeUserSettingsDtoData?.activeSessionAutoSaveSeconds ??
-                  600
+                  screenTimeUserSettingsDtoData.activeSessionAutoSaveSeconds
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     activeSessionAutoSaveSeconds: value,
                   });
@@ -346,14 +337,12 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
-                value={
-                  screenTimeUserSettingsDtoData?.idleThresholdSeconds ?? 600
-                }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                min={0}
+                step={1}
+                value={screenTimeUserSettingsDtoData.idleThresholdSeconds}
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     idleThresholdSeconds: value,
                   });
@@ -372,15 +361,14 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={1}
+                step={1}
                 value={
-                  screenTimeUserSettingsDtoData?.idleDetectionPollingIntervalSeconds ??
-                  10
+                  screenTimeUserSettingsDtoData.idleDetectionPollingIntervalSeconds
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     idleDetectionPollingIntervalSeconds: value,
                   });
@@ -401,15 +389,15 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={0}
+                step={1}
                 value={
                   screenTimeUserSettingsDtoData?.minValidSessionDurationSeconds ??
                   60
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     minValidSessionDurationSeconds: value,
                   });
@@ -431,15 +419,15 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={0}
+                step={1}
                 value={
                   screenTimeUserSettingsDtoData?.sessionMergeToleranceSeconds ??
                   60
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     sessionMergeToleranceSeconds: value,
                   });
@@ -458,15 +446,15 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={1}
+                step={1}
                 value={
                   screenTimeUserSettingsDtoData?.sessionOptimizationIntervalSeconds ??
                   60
                 }
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     sessionOptimizationIntervalSeconds: value,
                   });
@@ -485,12 +473,12 @@ export const SettingsManagementPage = () => {
                   </TooltipContent>
                 </Tooltip>
               </FieldLabel>
-              <BlurInput
+              <LazyInputNumber
                 className="w-30"
-                type="number"
+                min={0}
+                step={1}
                 value={screenTimeUserSettingsDtoData?.dayCutoffHour ?? 60}
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
+                onValueChange={async (value) => {
                   await patchScreenTimeUserSettingsAsync({
                     dayCutoffHour: value,
                   });
@@ -499,37 +487,6 @@ export const SettingsManagementPage = () => {
             </Field>
           </FieldGroup>
         </FieldSet>
-        {/* <FieldSeparator />
-        <FieldSet>
-          <FieldLegend>界面</FieldLegend>
-          <FieldGroup>
-            <Field orientation="horizontal">
-              <FieldLabel>
-                使用数据重新获取间隔（秒）
-                <Tooltip>
-                  <TooltipTrigger>
-                    <CircleQuestionMark className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      每隔这里设定的时间后，界面会重新获取一次使用数据并展示。
-                    </p>
-                    <p>此配置保存不会在浏览器和窗口或不同浏览器之间同步。</p>
-                  </TooltipContent>
-                </Tooltip>
-              </FieldLabel>
-              <BlurInput
-                className="w-50"
-                type="number"
-                value={refetchIntervalSeconds ?? 5}
-                onBlurUpdate={async (value: number) => {
-                  if (!value) return;
-                  setRefetchIntervalSeconds(value);
-                }}
-              />
-            </Field>
-          </FieldGroup>
-        </FieldSet> */}
       </FieldGroup>
     </>
   );

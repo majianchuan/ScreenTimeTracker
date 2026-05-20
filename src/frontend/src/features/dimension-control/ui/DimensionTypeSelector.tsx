@@ -4,12 +4,12 @@ import type { Dimension } from "../model/schemas";
 export type DateRangeSelectorProps = {
   className?: string;
   value: Dimension;
-  onChange: (value: Dimension) => void;
+  onValueChange: (value: Dimension) => void;
 };
 export const DimensionTypeSelector = ({
   className,
   value,
-  onChange,
+  onValueChange,
 }: DateRangeSelectorProps) => {
   type DimensionOption = {
     value: Dimension;
@@ -34,7 +34,7 @@ export const DimensionTypeSelector = ({
       value={value}
       onValueChange={(dimension) => {
         if (dimension === "") return;
-        onChange(dimension as Dimension);
+        onValueChange(dimension as Dimension);
       }}
       className={cn(className)}
     >

@@ -7,13 +7,13 @@ export type TimeFrameCache = Partial<Record<TimeFrame, DateRange>>;
 export type UseDateFilterOptions = {
   currentTimeFrame: TimeFrame;
   currentDateRange: DateRange;
-  onChange: (timeFrame: TimeFrame, range: DateRange) => void;
+  onValueChange: (timeFrame: TimeFrame, range: DateRange) => void;
 };
 
 export const useDateFilter = ({
   currentTimeFrame,
   currentDateRange,
-  onChange,
+  onValueChange,
 }: UseDateFilterOptions) => {
   const timeFrameCacheRef = useRef<TimeFrameCache>({});
 
@@ -39,12 +39,12 @@ export const useDateFilter = ({
     const nextRange =
       timeFrameCacheRef.current[newTimeFrame] ||
       getDefaultDateRange(newTimeFrame);
-    onChange(newTimeFrame, nextRange);
+    onValueChange(newTimeFrame, nextRange);
   };
 
   const handleDateRangeChange = (newRange: DateRange) => {
     timeFrameCacheRef.current[currentTimeFrame] = newRange;
-    onChange(currentTimeFrame, newRange);
+    onValueChange(currentTimeFrame, newRange);
   };
 
   return {

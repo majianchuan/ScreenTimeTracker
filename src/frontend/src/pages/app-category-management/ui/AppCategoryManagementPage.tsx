@@ -36,7 +36,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/lib/shadcn";
-import { BlurInput } from "@/shared/ui/BlurInput";
 import { useQuery } from "@tanstack/react-query";
 import {
   type ColumnDef,
@@ -48,6 +47,7 @@ import { Check, Trash, X } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { LazyInputText } from "@/shared/ui/LazyInputText";
 
 export const AppCategoryManagementPage = () => {
   const { data: appCategoriesData } = useQuery(
@@ -66,9 +66,9 @@ export const AppCategoryManagementPage = () => {
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
-          <BlurInput
+          <LazyInputText
             value={appCategory.name}
-            onBlurUpdate={async (value: string) => {
+            onValueChange={async (value) => {
               try {
                 await patchAppCategoryAsync({
                   id: appCategory.id,
@@ -103,9 +103,9 @@ export const AppCategoryManagementPage = () => {
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
-          <BlurInput
+          <LazyInputText
             value={appCategory.iconPath !== null ? appCategory.iconPath : ""}
-            onBlurUpdate={async (value: string) => {
+            onValueChange={async (value) => {
               try {
                 await patchAppCategoryAsync({
                   id: appCategory.id,

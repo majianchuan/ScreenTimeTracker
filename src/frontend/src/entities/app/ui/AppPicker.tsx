@@ -20,14 +20,14 @@ export type AppPickerProps = {
   className?: string;
   mode: "multiple" | "single";
   value: string[];
-  onChange: (value: string[]) => void;
+  onValueChange: (value: string[]) => void;
   placeholder?: string;
 };
 
 export const AppPicker = ({
   mode,
   value,
-  onChange,
+  onValueChange,
   placeholder,
 }: AppPickerProps) => {
   const anchor = useComboboxAnchor();
@@ -53,14 +53,14 @@ export const AppPicker = ({
 
     // 有变化才触发
     if (nextValue.length !== value.length) {
-      onChange(nextValue);
+      onValueChange(nextValue);
     }
-  }, [appsData, value, onChange]);
+  }, [appsData, value, onValueChange]);
 
   const handleSelectedChange = (value: Item[]) => {
     if (mode === "single" && value.length >= 1)
-      onChange([value[value.length - 1].id]);
-    else onChange(value.map((v) => v.id));
+      onValueChange([value[value.length - 1].id]);
+    else onValueChange(value.map((v) => v.id));
   };
 
   return (

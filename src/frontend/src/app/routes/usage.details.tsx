@@ -11,6 +11,16 @@ export const Route = createFileRoute("/usage/details")({
     startDate: true,
     endDate: true,
   }),
+  pendingComponent: () => (
+    <div className="flex h-full items-center justify-center">
+      <span>正在获取数据，加载中。。。</span>
+    </div>
+  ),
+  errorComponent: () => (
+    <div className="flex h-full items-center justify-center">
+      <span>无法获取数据，请检查网络</span>
+    </div>
+  ),
   beforeLoad: async ({ context, search }) => {
     if (search.startDate && search.endDate) return;
 
@@ -26,6 +36,7 @@ export const Route = createFileRoute("/usage/details")({
         startDate: logicalTodayDateOnly,
         endDate: logicalTodayDateOnly,
       },
+      replace: true,
     });
   },
 });

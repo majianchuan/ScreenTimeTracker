@@ -47,7 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/lib/shadcn";
-import { BlurInput } from "@/shared/ui/BlurInput";
+import { LazyInputText } from "@/shared/ui/LazyInputText";
 import { useQuery } from "@tanstack/react-query";
 import {
   type Column,
@@ -140,10 +140,10 @@ export const AppManagementPage = () => {
       cell: ({ row }) => {
         const app = row.original;
         return (
-          <BlurInput
+          <LazyInputText
             className="min-w-20"
             value={app.name}
-            onBlurUpdate={async (value: string) => {
+            onValueChange={async (value) => {
               try {
                 await patchAppAsync({
                   id: app.id,
@@ -220,10 +220,10 @@ export const AppManagementPage = () => {
       cell: ({ row }) => {
         const app = row.original;
         return (
-          <BlurInput
+          <LazyInputText
             className="min-w-20"
             value={app.iconPath !== null ? app.iconPath : ""}
-            onBlurUpdate={async (value: string) => {
+            onValueChange={async (value) => {
               try {
                 await patchAppAsync({
                   id: app.id,
@@ -425,7 +425,7 @@ export const AppManagementPage = () => {
             (table.getColumn("appCategoryId")?.getFilterValue() as string[]) ??
             []
           }
-          onChange={(value) =>
+          onValueChange={(value) =>
             table.getColumn("appCategoryId")?.setFilterValue(value)
           }
           placeholder="选择类别"

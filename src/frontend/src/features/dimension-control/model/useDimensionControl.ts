@@ -6,27 +6,27 @@ export type DimensionCache = Partial<Record<Dimension, string[]>>;
 export type UseDimensionControlOptions = {
   currentDimension: Dimension;
   initialCache?: DimensionCache;
-  onChange: (dimension: Dimension, memberIds: string[]) => void;
+  onValueChange: (dimension: Dimension, memberIds: string[]) => void;
   onCacheSync?: (cache: DimensionCache) => void;
 };
 
 export const useDimensionControl = ({
   currentDimension,
   initialCache,
-  onChange,
+  onValueChange,
   onCacheSync,
 }: UseDimensionControlOptions) => {
   const dimensionCacheRef = useRef<DimensionCache>(initialCache || {});
 
   const handleDimensionChange = (newDimension: Dimension) => {
     const nextMemberIds = dimensionCacheRef.current[newDimension] || [];
-    onChange(newDimension, nextMemberIds);
+    onValueChange(newDimension, nextMemberIds);
   };
 
   const handleMemberIdsChange = (newMemberIds: string[]) => {
     dimensionCacheRef.current[currentDimension] = newMemberIds;
     onCacheSync?.(dimensionCacheRef.current);
-    onChange(currentDimension, newMemberIds);
+    onValueChange(currentDimension, newMemberIds);
   };
 
   return {

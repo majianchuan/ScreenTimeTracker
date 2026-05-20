@@ -33,14 +33,14 @@ export type DateRangeSelectorProps = {
   className?: string;
   timeFrame: TimeFrame;
   value: DateRange;
-  onChange: (value: DateRange) => void;
+  onValueChange: (value: DateRange) => void;
 };
 
 export const DateRangeSelector = ({
   className,
   timeFrame,
   value,
-  onChange,
+  onValueChange,
 }: DateRangeSelectorProps) => {
   const { data: screenTimeUserSettingsDtoData } = useQuery(
     screenTimeUserSettingsQueries.screenTimeUserSettings(),
@@ -130,7 +130,7 @@ export const DateRangeSelector = ({
         return;
     }
 
-    onChange({ start: newStartDate, end: newEndDate });
+    onValueChange({ start: newStartDate, end: newEndDate });
   };
 
   const dateLabel = useMemo(() => {
@@ -207,7 +207,7 @@ export const DateRangeSelector = ({
               }}
               onSelect={(range: DayPickerRange | undefined) =>
                 range?.from && range?.to
-                  ? onChange({ start: range.from, end: range.to })
+                  ? onValueChange({ start: range.from, end: range.to })
                   : undefined
               }
               numberOfMonths={2}

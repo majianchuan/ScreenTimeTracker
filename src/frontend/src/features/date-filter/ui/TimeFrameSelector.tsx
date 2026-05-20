@@ -4,13 +4,13 @@ import type { TimeFrame } from "../model/schemas";
 export type PeriodTypeSelectorProps = {
   className?: string;
   value: TimeFrame;
-  onChange: (value: TimeFrame) => void;
+  onValueChange: (value: TimeFrame) => void;
 };
 
 export const PeriodTypeSelector = ({
   className,
   value,
-  onChange,
+  onValueChange,
 }: PeriodTypeSelectorProps) => {
   type PeriodTypeOption = { value: TimeFrame; label: string };
   const options: PeriodTypeOption[] = [
@@ -40,7 +40,7 @@ export const PeriodTypeSelector = ({
       value={value}
       onValueChange={(v) => {
         if (v === "") return;
-        onChange(v as TimeFrame);
+        onValueChange(v as TimeFrame);
       }}
     >
       {options.map((item) => (

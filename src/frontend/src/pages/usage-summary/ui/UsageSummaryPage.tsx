@@ -41,7 +41,7 @@ export const UsageSummaryPage = ({
       start: dateOnlyToDate(search.startDate),
       end: dateOnlyToDate(search.endDate),
     },
-    onChange: (newTimeFrame, newDateRange) => {
+    onValueChange: (newTimeFrame, newDateRange) => {
       onSearchChange({
         timeFrame: newTimeFrame,
         startDate: dateToDateOnly(newDateRange.start),
@@ -74,7 +74,7 @@ export const UsageSummaryPage = ({
   const { handleDimensionChange, handleMemberIdsChange } = useDimensionControl({
     currentDimension: search.dimension,
     initialCache: initialDimensionCache,
-    onChange: (dimension, memberIds) => {
+    onValueChange: (dimension, memberIds) => {
       onSearchChange({ dimension, excludedIds: memberIds });
     },
     onCacheSync: (cache) => {
@@ -91,20 +91,20 @@ export const UsageSummaryPage = ({
           <div className="flex flex-1 justify-start">
             <DimensionTypeSelector
               value={search.dimension}
-              onChange={handleDimensionChange}
+              onValueChange={handleDimensionChange}
             />
           </div>
           <div className="flex flex-1 justify-center">
             <PeriodTypeSelector
               value={search.timeFrame}
-              onChange={handleTimeFrameChange}
+              onValueChange={handleTimeFrameChange}
             />
           </div>
           <div className="flex flex-1 justify-end">
             <DimensionMemberPicker
               dimension={search.dimension}
               value={search.excludedIds || []}
-              onChange={handleMemberIdsChange}
+              onValueChange={handleMemberIdsChange}
               mode="multiple"
               placeholder="排除项"
             />
@@ -118,7 +118,7 @@ export const UsageSummaryPage = ({
               start: dateOnlyToDate(search.startDate),
               end: dateOnlyToDate(search.endDate),
             }}
-            onChange={handleDateRangeChange}
+            onValueChange={handleDateRangeChange}
           />
         </div>
       </div>

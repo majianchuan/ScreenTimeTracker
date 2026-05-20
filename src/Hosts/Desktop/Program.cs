@@ -54,56 +54,56 @@ TaskScheduler.UnobservedTaskException += (sender, e) =>
 try
 {
     // 单实例检查，防止重复运行
-    // try
-    // {
-    //     var mutexSecurity = new MutexSecurity();
+    try
+    {
+        var mutexSecurity = new MutexSecurity();
 
-    //     // 允许所有用户读取/修改 Mutex 状态
-    //     mutexSecurity.AddAccessRule(new MutexAccessRule(
-    //         new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-    //         MutexRights.FullControl,
-    //         AccessControlType.Allow
-    //     ));
-    //     mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
+        // 允许所有用户读取/修改 Mutex 状态
+        mutexSecurity.AddAccessRule(new MutexAccessRule(
+            new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+            MutexRights.FullControl,
+            AccessControlType.Allow
+        ));
+        mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
 
-    //     try
-    //     {
-    //         hasMutexOwnership = mutex.WaitOne(0);
-    //     }
-    //     catch (AbandonedMutexException)
-    //     {
-    //         // 如果上一个实例崩溃退出，系统会废弃Mutex。
-    //         // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
-    //         Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
-    //         hasMutexOwnership = true;
-    //     }
+        try
+        {
+            hasMutexOwnership = mutex.WaitOne(0);
+        }
+        catch (AbandonedMutexException)
+        {
+            // 如果上一个实例崩溃退出，系统会废弃Mutex。
+            // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
+            Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
+            hasMutexOwnership = true;
+        }
 
-    //     if (!hasMutexOwnership)
-    //     {
-    //         Log.Information("Application is already running. Exiting...");
-    //         try
-    //         {
-    //             using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
-    //             client.Connect(1000);
-    //             byte[] msg = Encoding.UTF8.GetBytes("SHOW");
-    //             client.Write(msg, 0, msg.Length);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Log.Error(ex, "Failed to connect to pipe server.");
-    //             MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    //         }
-    //         Log.CloseAndFlush();
-    //         return;
-    //     }
-    // }
-    // catch (UnauthorizedAccessException ex)
-    // {
-    //     Log.Error(ex, "Access denied when creating mutex. Likely another instance is running with higher privileges.");
-    //     MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    //     Log.CloseAndFlush();
-    //     return;
-    // }
+        if (!hasMutexOwnership)
+        {
+            Log.Information("Application is already running. Exiting...");
+            try
+            {
+                using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
+                client.Connect(1000);
+                byte[] msg = Encoding.UTF8.GetBytes("SHOW");
+                client.Write(msg, 0, msg.Length);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to connect to pipe server.");
+                MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            Log.CloseAndFlush();
+            return;
+        }
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        Log.Error(ex, "Access denied when creating mutex. Likely another instance is running with higher privileges.");
+        MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        Log.CloseAndFlush();
+        return;
+    }
 
     // 构建并启动 WebApplication
     using WebApplication app = BuildWebApplication();
@@ -187,7 +187,7 @@ static WebApplication BuildWebApplication()
     // 托盘服务
     builder.Services.AddSingleton<TrayService>();
     // 管道服务
-    // builder.Services.AddHostedService<PipeServerService>();
+    builder.Services.AddHostedService<PipeServerService>();
     // 模块注册
     builder.Services.AddScreenTimeServices(builder.Configuration);
     builder.Services.AddAppBehaviorServices(builder.Configuration);

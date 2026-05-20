@@ -22,14 +22,14 @@ export type AppCategoryPickerProps = {
   className?: string;
   mode: "multiple" | "single";
   value: string[];
-  onChange: (value: string[]) => void;
+  onValueChange: (value: string[]) => void;
   placeholder?: string;
 };
 
 export const AppCategoryPicker = ({
   mode,
   value,
-  onChange,
+  onValueChange,
   placeholder,
 }: AppCategoryPickerProps) => {
   const anchor = useComboboxAnchor();
@@ -55,14 +55,14 @@ export const AppCategoryPicker = ({
 
     // 有变化才触发
     if (nextValue.length !== value.length) {
-      onChange(nextValue);
+      onValueChange(nextValue);
     }
-  }, [appCategoriesData, value, onChange]);
+  }, [appCategoriesData, value, onValueChange]);
 
   const handleSelectedChange = (value: Item[]) => {
     if (mode === "single" && value.length >= 1)
-      onChange([value[value.length - 1].id]);
-    else onChange(value.map((v) => v.id));
+      onValueChange([value[value.length - 1].id]);
+    else onValueChange(value.map((v) => v.id));
   };
 
   return (
