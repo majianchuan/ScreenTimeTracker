@@ -8,11 +8,14 @@
     <UseWpf>true</UseWpf>
     <ApplicationIcon>Resources/Icon.ico</ApplicationIcon>
     <AssemblyName>ScreenTimeTracker</AssemblyName>
-		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
-    <Version>4.1.1</Version>
+    <Version>4.1.2</Version>
   </PropertyGroup>
 
+  <Target Name="CleanFrontendAssets" BeforeTargets="Publish">
+    <RemoveDir Directories="$(TargetDir)wwwroot" />
+  </Target>
   <ItemGroup>
 		<EmbeddedResource Include="Resources\Icon.ico" />
     <None Update="appsettings*.json">
@@ -20,13 +23,12 @@
     </None>
     <Content Include="..\..\frontend\dist\**">
       <Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\ScreenTime\ScreenTimeTracker.Modules.ScreenTime.csproj" />
-    <ProjectReference Include="..\..\Modules\AppBehavior\ScreenTimeTracker.Modules.AppBehavior.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +40,12 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Web.WebView2" />
@@ -46,5 +54,6 @@
     <PackageReference Include="Serilog.Settings.Configuration" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="TaskScheduler" />
   </ItemGroup>
 </Project>

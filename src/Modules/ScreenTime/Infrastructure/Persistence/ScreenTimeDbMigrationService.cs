@@ -8,8 +8,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
 public class ScreenTimeDbMigrationService(
     ILogger<ScreenTimeDbMigrationService> logger,
-    IServiceScopeFactory scopeFactory
-    ) : IHostedLifecycleService
+    IServiceScopeFactory scopeFactory) : IHostedLifecycleService
 {
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
     private readonly ILogger<ScreenTimeDbMigrationService> _logger = logger;
@@ -18,27 +17,38 @@ public class ScreenTimeDbMigrationService(
     public async Task StartingAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("ScreenTimeDbMigrationService is Starting");
+
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
-        // 确保数据库目录存在
-        var connectionString = context.Database.GetConnectionString();
-        var dbPath = GetDatabasePath(connectionString);
 
-        if (!string.IsNullOrEmpty(dbPath))
+        await EnsureDatabaseDirectoryAsync(context);
+
+        var appliedMigrations = await context.Database.GetAppliedMigrationsAsync(cancellationToken);
+        bool isNewDatabase = !appliedMigrations.Any();
+
+        await context.Database.MigrateAsync(cancellationToken: cancellationToken);
+
+        if (isNewDatabase)
         {
-            var directory = Path.GetDirectoryName(dbPath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-
-            bool dbFileExists = File.Exists(dbPath);
-
-            // 应用数据库迁移
-            await context.Database.MigrateAsync(cancellationToken: cancellationToken);
-
-            // 注入种子数据，数据库文件不存在，则判定为第一次运行
-            if (!dbFileExists)
-                await SeedDefaultCategoriesAsync(context, cancellationToken);
+            _logger.LogInformation("New database detected, seeding default categories...");
+            await SeedDefaultCategoriesAsync(context, cancellationToken);
         }
+
+    }
+
+    private static async Task EnsureDatabaseDirectoryAsync(ScreenTimeDbContext context)
+    {
+        var connectionString = context.Database.GetConnectionString();
+        if (string.IsNullOrEmpty(connectionString))
+            return;
+        var builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
+        var dbPath = builder.DataSource;
+
+        if (string.IsNullOrEmpty(dbPath)) return;
+
+        var directory = Path.GetDirectoryName(dbPath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
     }
 
     private static async Task SeedDefaultCategoriesAsync(ScreenTimeDbContext context, CancellationToken ct)
@@ -55,15 +65,6 @@ public class ScreenTimeDbMigrationService(
 
         await context.AppCategories.AddRangeAsync(defaults, ct);
         await context.SaveChangesAsync(ct);
-    }
-
-    private static string? GetDatabasePath(string? connectionString)
-    {
-        if (string.IsNullOrEmpty(connectionString))
-            return null;
-
-        var builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
-        return builder.DataSource;
     }
 
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;

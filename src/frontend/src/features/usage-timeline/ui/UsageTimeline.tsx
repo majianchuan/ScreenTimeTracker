@@ -10,7 +10,7 @@ import {
   appUsageTimelineQueryOptions,
 } from "../api/queries";
 import ReactECharts from "echarts-for-react";
-import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings/api/queries";
+import { userSettingsQueries } from "@/entities/user-settings/api/queries";
 import type {
   AppCategoryUsageTimelineItemDto,
   AppUsageTimelineItemDto,
@@ -71,10 +71,10 @@ export const UsageTimeline = ({
   const { theme, systemTheme } = useTheme();
   const isDark = (theme === "system" ? systemTheme : theme) === "dark";
 
-  const { data: screenTimeUserSettingsDtoData } = useQuery(
-    screenTimeUserSettingsQueries.screenTimeUserSettings(),
+  const { data: userSettingsDtoData } = useQuery(
+    userSettingsQueries.userSettings(),
   );
-  const dayCutoffHour = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
+  const dayCutoffHour = userSettingsDtoData?.dayCutoffHour ?? 0;
   const { data: appUsageTimelineData } = useQuery({
     ...appUsageTimelineQueryOptions({
       startDate: date,

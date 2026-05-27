@@ -27,7 +27,7 @@ import {
   subWeeks,
 } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
+import { userSettingsQueries } from "@/entities/user-settings";
 
 export type DateRangeSelectorProps = {
   className?: string;
@@ -42,10 +42,10 @@ export const DateRangeSelector = ({
   value,
   onValueChange,
 }: DateRangeSelectorProps) => {
-  const { data: screenTimeUserSettingsDtoData } = useQuery(
-    screenTimeUserSettingsQueries.screenTimeUserSettings(),
+  const { data: userSettingsDtoData } = useQuery(
+    userSettingsQueries.userSettings(),
   );
-  const dayCutoffHour = screenTimeUserSettingsDtoData?.dayCutoffHour ?? 0;
+  const dayCutoffHour = userSettingsDtoData?.dayCutoffHour ?? 0;
 
   const shiftDateRange = (direction: "forward" | "backward") => {
     const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));

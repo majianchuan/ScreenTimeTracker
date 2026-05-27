@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { UsageSummaryPage, searchParamsSchema } from "@/pages/usage-summary";
 import type { SearchParams } from "@/pages/usage-summary";
-import { screenTimeUserSettingsQueries } from "@/entities/screen-time-user-settings";
+import { userSettingsQueries } from "@/entities/user-settings";
 import { startOfDay, subHours } from "date-fns";
 import { dateToDateOnly } from "@/shared/lib/date-only";
 
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/usage/summary")({
     if (search.startDate && search.endDate) return;
 
     const { dayCutoffHour } = await context.queryClient.ensureQueryData(
-      screenTimeUserSettingsQueries.screenTimeUserSettings(),
+      userSettingsQueries.userSettings(),
     );
     const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
     const logicalTodayDateOnly = dateToDateOnly(logicalToday);

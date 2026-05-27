@@ -3,19 +3,23 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ScreenTimeTracker.Hosts.Desktop;
 using ScreenTimeTracker.Modules.ScreenTime;
-using ScreenTimeTracker.Modules.AppBehavior;
 using Serilog;
 using System.IO;
 using System.Windows;
 using Mediator;
-using ScreenTimeTracker.Modules.AppBehavior.Features.UserPreferencesManagement.GetUserPreferences;
 using System.IO.Pipes;
 using System.Text;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Connections;
+using ScreenTimeTracker.Hosts.Desktop.Hosting;
+using ScreenTimeTracker.Hosts.Desktop.UI.Services;
+using ScreenTimeTracker.Hosts.Desktop.UI.Views;
+using ScreenTimeTracker.Hosts.Desktop.UI.State;
+using ScreenTimeTracker.Hosts.Desktop.Configuration;
+using ScreenTimeTracker.Hosts.Desktop.Modules.Preferences;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
 
 
 string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
@@ -190,7 +194,7 @@ static WebApplication BuildWebApplication()
     builder.Services.AddHostedService<PipeServerService>();
     // 模块注册
     builder.Services.AddScreenTimeServices(builder.Configuration);
-    builder.Services.AddAppBehaviorServices(builder.Configuration);
+    builder.Services.AddLocalSettingsServices(builder.Configuration);
 
     return builder.Build();
 }
@@ -217,8 +221,8 @@ static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverU
 {
     using var scope = app.Services.CreateScope();
     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-    GetUserPreferencesResult userSettings = await mediator.Send(new GetUserPreferencesQuery());
-    if (!userSettings.IsSilentStartEnabled)
+    GetAppSettingsResult appSettings = await mediator.Send(new GetAppSettingsQuery());
+    if (!appSettings.IsSilentStartEnabled)
     {
         var appUIManager = scope.ServiceProvider.GetRequiredService<IAppUIManager>();
         await appUIManager.OpenUIAsync();

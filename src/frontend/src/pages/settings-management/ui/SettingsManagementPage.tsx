@@ -27,43 +27,34 @@ import {
 import { CircleQuestionMark } from "lucide-react";
 import { useState } from "react";
 import {
-  screenTimeUserSettingsQueries,
-  usePatchScreenTimeUserSettings,
-} from "@/entities/screen-time-user-settings";
+  userSettingsQueries,
+  usePatchuserSettings,
+} from "@/entities/user-settings";
 import {
-  appBehaviorUserPreferencesQueries,
-  usePatchAppBehaviorUserPreferences,
-} from "@/entities/app-behavior-user-preferences";
+  appSettingsQueries,
+  usePatchAppSettings,
+} from "@/entities/app-settings";
 import { LazyInputText } from "@/shared/ui/LazyInputText";
 import { LazyInputNumber } from "@/shared/ui/LazyInputNumber";
 
 export const SettingsManagementPage = () => {
-  const {
-    data: screenTimeUserSettingsDtoData,
-    isLoading: isScreenTimeUserSettingsDataLoading,
-  } = useQuery(screenTimeUserSettingsQueries.screenTimeUserSettings());
-  const {
-    data: appBehaviorUserPreferencesDtoData,
-    isLoading: isAppBehaviorUserPreferencesDataLoading,
-  } = useQuery(appBehaviorUserPreferencesQueries.appBehaviorUserPreferences());
-  const { mutateAsync: patchScreenTimeUserSettingsAsync } =
-    usePatchScreenTimeUserSettings();
-  const { mutateAsync: patchAppBehaviorUserPreferencesAsync } =
-    usePatchAppBehaviorUserPreferences();
+  const { data: userSettingsDtoData, isLoading: isuserSettingsDataLoading } =
+    useQuery(userSettingsQueries.userSettings());
+  const { data: appSettingsDtoData, isLoading: isAppSettingsDataLoading } =
+    useQuery(appSettingsQueries.appSettings());
+  const { mutateAsync: patchuserSettingsAsync } = usePatchuserSettings();
+  const { mutateAsync: patchAppSettingsAsync } = usePatchAppSettings();
   const [autoStartAlertDialogOpen, setAutoStartAlertDialogOpen] =
     useState(false);
 
-  if (
-    isScreenTimeUserSettingsDataLoading ||
-    isAppBehaviorUserPreferencesDataLoading
-  )
+  if (isuserSettingsDataLoading || isAppSettingsDataLoading)
     return (
       <div className="flex h-full items-center justify-center">
         <span>正在获取数据，加载中。。。</span>
       </div>
     );
 
-  if (!screenTimeUserSettingsDtoData || !appBehaviorUserPreferencesDtoData)
+  if (!userSettingsDtoData || !appSettingsDtoData)
     return (
       <div className="flex h-full items-center justify-center">
         <span>无法获取数据，请检查网络</span>
@@ -92,9 +83,9 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Select
-                value={appBehaviorUserPreferencesDtoData.defaultUIOpenMode}
+                value={appSettingsDtoData.defaultUIOpenMode}
                 onValueChange={async (value) => {
-                  await patchAppBehaviorUserPreferencesAsync({
+                  await patchAppSettingsAsync({
                     defaultUIOpenMode: value as "Window" | "Browser",
                   });
                 }}
@@ -129,11 +120,9 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Switch
-                checked={
-                  appBehaviorUserPreferencesDtoData.shouldDestroyWindowOnClose
-                }
+                checked={appSettingsDtoData.shouldDestroyWindowOnClose}
                 onCheckedChange={async (value) => {
-                  await patchAppBehaviorUserPreferencesAsync({
+                  await patchAppSettingsAsync({
                     shouldDestroyWindowOnClose: value,
                   });
                 }}
@@ -173,11 +162,11 @@ export const SettingsManagementPage = () => {
                 </AlertDialog>
               </FieldLabel>
               <Switch
-                checked={appBehaviorUserPreferencesDtoData.isAutoStartEnabled}
+                checked={appSettingsDtoData.isAutoStartEnabled}
                 onCheckedChange={async (value) => {
                   if (value === true) setAutoStartAlertDialogOpen(true);
 
-                  await patchAppBehaviorUserPreferencesAsync({
+                  await patchAppSettingsAsync({
                     isAutoStartEnabled: value,
                   });
                 }}
@@ -196,9 +185,9 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Switch
-                checked={appBehaviorUserPreferencesDtoData.isSilentStartEnabled}
+                checked={appSettingsDtoData.isSilentStartEnabled}
                 onCheckedChange={async (value) => {
-                  await patchAppBehaviorUserPreferencesAsync({
+                  await patchAppSettingsAsync({
                     isSilentStartEnabled: value,
                   });
                 }}
@@ -226,9 +215,9 @@ export const SettingsManagementPage = () => {
               </FieldLabel>
               <LazyInputText
                 className="w-50"
-                value={screenTimeUserSettingsDtoData.appIconDirectory}
+                value={userSettingsDtoData.appIconDirectory}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     appIconDirectory: value,
                   });
                 }}
@@ -255,11 +244,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={0}
                 step={1}
-                value={
-                  screenTimeUserSettingsDtoData.appInfoStaleThresholdMinutes
-                }
+                value={userSettingsDtoData.appInfoStaleThresholdMinutes}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     appInfoStaleThresholdMinutes: value,
                   });
                 }}
@@ -283,11 +270,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={1}
                 step={1}
-                value={
-                  screenTimeUserSettingsDtoData.activeSessionAutoSaveSeconds
-                }
+                value={userSettingsDtoData.activeSessionAutoSaveSeconds}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     activeSessionAutoSaveSeconds: value,
                   });
                 }}
@@ -308,16 +293,11 @@ export const SettingsManagementPage = () => {
                 </Tooltip>
               </FieldLabel>
               <Switch
-                checked={
-                  screenTimeUserSettingsDtoData?.isIdleDetectionEnabled ?? false
-                }
+                checked={userSettingsDtoData?.isIdleDetectionEnabled ?? false}
                 onCheckedChange={async (value) => {
-                  if (
-                    value ===
-                    screenTimeUserSettingsDtoData?.isIdleDetectionEnabled
-                  )
+                  if (value === userSettingsDtoData?.isIdleDetectionEnabled)
                     return;
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     isIdleDetectionEnabled: value,
                   });
                 }}
@@ -341,9 +321,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={0}
                 step={1}
-                value={screenTimeUserSettingsDtoData.idleThresholdSeconds}
+                value={userSettingsDtoData.idleThresholdSeconds}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     idleThresholdSeconds: value,
                   });
                 }}
@@ -365,11 +345,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={1}
                 step={1}
-                value={
-                  screenTimeUserSettingsDtoData.idleDetectionPollingIntervalSeconds
-                }
+                value={userSettingsDtoData.idleDetectionPollingIntervalSeconds}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     idleDetectionPollingIntervalSeconds: value,
                   });
                 }}
@@ -394,11 +372,10 @@ export const SettingsManagementPage = () => {
                 min={0}
                 step={1}
                 value={
-                  screenTimeUserSettingsDtoData?.minValidSessionDurationSeconds ??
-                  60
+                  userSettingsDtoData?.minValidSessionDurationSeconds ?? 60
                 }
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     minValidSessionDurationSeconds: value,
                   });
                 }}
@@ -423,12 +400,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={0}
                 step={1}
-                value={
-                  screenTimeUserSettingsDtoData?.sessionMergeToleranceSeconds ??
-                  60
-                }
+                value={userSettingsDtoData?.sessionMergeToleranceSeconds ?? 60}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     sessionMergeToleranceSeconds: value,
                   });
                 }}
@@ -451,11 +425,10 @@ export const SettingsManagementPage = () => {
                 min={1}
                 step={1}
                 value={
-                  screenTimeUserSettingsDtoData?.sessionOptimizationIntervalSeconds ??
-                  60
+                  userSettingsDtoData?.sessionOptimizationIntervalSeconds ?? 60
                 }
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     sessionOptimizationIntervalSeconds: value,
                   });
                 }}
@@ -477,9 +450,9 @@ export const SettingsManagementPage = () => {
                 className="w-30"
                 min={0}
                 step={1}
-                value={screenTimeUserSettingsDtoData?.dayCutoffHour ?? 60}
+                value={userSettingsDtoData?.dayCutoffHour ?? 60}
                 onValueChange={async (value) => {
-                  await patchScreenTimeUserSettingsAsync({
+                  await patchuserSettingsAsync({
                     dayCutoffHour: value,
                   });
                 }}
