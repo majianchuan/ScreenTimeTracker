@@ -5,5 +5,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageTimeline.GetAppCate
 public record GetAppCategoryUsageTimelineQuery(
     DateOnly StartDate,
     DateOnly EndDate,
+    IEnumerable<Guid>? IncludedIds = null,
     IEnumerable<Guid>? ExcludedIds = null
 ) : IRequest<List<GetAppCategoryUsageTimelineResponseItem>>;

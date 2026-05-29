@@ -27,7 +27,6 @@ public class GetAppHandler(
                 app.AppCategoryId,
                 app.ExecutablePath,
                 app.IconPath,
-                app.Description,
                 app.IsSystem
             );
     }

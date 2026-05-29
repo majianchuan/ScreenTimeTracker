@@ -23,7 +23,6 @@ export const getApps = async (
       appCategoryId: validated.appCategoryId,
       executablePath: validated.executablePath,
       iconPath: validated.iconPath,
-      description: validated.description,
     };
   });
 };

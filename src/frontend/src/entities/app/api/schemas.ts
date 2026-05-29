@@ -10,7 +10,6 @@ export const appDtoSchema = z.object({
   appCategoryId: z.string(),
   executablePath: z.string().nullable(),
   iconPath: z.string().nullable(),
-  description: z.string().nullable(),
 });
 export type AppDto = z.infer<typeof appDtoSchema>;
 

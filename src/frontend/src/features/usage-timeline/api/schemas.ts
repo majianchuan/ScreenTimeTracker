@@ -25,6 +25,7 @@ export type AppCategoryUsageTimelineItemDto = z.infer<
 export const getAppUsageTimelineParamsSchema = z.object({
   startDate: dateOnlySchema,
   endDate: dateOnlySchema,
+  includedIds: z.array(z.string()).optional(),
   excludedIds: z.array(z.string()).optional(),
 });
 export type GetAppUsageTimelineParams = z.infer<
@@ -34,6 +35,7 @@ export type GetAppUsageTimelineParams = z.infer<
 export const getAppCategoryUsageTimelineParamsSchema = z.object({
   startDate: dateOnlySchema,
   endDate: dateOnlySchema,
+  includedIds: z.array(z.string()).optional(),
   excludedIds: z.array(z.string()).optional(),
 });
 export type GetAppCategoryUsageTimelineParams = z.infer<

@@ -12,12 +12,14 @@ public class WindowsExecutableMetadataProvider : IExecutableMetadataProvider
     public Task<ExecutableMetadata> GetMetadataAsync(string exePath)
     {
         string? description = FileVersionInfo.GetVersionInfo(exePath)?.FileDescription;
+        string? productName = FileVersionInfo.GetVersionInfo(exePath)?.ProductName;
+        string? name = description ?? productName;
         using Icon? icon = Icon.ExtractAssociatedIcon(exePath);
         if (icon is null)
-            return Task.FromResult(new ExecutableMetadata(description, null, null));
+            return Task.FromResult(new ExecutableMetadata(name, null, null));
         using Bitmap? bmp = icon.ToBitmap();
         if (bmp is null)
-            return Task.FromResult(new ExecutableMetadata(description, null, null));
+            return Task.FromResult(new ExecutableMetadata(name, null, null));
 
         // 不能用 using，交给调用者使用和释放
         MemoryStream ms = new();
@@ -25,7 +27,7 @@ public class WindowsExecutableMetadataProvider : IExecutableMetadataProvider
         ms.Position = 0; // 重置 Position 到开头，方便调用者读取数据
 
         return Task.FromResult(new ExecutableMetadata(
-            description,
+            name,
             ms,
             "png"
         ));

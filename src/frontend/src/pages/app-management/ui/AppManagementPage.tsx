@@ -106,7 +106,6 @@ export const AppManagementPage = () => {
     isAutoUpdateEnabled: "自动更新",
     lastAutoUpdated: "上次自动更新时间",
     processName: "进程名",
-    description: "描述",
     executablePath: "可执行文件路径",
     action: "操作",
   };
@@ -137,6 +136,7 @@ export const AppManagementPage = () => {
           </Button>
         );
       },
+      size: 200,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -162,6 +162,7 @@ export const AppManagementPage = () => {
       accessorKey: "appCategoryId",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 200,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -206,6 +207,8 @@ export const AppManagementPage = () => {
       id: "icon",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 45,
+      minSize: 45,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -217,6 +220,7 @@ export const AppManagementPage = () => {
       accessorKey: "iconPath",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 200,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -242,6 +246,8 @@ export const AppManagementPage = () => {
       accessorKey: "isAutoUpdateEnabled",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 75,
+      minSize: 50,
       cell: ({ row }) => {
         return (
           <Switch
@@ -287,6 +293,7 @@ export const AppManagementPage = () => {
           </Button>
         );
       },
+      size: 200,
       cell: ({ row }) => {
         return row.getValue("lastAutoUpdated")?.toLocaleString();
       },
@@ -295,21 +302,20 @@ export const AppManagementPage = () => {
       accessorKey: "processName",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
-    },
-    {
-      accessorKey: "description",
-      header: ({ column }) =>
-        columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 100,
     },
     {
       accessorKey: "executablePath",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 250,
     },
     {
       id: "action",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 60,
+      minSize: 55,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -361,6 +367,8 @@ export const AppManagementPage = () => {
   const table = useReactTable({
     data: appsData || [],
     columns,
+    columnResizeMode: "onChange",
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -457,19 +465,46 @@ export const AppManagementPage = () => {
         </DropdownMenu>
       </div>
       <div className="border-border mt-2 rounded-lg border">
-        <Table>
-          <TableHeader>
+        <Table
+          style={{
+            tableLayout: "fixed",
+            width: table.getTotalSize(),
+          }}
+        >
+          <TableHeader className="select-none">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.getSize() }}
+                      className="relative truncate"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={
+                            "bg-border absolute top-0 right-0 h-full w-0.5 cursor-col-resize"
+                          }
+                        />
+                      )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={
+                            "bg-border absolute top-0 right-0 h-full w-0.5 cursor-col-resize"
+                          }
+                        />
+                      )}
                     </TableHead>
                   );
                 })}
@@ -484,7 +519,11 @@ export const AppManagementPage = () => {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: cell.column.getSize() }}
+                      className="truncate"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

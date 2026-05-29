@@ -16,14 +16,17 @@ public class GetAppCategoryUsageTimelineHandler(
         var settings = await context.UserSettings.AsNoTracking().SingleAsync(cancellationToken);
         var startTime = request.StartDate.ToDateTime(TimeOnly.MinValue).AddHours(settings.DayCutoffHour);
         var endTime = request.EndDate.ToDateTime(TimeOnly.MinValue).AddDays(1).AddHours(settings.DayCutoffHour);
-        var excludedIds = request.ExcludedIds?.ToList() ?? [];
 
-        var sessions = await context.AppUsageSessions
+        var query = context.AppUsageSessions
             .AsNoTracking()
-            .Where(x =>
-                !excludedIds.Contains(x.App!.AppCategoryId)
-                && x.StartTime < endTime
-                && startTime <= x.EndTime)
+            .Where(x => x.StartTime < endTime && startTime <= x.EndTime);
+
+        if (request.IncludedIds is not null)
+            query = query.Where(x => request.IncludedIds.Contains(x.App!.AppCategoryId));
+        else if (request.ExcludedIds is not null)
+            query = query.Where(x => !request.ExcludedIds.Contains(x.App!.AppCategoryId));
+
+        var sessions = await query
             .Select(x => new
             {
                 Id = x.App!.AppCategoryId,
@@ -37,15 +40,17 @@ public class GetAppCategoryUsageTimelineHandler(
         if (activeSession is not null && activeSession.StartTime < endTime)
         {
             var activeApp = await context.Apps
-                .Include(x => x.AppCategory)
                 .AsNoTracking()
                 .SingleAsync(x => x.Id == activeSession.AppId, cancellationToken);
+            var included = request.IncludedIds?.Contains(activeApp.AppCategoryId) ?? true;
+            var notExcluded = request.ExcludedIds is null || !request.ExcludedIds.Contains(activeApp.AppCategoryId);
+            var shouldInclude = request.IncludedIds is not null ? included : notExcluded;
 
-            if (!excludedIds.Contains(activeApp.AppCategoryId))
+            if (shouldInclude)
                 sessions.Add(new
                 {
-                    Id = activeApp.AppCategoryId,
-                    activeApp.AppCategory!.Name,
+                    activeApp.Id,
+                    activeApp!.Name,
                     activeSession.StartTime,
                     EndTime = timeProvider.GetLocalNow().DateTime
                 });

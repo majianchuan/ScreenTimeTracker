@@ -62,7 +62,8 @@ export const AppCategoryManagementPage = () => {
   const columns: ColumnDef<AppCategory>[] = [
     {
       accessorKey: "name",
-      header: () => "名称",
+      header: "名称",
+      size: 200,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -86,6 +87,8 @@ export const AppCategoryManagementPage = () => {
     {
       id: "icon",
       header: "图标",
+      size: 45,
+      minSize: 45,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -100,6 +103,7 @@ export const AppCategoryManagementPage = () => {
     {
       accessorKey: "iconPath",
       header: "图标路径",
+      size: 400,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -123,6 +127,8 @@ export const AppCategoryManagementPage = () => {
     {
       accessorKey: "isSystem",
       header: "系统类别",
+      size: 75,
+      minSize: 40,
       cell: ({ row }) => {
         return row.getValue("isSystem") ? (
           <Check className="size-5" />
@@ -134,6 +140,8 @@ export const AppCategoryManagementPage = () => {
     {
       id: "actions",
       header: "操作",
+      size: 60,
+      minSize: 55,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -177,6 +185,8 @@ export const AppCategoryManagementPage = () => {
   const table = useReactTable({
     data: appCategoriesData ?? [],
     columns,
+    columnResizeMode: "onChange",
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -238,19 +248,37 @@ export const AppCategoryManagementPage = () => {
         </Dialog>
       </div>
       <div className="border-border mt-2 rounded-lg border">
-        <Table>
-          <TableHeader>
+        <Table
+          style={{
+            tableLayout: "fixed",
+            width: table.getTotalSize(),
+          }}
+        >
+          <TableHeader className="select-none">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.getSize() }}
+                      className="relative truncate"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={
+                            "bg-border absolute top-0 right-0 h-full w-0.5 cursor-col-resize"
+                          }
+                        />
+                      )}
                     </TableHead>
                   );
                 })}
@@ -265,7 +293,11 @@ export const AppCategoryManagementPage = () => {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: cell.column.getSize() }}
+                      className="truncate"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

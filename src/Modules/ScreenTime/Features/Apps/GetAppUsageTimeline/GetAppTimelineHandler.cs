@@ -16,13 +16,17 @@ public class GetAppUsageTimelineHandler(
         var settings = await context.UserSettings.AsNoTracking().SingleAsync(cancellationToken);
         var startTime = request.EndDate.ToDateTime(TimeOnly.MinValue).AddHours(settings.DayCutoffHour);
         var endTime = request.EndDate.ToDateTime(TimeOnly.MinValue).AddDays(1).AddHours(settings.DayCutoffHour);
-        var excludedIds = request.ExcludedIds?.ToList() ?? [];
 
-        var sessions = await context.AppUsageSessions
+        var query = context.AppUsageSessions
             .AsNoTracking()
-            .Where(x => !excludedIds.Contains(x.AppId)
-                && x.StartTime < endTime
-                && startTime <= x.EndTime)
+            .Where(x => x.StartTime < endTime && startTime <= x.EndTime);
+
+        if (request.IncludedIds is not null)
+            query = query.Where(x => request.IncludedIds.Contains(x.AppId));
+        else if (request.ExcludedIds is not null)
+            query = query.Where(x => !request.ExcludedIds.Contains(x.AppId));
+
+        var sessions = await query
             .Select(x => new
             {
                 Id = x.AppId,
@@ -33,20 +37,25 @@ public class GetAppUsageTimelineHandler(
             .ToListAsync(cancellationToken);
 
         var activeSession = activeSessionStore.Current;
-        if (activeSession is not null
-            && !excludedIds.Contains(activeSession.AppId)
-            && activeSession.StartTime < endTime)
+        if (activeSession is not null && activeSession.StartTime < endTime)
         {
-            var activeApp = await context.Apps
-                .AsNoTracking()
-                .SingleAsync(x => x.Id == activeSession.AppId, cancellationToken);
-            sessions.Add(new
+            var included = request.IncludedIds?.Contains(activeSession.AppId) ?? true;
+            var notExcluded = request.ExcludedIds is null || !request.ExcludedIds.Contains(activeSession.AppId);
+            var shouldInclude = request.IncludedIds is not null ? included : notExcluded;
+
+            if (shouldInclude)
             {
-                activeApp.Id,
-                activeApp!.Name,
-                activeSession.StartTime,
-                EndTime = timeProvider.GetLocalNow().DateTime
-            });
+                var activeApp = await context.Apps
+                    .AsNoTracking()
+                    .SingleAsync(x => x.Id == activeSession.AppId, cancellationToken);
+                sessions.Add(new
+                {
+                    activeApp.Id,
+                    activeApp.Name,
+                    activeSession.StartTime,
+                    EndTime = timeProvider.GetLocalNow().DateTime
+                });
+            }
         }
 
         var normalized = sessions.Select(s => s with

@@ -1,5 +1,6 @@
 import { UnknowAppCategoryIcon } from "@/shared/ui/icons";
 import { getAppCategoryIconUrl } from "../api/requests";
+import { cn } from "@/shared/lib/shadcn";
 
 export const AppCategoryIcon = ({
   className,
@@ -13,6 +14,7 @@ export const AppCategoryIcon = ({
   const iconUrl = getAppCategoryIconUrl(id);
   const FallbackIcon = UnknowAppCategoryIcon;
 
-  if (iconPath) return <img src={iconUrl} className={className} />;
+  if (iconPath)
+    return <img src={iconUrl} className={cn(className, "max-w-none")} />;
   else return <FallbackIcon className={className} />;
 };

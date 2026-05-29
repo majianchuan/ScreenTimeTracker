@@ -18,6 +18,7 @@ public class GetAppUsageHandler(
         var endTime = request.EndDate.ToDateTime(TimeOnly.MinValue).AddDays(1).AddHours(settings.DayCutoffHour);
 
         var query = context.AppUsageSessions
+            .AsNoTracking()
             .Where(x => x.StartTime < endTime && startTime <= x.EndTime);
 
         if (request.IncludedIds is not null)

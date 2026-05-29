@@ -15,7 +15,6 @@ public class App : Entity
     public AppCategory? AppCategory { get; private set; }
     public string? ExecutablePath { get; private set; }
     public string? IconPath { get; private set; }
-    public string? Description { get; private set; }
     public bool IsSystem { get; private set; }
 
     // EF Core
@@ -29,8 +28,7 @@ public class App : Entity
         string executableName,
         bool autoUpdate = true,
         string? executablePath = null,
-        string? iconPath = null,
-        string? description = null
+        string? iconPath = null
     )
     {
         return new App()
@@ -42,7 +40,6 @@ public class App : Entity
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = executablePath,
             IconPath = iconPath,
-            Description = description,
             IsSystem = false
         };
     }
@@ -58,7 +55,6 @@ public class App : Entity
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
-            Description = "Shows when the user is idle",
             IsSystem = true
         };
 
@@ -73,7 +69,6 @@ public class App : Entity
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
-            Description = "Represents unknown or restricted apps",
             IsSystem = true
         };
 
@@ -88,7 +83,6 @@ public class App : Entity
 
         ExecutablePath = executablePath;
         IconPath = iconPath;
-        Description = description;
         LastAutoUpdated = now;
     }
 

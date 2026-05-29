@@ -20,6 +20,7 @@ export type UsageTimelineProps = {
   className?: string;
   type: "app" | "app-category";
   date: DateOnly;
+  includedIds?: string[];
   excludedIds?: string[];
 };
 
@@ -66,6 +67,7 @@ export const UsageTimeline = ({
   className,
   date,
   type,
+  includedIds,
   excludedIds,
 }: UsageTimelineProps) => {
   const { theme, systemTheme } = useTheme();
@@ -79,6 +81,7 @@ export const UsageTimeline = ({
     ...appUsageTimelineQueryOptions({
       startDate: date,
       endDate: date,
+      includedIds: includedIds,
       excludedIds: excludedIds,
     }),
     enabled: type === "app",
@@ -87,6 +90,7 @@ export const UsageTimeline = ({
     ...appCategoryUsageTimelineQueryOptions({
       startDate: date,
       endDate: date,
+      includedIds: includedIds,
       excludedIds: excludedIds,
     }),
     enabled: type === "app-category",

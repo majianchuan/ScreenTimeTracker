@@ -75,10 +75,10 @@ public class ForegroundWindowChangedHandler(
             else
             {
                 using ExecutableMetadata metadata = await executableMetadataProvider.GetMetadataAsync(executablePath);
-                string name = string.IsNullOrWhiteSpace(metadata.Description) ? processName : metadata.Description;
+                string name = string.IsNullOrWhiteSpace(metadata.Name) ? processName : metadata.Name;
                 app = App.Create(now, name, processName, true, executablePath);
                 string? iconPath = await EnsureIconUpdated(app, metadata, settings, cancellationToken);
-                app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Description);
+                app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Name);
             }
             context.Apps.Add(app);
             await context.SaveChangesAsync(cancellationToken);
@@ -94,7 +94,7 @@ public class ForegroundWindowChangedHandler(
                 {
                     using ExecutableMetadata metadata = await executableMetadataProvider.GetMetadataAsync(executablePath);
                     string? iconPath = await EnsureIconUpdated(app, metadata, settings, cancellationToken);
-                    app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Description);
+                    app.UpdateSystemDetails(now, executablePath, iconPath, metadata.Name);
                 }
                 await context.SaveChangesAsync(cancellationToken);
             }
@@ -138,12 +138,12 @@ public interface IExecutableMetadataProvider
 }
 
 public class ExecutableMetadata(
-    string? description,
+    string? name,
     Stream? iconStream,
     string? iconFileExtension
 ) : IDisposable
 {
-    public string? Description { get; } = description;
+    public string? Name { get; } = name;
     public Stream? IconStream { get; } = iconStream;
     public string? IconFileExtension { get; } = iconFileExtension;
 

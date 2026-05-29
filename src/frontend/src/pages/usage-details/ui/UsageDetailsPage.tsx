@@ -12,6 +12,7 @@ import {
 } from "@/features/dimension-control";
 import { useEffect, useMemo } from "react";
 import { UsageChart } from "@/features/usage-chart";
+import { UsageTimeline } from "@/features/usage-timeline";
 
 interface UsageDetailsPageProps {
   search: SearchParams;
@@ -110,6 +111,7 @@ export const UsageDetailsPage = ({
         </div>
       </div>
 
+      {/* 使用时间柱状图 */}
       <div className="border-border mt-4 rounded-lg border p-3">
         {search.id ? (
           <UsageChart
@@ -129,7 +131,21 @@ export const UsageDetailsPage = ({
         ) : (
           <div className="text-center">请选择查看项</div>
         )}
+
+        {/* 日使用时间线 */}
       </div>
+      {search.timeFrame === "day" && search.id ? (
+        <div className="border-border mt-4 rounded-lg border p-3">
+          <UsageTimeline
+            className="h-30! w-full"
+            type={search.dimension}
+            date={search.startDate}
+            includedIds={[search.id]}
+          />
+        </div>
+      ) : (
+        <></>
+      )}
     </>
   );
 };

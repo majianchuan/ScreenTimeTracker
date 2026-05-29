@@ -20,6 +20,7 @@ public class GetAppUsageTimelineEndpoint(
             new GetAppUsageTimelineQuery(
                 req.StartDate,
                 req.EndDate,
+                req.IncludedIds,
                 req.ExcludedIds
             ),
             cancellationToken

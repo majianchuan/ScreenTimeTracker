@@ -9,6 +9,5 @@ public record GetAppsResponseItem(
     Guid AppCategoryId,
     string? ExecutablePath,
     string IconPath,
-    string? Description,
     bool IsSystem
 );
