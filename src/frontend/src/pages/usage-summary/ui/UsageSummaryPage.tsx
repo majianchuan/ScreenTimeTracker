@@ -35,7 +35,11 @@ export const UsageSummaryPage = ({
 }: UsageSummaryPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
 
-  const { handleTimeFrameChange, handleDateRangeChange } = useDateFilter({
+  const {
+    handleTimeFrameChange,
+    handleDateRangeChange,
+    isLoading: isDateFilterLoading,
+  } = useDateFilter({
     currentTimeFrame: search.timeFrame,
     currentDateRange: {
       start: dateOnlyToDate(search.startDate),
@@ -83,6 +87,13 @@ export const UsageSummaryPage = ({
   });
 
   const navigate = useNavigate();
+
+  if (isDateFilterLoading)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <span>正在获取数据，加载中。。。</span>
+      </div>
+    );
 
   return (
     <>

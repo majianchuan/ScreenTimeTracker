@@ -18,10 +18,10 @@ export const useDateFilter = ({
   onValueChange,
 }: UseDateFilterOptions) => {
   const timeFrameCacheRef = useRef<TimeFrameCache>({});
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     ...userSettingsQueries.userSettings(),
   });
-  const dayCutoffHour = data?.dayCutoffHour || 0;
+  const dayCutoffHour = data?.dayCutoffHour || 5;
   const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
 
   const getDefaultDateRange = useCallback(
@@ -59,5 +59,6 @@ export const useDateFilter = ({
   return {
     handleTimeFrameChange,
     handleDateRangeChange,
+    isLoading,
   };
 };
