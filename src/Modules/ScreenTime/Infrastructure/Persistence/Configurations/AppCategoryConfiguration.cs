@@ -9,6 +9,9 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence.Config
         public void Configure(EntityTypeBuilder<AppCategory> builder)
         {
             builder.HasData(AppCategory.CreateUncategorized());
+
+            builder.HasIndex(x => x.Name)
+                .IsUnique();
         }
     }
 }

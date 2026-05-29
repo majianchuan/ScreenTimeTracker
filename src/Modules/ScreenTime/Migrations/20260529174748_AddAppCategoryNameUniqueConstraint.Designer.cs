@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
 {
     [DbContext(typeof(ScreenTimeDbContext))]
-    partial class ScreenTimeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529174748_AddAppCategoryNameUniqueConstraint")]
+    partial class AddAppCategoryNameUniqueConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");

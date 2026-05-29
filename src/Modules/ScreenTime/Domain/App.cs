@@ -25,7 +25,7 @@ public class App : Entity
     public static App Create(
         DateTime now,
         string name,
-        string executableName,
+        string processName,
         bool autoUpdate = true,
         string? executablePath = null,
         string? iconPath = null
@@ -34,7 +34,7 @@ public class App : Entity
         return new App()
         {
             Name = name,
-            ProcessName = executableName,
+            ProcessName = processName,
             IsAutoUpdateEnabled = autoUpdate,
             LastAutoUpdated = now,
             AppCategoryId = AppCategory.UncategorizedId,

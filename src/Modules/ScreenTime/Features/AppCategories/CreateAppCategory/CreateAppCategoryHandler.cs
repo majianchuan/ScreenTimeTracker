@@ -1,4 +1,5 @@
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
@@ -10,6 +11,11 @@ public class CreateAppCategoryHandler(
 {
     public async ValueTask<CreateAppCategoryResponse> Handle(CreateAppCategoryCommand request, CancellationToken cancellationToken)
     {
+        var exists = await context.AppCategories
+            .AnyAsync(x => x.Name == request.Name, cancellationToken);
+        if (exists)
+            throw new Exception("App category with the same name already exists.");
+
         AppCategory appCategory = AppCategory.Create(request.Name, request.IconPath);
         context.AppCategories.Add(appCategory);
         await context.SaveChangesAsync(cancellationToken);
