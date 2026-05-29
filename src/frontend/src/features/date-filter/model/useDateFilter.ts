@@ -1,6 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { DateRange, TimeFrame } from "./schemas";
-import { subDays } from "date-fns";
+import { startOfDay, subDays, subHours } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { userSettingsQueries } from "@/entities/user-settings";
 
 export type TimeFrameCache = Partial<Record<TimeFrame, DateRange>>;
 
@@ -16,20 +18,27 @@ export const useDateFilter = ({
   onValueChange,
 }: UseDateFilterOptions) => {
   const timeFrameCacheRef = useRef<TimeFrameCache>({});
+  const { data } = useQuery({
+    ...userSettingsQueries.userSettings(),
+  });
+  const dayCutoffHour = data?.dayCutoffHour || 0;
+  const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
 
-  const getDefaultDateRange = (timeFrame: TimeFrame): DateRange => {
-    const today = new Date();
-    switch (timeFrame) {
-      case "day":
-        return { start: today, end: today };
-      case "week":
-        return { start: subDays(today, 6), end: today };
-      case "month":
-        return { start: subDays(today, 30), end: today };
-      default: // custom
-        return { start: today, end: today };
-    }
-  };
+  const getDefaultDateRange = useCallback(
+    (timeFrame: TimeFrame): DateRange => {
+      switch (timeFrame) {
+        case "day":
+          return { start: logicalToday, end: logicalToday };
+        case "week":
+          return { start: subDays(logicalToday, 6), end: logicalToday };
+        case "month":
+          return { start: subDays(logicalToday, 30), end: logicalToday };
+        default:
+          return { start: logicalToday, end: logicalToday };
+      }
+    },
+    [logicalToday],
+  );
 
   useEffect(() => {
     timeFrameCacheRef.current[currentTimeFrame] = currentDateRange;
