@@ -55,13 +55,11 @@ export const UsageChart = ({
   const { theme, systemTheme } = useTheme();
   const isDark = (theme === "system" ? systemTheme : theme) === "dark";
 
-  const { chartData, total, average } = useMemo(() => {
-    const usageData = type === "app" ? appUsageData : appCategoryUsageData;
-    if (!usageData?.length) {
-      return { chartData: [], total: 0, average: 0 };
-    }
-
-    // 统一映射为 { name: string, value: number } 格式
+  const option = useMemo(() => {
+    const usageData =
+      (type === "app" ? appUsageData : appCategoryUsageData) || [];
+    const sum = usageData.reduce((acc, cur) => acc + cur.durationSeconds, 0);
+    const avg = Math.round(sum / (usageData.length || 1));
     const normalized = usageData.map((item) => {
       let name = "";
       // 判断是小时数据还是日期数据
@@ -71,39 +69,28 @@ export const UsageChart = ({
         name = item.startTime.toLocaleDateString();
       } else if (xAxisType === "week") name = format(item.startTime, "EEE");
 
-      const value = item.durationSeconds ?? 0;
-
-      return { name, value };
+      return { name, value: item.durationSeconds };
     });
 
-    // 计算总和
-    const sum = normalized.reduce((acc, cur) => acc + cur.value, 0);
-    // 计算平均数
-    const avg = Math.round(sum / (normalized.length || 1));
-
-    return {
-      chartData: normalized,
-      total: sum,
-      average: avg,
-    };
-  }, [xAxisType, type, appUsageData, appCategoryUsageData]);
-
-  const option = useMemo(() => {
     return {
       backgroundColor: "transparent",
+      grid: {
+        bottom: 30,
+        left: 90,
+        right: 90,
+      },
       title: {
-        text: `总计：${formatSecondsDuration(total)} ${granularity !== "hour" ? `| 平均：${formatSecondsDuration(average)}` : ""}`,
+        text: `总计：${formatSecondsDuration(sum)} ${granularity !== "hour" ? `| 平均：${formatSecondsDuration(avg)}` : ""}`,
       },
       tooltip: {
         trigger: "axis",
-        // 格式化 Tooltip 显示具体时长
         formatter: (params: { name: string; value: number }[]) => {
           const item = params[0];
-          return `${item.name}<br/>时长：<b>${formatSecondsDuration(item.value)}</b>`;
+          return `${item.name}<br/>${formatSecondsDuration(item.value)}`;
         },
       },
       xAxis: {
-        data: chartData.map((d) => d.name),
+        data: normalized.map((v) => v.name),
       },
       yAxis: {
         axisLabel: {
@@ -113,8 +100,7 @@ export const UsageChart = ({
       series: [
         {
           type: "bar",
-          name: "时长",
-          data: chartData.map((d) => d.value),
+          data: normalized.map((v) => v.value),
           markLine:
             granularity === "hour"
               ? undefined
@@ -122,9 +108,9 @@ export const UsageChart = ({
                   animation: false,
                   data: [
                     {
-                      yAxis: average,
+                      yAxis: avg,
                       label: {
-                        formatter: "平均\n" + formatSecondsDuration(average),
+                        formatter: "平均\n" + formatSecondsDuration(avg),
                       },
                     },
                   ],
@@ -132,7 +118,7 @@ export const UsageChart = ({
         },
       ],
     };
-  }, [chartData, total, average, granularity]);
+  }, [granularity, type, xAxisType, appUsageData, appCategoryUsageData]);
 
   return (
     <ReactECharts

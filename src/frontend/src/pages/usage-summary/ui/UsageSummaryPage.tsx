@@ -10,7 +10,7 @@ import {
   DimensionTypeSelector,
   useDimensionControl,
 } from "@/features/dimension-control";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   SelectTrigger,
   SelectContent,
@@ -18,9 +18,14 @@ import {
   SelectValue,
   SelectItem,
   SelectGroup,
+  ToggleGroup,
+  ToggleGroupItem,
 } from "@/shared/lib/shadcn";
 import { useNavigate } from "@tanstack/react-router";
-import { UsageRanking } from "@/features/usage-ranking";
+import {
+  UsageRankingList,
+  UsageRankingPieChart,
+} from "@/features/usage-ranking";
 import { UsageTimeline } from "@/features/usage-timeline";
 import { UsageChart } from "@/features/usage-chart";
 
@@ -34,6 +39,7 @@ export const UsageSummaryPage = ({
   onSearchChange,
 }: UsageSummaryPageProps) => {
   const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
+  const RANKING_TYPE_STORAGE_KEY = "page_usage_summary_page_ranking_type";
 
   const {
     handleTimeFrameChange,
@@ -88,6 +94,10 @@ export const UsageSummaryPage = ({
 
   const navigate = useNavigate();
 
+  const [rankingType, setRankingType] = useState(
+    localStorage.getItem(RANKING_TYPE_STORAGE_KEY) || "pieChart",
+  );
+
   if (isDateFilterLoading)
     return (
       <div className="flex h-full items-center justify-center">
@@ -97,6 +107,7 @@ export const UsageSummaryPage = ({
 
   return (
     <>
+      {/* 类别切换，时间范围选择 */}
       <div>
         <div className="flex w-full">
           <div className="flex flex-1 justify-start">
@@ -137,6 +148,7 @@ export const UsageSummaryPage = ({
       {/* 使用时间柱状图 */}
       <div className="border-border mt-4 rounded-lg border p-3">
         <UsageChart
+          className="h-70!"
           type={search.dimension}
           granularity={search.timeFrame === "day" ? "hour" : "day"}
           xAxisType={
@@ -168,7 +180,20 @@ export const UsageSummaryPage = ({
 
       {/* 使用排名 */}
       <div className="border-border mt-4 rounded-lg border p-3">
-        <div className="flex flex-row justify-end">
+        <div className="flex flex-row justify-between">
+          <ToggleGroup
+            variant="outline"
+            type="single"
+            value={rankingType}
+            onValueChange={(type) => {
+              if (type === "") return;
+              setRankingType(type);
+              localStorage.setItem(RANKING_TYPE_STORAGE_KEY, type);
+            }}
+          >
+            <ToggleGroupItem value="pieChart">饼图</ToggleGroupItem>
+            <ToggleGroupItem value="listChart">列表</ToggleGroupItem>
+          </ToggleGroup>
           <Select
             value={`${search.topN}`}
             onValueChange={(value) => onSearchChange({ topN: Number(value) })}
@@ -185,26 +210,49 @@ export const UsageSummaryPage = ({
             </SelectContent>
           </Select>
         </div>
-        <UsageRanking
-          className="mt-4"
-          type={search.dimension}
-          startDate={search.startDate}
-          endDate={search.endDate}
-          topN={search.topN}
-          onItemClick={(id) =>
-            navigate({
-              to: "/usage/details",
-              search: {
-                dimension: search.dimension,
-                id: id,
-                timeFrame: search.timeFrame,
-                startDate: search.startDate,
-                endDate: search.endDate,
-              },
-            })
-          }
-          excludedIds={search.excludedIds}
-        />
+        {rankingType === "pieChart" ? (
+          <UsageRankingPieChart
+            className="mt-4 h-100!"
+            type={search.dimension}
+            startDate={search.startDate}
+            endDate={search.endDate}
+            topN={search.topN}
+            onItemClick={(id) =>
+              navigate({
+                to: "/usage/details",
+                search: {
+                  dimension: search.dimension,
+                  id: id,
+                  timeFrame: search.timeFrame,
+                  startDate: search.startDate,
+                  endDate: search.endDate,
+                },
+              })
+            }
+            excludedIds={search.excludedIds}
+          />
+        ) : (
+          <UsageRankingList
+            className="mt-2"
+            type={search.dimension}
+            startDate={search.startDate}
+            endDate={search.endDate}
+            topN={search.topN}
+            onItemClick={(id) =>
+              navigate({
+                to: "/usage/details",
+                search: {
+                  dimension: search.dimension,
+                  id: id,
+                  timeFrame: search.timeFrame,
+                  startDate: search.startDate,
+                  endDate: search.endDate,
+                },
+              })
+            }
+            excludedIds={search.excludedIds}
+          />
+        )}
       </div>
     </>
   );

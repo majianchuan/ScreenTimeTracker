@@ -9,7 +9,7 @@ import { AppIcon } from "@/entities/app";
 import { formatSecondsDuration } from "@/shared/lib/time";
 import { AppCategoryIcon } from "@/entities/app-category";
 
-export type UsageRankingProps = {
+export type UsageRankingListProps = {
   className?: string;
   type: "app" | "app-category";
   startDate: DateOnly;
@@ -19,7 +19,7 @@ export type UsageRankingProps = {
   onItemClick?: (id: string) => void;
 };
 
-export const UsageRanking = ({
+export const UsageRankingList = ({
   className,
   type,
   startDate,
@@ -27,7 +27,7 @@ export const UsageRanking = ({
   topN,
   excludedIds,
   onItemClick,
-}: UsageRankingProps) => {
+}: UsageRankingListProps) => {
   const { data: appUsageRankingData } = useQuery({
     ...appUsageRankingQueryOptions({
       startDate: startDate,
