@@ -1,25 +1,24 @@
 using FastEndpoints;
+using FastEndpoints.Swagger;
+using Mediator;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using ScreenTimeTracker.Hosts.Desktop.Configuration;
+using ScreenTimeTracker.Hosts.Desktop.Hosting;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
+using ScreenTimeTracker.Hosts.Desktop.Modules.Preferences;
+using ScreenTimeTracker.Hosts.Desktop.UI.Services;
+using ScreenTimeTracker.Hosts.Desktop.UI.State;
+using ScreenTimeTracker.Hosts.Desktop.UI.Views;
 using ScreenTimeTracker.Modules.ScreenTime;
 using Serilog;
 using System.IO;
-using System.Windows;
-using Mediator;
 using System.IO.Pipes;
-using System.Text;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using Microsoft.AspNetCore.Connections;
-using ScreenTimeTracker.Hosts.Desktop.Hosting;
-using ScreenTimeTracker.Hosts.Desktop.UI.Services;
-using ScreenTimeTracker.Hosts.Desktop.UI.Views;
-using ScreenTimeTracker.Hosts.Desktop.UI.State;
-using ScreenTimeTracker.Hosts.Desktop.Configuration;
-using ScreenTimeTracker.Hosts.Desktop.Modules.Preferences;
-using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
+using System.Text;
+using System.Windows;
 
 
 string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
@@ -177,9 +176,8 @@ static WebApplication BuildWebApplication()
     });
     builder.Services.AddSingleton(TimeProvider.System);
     // Web API
-    if (builder.Environment.IsDevelopment())
-        builder.Services.AddOpenApi();
     builder.Services.AddFastEndpoints();
+    builder.Services.SwaggerDocument();
     builder.Services.AddCors();
     builder.Services.AddSingleton<IServerUrlProvider, ServerUrlProvider>();
     // WPF
@@ -201,8 +199,6 @@ static WebApplication BuildWebApplication()
 
 static void ConfigureMiddleware(WebApplication app)
 {
-    if (app.Environment.IsDevelopment())
-        app.MapOpenApi();  // 文档默认url: /openapi/v1.json
     app.UseStaticFiles();
     app.UseCors(cors =>
     {
@@ -214,6 +210,7 @@ static void ConfigureMiddleware(WebApplication app)
     {
         config.Endpoints.RoutePrefix = "api";
     });
+    app.UseSwaggerGen();  // 文档url: /swagger/v1/swagger.json
     app.MapFallbackToFile("index.html"); // SPA回退
 }
 

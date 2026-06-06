@@ -1,10 +1,10 @@
-using System.Diagnostics;
-using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
 using Mediator;
+using Microsoft.Extensions.DependencyInjection;
 using ScreenTimeTracker.Hosts.Desktop.Hosting;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
 using ScreenTimeTracker.Hosts.Desktop.UI.Views;
+using System.Diagnostics;
+using System.Windows;
 
 namespace ScreenTimeTracker.Hosts.Desktop.UI.Services;
 

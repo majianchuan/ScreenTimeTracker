@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 
 namespace ScreenTimeTracker.Hosts.Desktop.Hosting;
 

@@ -1,9 +1,9 @@
-using System.Data;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Data;
+using System.IO;
 
 namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.Persistence;
 

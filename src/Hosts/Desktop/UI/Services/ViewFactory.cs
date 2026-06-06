@@ -1,5 +1,5 @@
-using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
 
 namespace ScreenTimeTracker.Hosts.Desktop.UI.Services;
 

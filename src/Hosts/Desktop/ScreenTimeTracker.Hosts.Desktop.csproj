@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.Swagger" />
     <PackageReference Include="H.NotifyIcon" />
     <PackageReference Include="Mediator.Abstractions" />
     <PackageReference Include="Mediator.SourceGenerator">

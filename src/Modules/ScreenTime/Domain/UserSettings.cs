@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using ScreenTimeTracker.BuildingBlocks.Domain;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Domain;

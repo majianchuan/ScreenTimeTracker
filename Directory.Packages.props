@@ -7,6 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="FastEndpoints" Version="8.1.0" />
+    <PackageVersion Include="FastEndpoints.Swagger" Version="8.1.0" />
     <PackageVersion Include="H.NotifyIcon" Version="2.4.1" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.2" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.2">

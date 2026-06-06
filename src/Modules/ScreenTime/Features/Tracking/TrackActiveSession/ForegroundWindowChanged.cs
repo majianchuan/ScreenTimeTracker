@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
