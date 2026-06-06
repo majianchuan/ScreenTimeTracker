@@ -6,5 +6,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.PatchAppCa
 public record PatchAppCategoryCommand(
     Guid AppCategoryId,
     Optional<string> Name,
+    Optional<string> Color,
     Optional<string?> IconPath
 ) : IRequest;

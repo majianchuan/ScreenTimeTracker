@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageRanking.GetAppCategoryUsageRanking;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageRanking;
 
 public record GetAppCategoryUsageRankingRequest(
     [property: QueryParam] DateOnly StartDate,

@@ -27,6 +27,7 @@ public class GetAppUsageRankingHandler(
             {
                 Id = x.AppId,
                 x.App!.Name,
+                x.App!.Color,
                 x.App!.IconPath,
                 x.StartTime,
                 x.EndTime
@@ -44,13 +45,14 @@ public class GetAppUsageRankingHandler(
             {
                 activeApp.Id,
                 activeApp.Name,
+                activeApp.Color,
                 activeApp.IconPath,
                 activeSession.StartTime,
                 EndTime = timeProvider.GetLocalNow().DateTime
             });
         }
 
-        var aggregatedUsage = new Dictionary<Guid, (string Name, string? IconPath, long DurationMilliseconds)>();
+        var aggregatedUsage = new Dictionary<Guid, (string Name, string Color, string? IconPath, long DurationMilliseconds)>();
 
         foreach (var session in sessions)
         {
@@ -63,9 +65,9 @@ public class GetAppUsageRankingHandler(
                 long durationMilliseconds = (long)(actualEnd - actualStart).TotalMilliseconds;
 
                 if (!aggregatedUsage.TryGetValue(session.Id, out var current))
-                    aggregatedUsage[session.Id] = (session.Name, session.IconPath, durationMilliseconds);
+                    aggregatedUsage[session.Id] = (session.Name, session.Color, session.IconPath, durationMilliseconds);
                 else
-                    aggregatedUsage[session.Id] = (current.Name, current.IconPath, current.DurationMilliseconds + durationMilliseconds);
+                    aggregatedUsage[session.Id] = (current.Name, current.Color, current.IconPath, current.DurationMilliseconds + durationMilliseconds);
             }
         }
 
@@ -77,6 +79,7 @@ public class GetAppUsageRankingHandler(
             .Select(kvp => new GetAppUsageRankingResponseItem(
                 Id: kvp.Key,
                 Name: kvp.Value.Name,
+                Color: kvp.Value.Color,
                 IconPath: kvp.Value.IconPath,
                 DurationSeconds: kvp.Value.DurationMilliseconds / 1000,
                 // 计算百分比并四舍五入

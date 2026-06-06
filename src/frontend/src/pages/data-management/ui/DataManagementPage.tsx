@@ -182,7 +182,7 @@ export const DataManagementPage = () => {
                   try {
                     const result = await importDataAsync(await file.text());
                     toast.success(
-                      `从文件导入数据成功，导入${result.importedCount}条，跳过${result.skippedCount}条`,
+                      `从文件导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
                     );
                   } catch (err: unknown) {
                     handleImportError(err);
@@ -201,7 +201,7 @@ export const DataManagementPage = () => {
                   await navigator.clipboard.readText(),
                 );
                 toast.success(
-                  `从剪贴板导入数据成功，导入${result.importedCount}条，跳过${result.skippedCount}条`,
+                  `从剪贴板导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
                 );
               } catch (err: unknown) {
                 handleImportError(err);

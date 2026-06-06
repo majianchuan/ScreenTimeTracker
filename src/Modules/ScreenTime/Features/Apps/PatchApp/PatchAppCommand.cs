@@ -6,6 +6,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Apps.PatchApp;
 public record PatchAppCommand(
     Guid Id,
     Optional<string> Name,
+    Optional<string> Color,
     Optional<bool> IsAutoUpdateEnabled,
     Optional<Guid> AppCategoryId,
     Optional<string?> IconPath

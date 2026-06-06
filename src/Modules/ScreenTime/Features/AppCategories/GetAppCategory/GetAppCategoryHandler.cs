@@ -21,6 +21,7 @@ public class GetAppCategoryHandler(
             : new GetAppCategoryResponse(
                 appCategory.Id,
                 appCategory.Name,
+                appCategory.Color,
                 appCategory.IconPath,
                 appCategory.IsSystem
             );

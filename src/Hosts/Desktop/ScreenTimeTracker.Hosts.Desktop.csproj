@@ -10,7 +10,7 @@
     <AssemblyName>ScreenTimeTracker</AssemblyName>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
-    <Version>4.2.0</Version>
+    <Version>4.3.0</Version>
   </PropertyGroup>
 
   <Target Name="CleanFrontendAssets" BeforeTargets="Publish">

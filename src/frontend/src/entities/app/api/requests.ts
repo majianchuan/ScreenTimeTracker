@@ -17,6 +17,7 @@ export const getApps = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       processName: validated.processName,
       isAutoUpdateEnabled: validated.isAutoUpdateEnabled,
       lastAutoUpdated: validated.lastAutoUpdated,

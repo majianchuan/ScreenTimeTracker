@@ -20,6 +20,7 @@ public class CreateAppCategoryEndpoint(
         var result = await mediator.Send(
             new CreateAppCategoryCommand(
                 req.Name,
+                req.Color,
                 req.IconPath
             ),
             cancellationToken

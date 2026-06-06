@@ -20,6 +20,7 @@ public class PatchAppCategoryEndpoint(
             new PatchAppCategoryCommand(
                 AppCategoryId: req.AppCategoryId,
                 Name: req.Name,
+                Color: req.Color,
                 IconPath: req.IconPath
             ),
             cancellationToken

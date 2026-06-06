@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageTimeline.GetAppCategoryUsageTimeline;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageTimeline;
 
 public class GetAppCategoryUsageTimelineHandler(
     ScreenTimeDbContext context,
@@ -31,6 +31,7 @@ public class GetAppCategoryUsageTimelineHandler(
             {
                 Id = x.App!.AppCategoryId,
                 x.App!.AppCategory!.Name,
+                x.App!.AppCategory!.Color,
                 x.StartTime,
                 x.EndTime
             })
@@ -40,6 +41,7 @@ public class GetAppCategoryUsageTimelineHandler(
         if (activeSession is not null && activeSession.StartTime < endTime)
         {
             var activeApp = await context.Apps
+                .Include(a => a.AppCategory)
                 .AsNoTracking()
                 .SingleAsync(x => x.Id == activeSession.AppId, cancellationToken);
             var included = request.IncludedIds?.Contains(activeApp.AppCategoryId) ?? true;
@@ -49,8 +51,9 @@ public class GetAppCategoryUsageTimelineHandler(
             if (shouldInclude)
                 sessions.Add(new
                 {
-                    activeApp.Id,
-                    activeApp!.Name,
+                    Id = activeApp.AppCategoryId,
+                    activeApp.AppCategory!.Name,
+                    activeApp.AppCategory!.Color,
                     activeSession.StartTime,
                     EndTime = timeProvider.GetLocalNow().DateTime
                 });
@@ -67,6 +70,7 @@ public class GetAppCategoryUsageTimelineHandler(
             .Select(x => new GetAppCategoryUsageTimelineResponseItem(
                 Id: x.Id,
                 Name: x.Name,
+                Color: x.Color,
                 StartTime: x.StartTime.ToString("O"),
                 EndTime: x.EndTime.ToString("O")
             ))];

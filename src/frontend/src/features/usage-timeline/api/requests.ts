@@ -11,7 +11,7 @@ import {
 export const getAppUsageTimeline = async (
   params: GetAppUsageTimelineParams,
 ): Promise<AppUsageTimelineItemDto[]> => {
-  const { data } = await apiClient.get("/screen-time/usage/apps/Timeline", {
+  const { data } = await apiClient.get("/screen-time/usage/apps/timeline", {
     params,
   });
   return data.map((dto: unknown) => {
@@ -19,6 +19,7 @@ export const getAppUsageTimeline = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       startTime: validated.startTime,
       endTime: validated.endTime,
     };
@@ -29,7 +30,7 @@ export const getAppCategoryUsageTimeline = async (
   params: GetAppCategoryUsageTimelineParams,
 ): Promise<AppCategoryUsageTimelineItemDto[]> => {
   const { data } = await apiClient.get(
-    "/screen-time/usage/app-categories/Timeline",
+    "/screen-time/usage/app-categories/timeline",
     {
       params,
     },
@@ -39,6 +40,7 @@ export const getAppCategoryUsageTimeline = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       startTime: validated.startTime,
       endTime: validated.endTime,
     };

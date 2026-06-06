@@ -116,23 +116,31 @@ export const UsageTimeline = ({
       >,
     );
 
-    const series = Object.entries(groupedData).map(([name, items]) => ({
-      name: name,
-      type: "custom",
-      renderItem,
-      encode: {
-        x: [0, 1],
-        y: 2,
-      },
-      data: items.map((item) => {
-        const startMs = item.startTime.getTime();
-        const endMs = item.endTime.getTime();
-        return {
-          name: item.name,
-          value: [startMs, endMs, 0, item.id],
-        };
-      }),
-    }));
+    const series = Object.entries(groupedData).map(([name, items]) => {
+      return {
+        name: name,
+        type: "custom",
+        renderItem,
+        itemStyle: {
+          color: items[0]?.color,
+        },
+        encode: {
+          x: [0, 1],
+          y: 2,
+        },
+        data: items.map((item) => {
+          const startMs = item.startTime.getTime();
+          const endMs = item.endTime.getTime();
+          return {
+            name: item.name,
+            value: [startMs, endMs, 0, item.id],
+            itemStyle: {
+              color: item.color,
+            },
+          };
+        }),
+      };
+    });
 
     return {
       backgroundColor: "transparent",

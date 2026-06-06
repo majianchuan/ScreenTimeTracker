@@ -4,5 +4,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.CreateAppC
 
 public record CreateAppCategoryCommand(
     string Name,
+    string Color,
     string? IconPath
 ) : IRequest<CreateAppCategoryResponse>;

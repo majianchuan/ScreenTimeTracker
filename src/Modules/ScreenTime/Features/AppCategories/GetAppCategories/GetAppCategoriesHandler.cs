@@ -16,6 +16,7 @@ public class GetAppCategoriesHandler(
     {
         { nameof(GetAppCategoriesResponseItem.Id), [nameof(AppCategory.Id)] },
         { nameof(GetAppCategoriesResponseItem.Name), [nameof(AppCategory.Name)] },
+        { nameof(GetAppCategoriesResponseItem.Color), [nameof(AppCategory.Color)] },
         { nameof(GetAppCategoriesResponseItem.IconPath), [nameof(AppCategory.IconPath)] },
         { nameof(GetAppCategoriesResponseItem.IsSystem), [nameof(AppCategory.IsSystem)] }
     };
@@ -25,6 +26,7 @@ public class GetAppCategoriesHandler(
     {
         [nameof(GetAppCategoriesResponseItem.Id)] = e => e.Id,
         [nameof(GetAppCategoriesResponseItem.Name)] = e => e.Name,
+        [nameof(GetAppCategoriesResponseItem.Color)] = e => e.Color,
         [nameof(GetAppCategoriesResponseItem.IconPath)] = e => e.IconPath,
         [nameof(GetAppCategoriesResponseItem.IsSystem)] = e => e.IsSystem,
     };

@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageTimeline.GetAppCategoryUsageTimeline;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageTimeline;
 
 public class GetAppCategoryUsageTimelineEndpoint(
     IMediator mediator

@@ -13,141 +13,88 @@ public class ImportDataHandler(
     IActiveSessionStore activeSessionStore)
     : IRequestHandler<ImportDataCommand, ImportDataResponse>
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
     public async ValueTask<ImportDataResponse> Handle(ImportDataCommand request, CancellationToken cancellationToken)
     {
         using var doc = JsonDocument.Parse(request.RawJson);
         var version = doc.RootElement.GetProperty("version").GetInt32();
-        var response = version switch
+
+        var v3Data = version switch
         {
-            1 => await new ImportDataV1Processor(context, timeProvider, activeSessionStore).ProcessAsync(request.RawJson, cancellationToken),
-            2 => await new ImportDataV2Processor(context, timeProvider, activeSessionStore).ProcessAsync(request.RawJson, cancellationToken),
+            1 => UpcastV2ToV3(UpcastV1ToV2(Deserialize<ImportDataContracts.V1Data>(request.RawJson))),
+            2 => UpcastV2ToV3(Deserialize<ImportDataContracts.V2Data>(request.RawJson)),
+            3 => Deserialize<ImportDataContracts.V3Data>(request.RawJson),
             _ => throw new NotSupportedException($"未知版本: {version}")
         };
-        return response;
+
+        return await SaveDataAsync(v3Data, cancellationToken);
     }
 
-}
+    private static T Deserialize<T>(string json) =>
+        JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions) ?? throw new InvalidOperationException("JSON 解析失败");
 
-
-public class ImportDataV1Processor(
-    ScreenTimeDbContext context,
-    TimeProvider timeProvider,
-    IActiveSessionStore activeSessionStore)
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
-    private record Data(Data.UsageSession[] UsageSessions)
-    {
-        public record UsageSession(
-            string AppName,
-            string AppProcessName,
-            DateTime StartTime,
-            DateTime EndTime
-        );
-    }
-
-    public async ValueTask<ImportDataResponse> ProcessAsync(string rawJson, CancellationToken cancellationToken)
-    {
-        var data = JsonSerializer.Deserialize<Data>(rawJson, _jsonSerializerOptions)
-            ?? throw new NotSupportedException("无法解析 V1 数据");
-        if (data.UsageSessions.Length == 0)
-            return new ImportDataResponse(0, 0);
-
-        // 计算导入数据的整体时间范围
-        var minStart = data.UsageSessions.Min(s => s.StartTime);
-        var maxEnd = data.UsageSessions.Max(s => s.EndTime);
-
-        // 一次性拉取范围内的已有记录和 App
-        var existingSessions = await context.AppUsageSessions
-            .Where(s => s.StartTime < maxEnd && minStart < s.EndTime)
-            .ToListAsync(cancellationToken);
-        var activeSession = activeSessionStore.Current;
-        var now = timeProvider.GetLocalNow().DateTime;
-        if (activeSession is not null && activeSession.StartTime < maxEnd)
-            existingSessions.Add(AppUsageSession.Create(activeSession.AppId, activeSession.StartTime, now));
-        var processNames = data.UsageSessions.Select(s => s.AppProcessName).Distinct().ToList();
-        var existingApps = await context.Apps
-            .Where(a => processNames.Contains(a.ProcessName))
-            .ToListAsync(cancellationToken);
-
-        var appCache = existingApps.ToDictionary(a => a.ProcessName);
-
-        long importedCount = 0;
-        long skippedCount = 0;
-        foreach (var session in data.UsageSessions)
-        {
-            if (now <= session.EndTime)
-            {
-                skippedCount++;
-                continue;
-            }
-            var hasOverlap = existingSessions
-                .Any(s => s.StartTime < session.EndTime && session.StartTime < s.EndTime);
-            if (hasOverlap)
-            {
-                skippedCount++;
-                continue;
-            }
-
-            if (!appCache.TryGetValue(session.AppProcessName, out var app))
-            {
-                app = App.Create(DateTime.MinValue, session.AppName, session.AppProcessName);
-                context.Apps.Add(app);
-                appCache[session.AppProcessName] = app;
-            }
-
-            var usageSession = AppUsageSession.Create(app.Id, session.StartTime, session.EndTime);
-            context.AppUsageSessions.Add(usageSession);
-            // 信任同批次数据不会重叠
-            // existingSessions.Add(usageSession);
-            importedCount++;
-        }
-
-        await context.SaveChangesAsync(cancellationToken);
-        return new ImportDataResponse(importedCount, skippedCount);
-    }
-}
-
-public class ImportDataV2Processor(
-    ScreenTimeDbContext context,
-    TimeProvider timeProvider,
-    IActiveSessionStore activeSessionStore)
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
-    private record Data(
-        Data.AppCategory[] AppCategories,
-        Data.App[] Apps,
-        Data.AppUsageSession[] AppUsageSessions)
+    private static class ImportDataContracts
     {
         public record Icon(string Extension, byte[] Data);
 
-        public record AppCategory(string Name, Icon Icon);
+        // V1 数据结构
+        public record V1Data(V1UsageSession[] UsageSessions);
+        public record V1UsageSession(string AppName, string AppProcessName, DateTime StartTime, DateTime EndTime);
 
-        public record App(
-            string Name,
-            string ProcessName,
-            string AppCategoryName,
-            Icon Icon);
+        // V2 数据结构
+        public record V2Data(V2AppCategory[] AppCategories, V2App[] Apps, V2AppUsageSession[] AppUsageSessions);
+        public record V2AppCategory(string Name, Icon? Icon);
+        public record V2App(string Name, string ProcessName, string AppCategoryName, Icon? Icon);
+        public record V2AppUsageSession(string AppProcessName, DateTime StartTime, DateTime EndTime);
 
-        public record AppUsageSession(
-            string AppProcessName,
-            DateTime StartTime,
-            DateTime EndTime);
-    };
+        // V3 数据结构
+        public record V3Data(V3AppCategory[] AppCategories, V3App[] Apps, V3AppUsageSession[] AppUsageSessions);
+        public record V3AppCategory(string Name, string Color, Icon? Icon);
+        public record V3App(string Name, string Color, string ProcessName, bool IsAutoUpdateEnabled, string AppCategoryName, Icon? Icon);
+        public record V3AppUsageSession(string AppProcessName, DateTime StartTime, DateTime EndTime);
+    }
 
-    public async ValueTask<ImportDataResponse> ProcessAsync(string rawJson, CancellationToken cancellationToken)
+    private static ImportDataContracts.V2Data UpcastV1ToV2(ImportDataContracts.V1Data v1)
     {
-        var data = JsonSerializer.Deserialize<Data>(rawJson, _jsonSerializerOptions)
-            ?? throw new NotSupportedException("无法解析 V2 数据");
+        var apps = v1.UsageSessions
+            .DistinctBy(s => s.AppProcessName)
+            .Select(s => new ImportDataContracts.V2App(s.AppName, s.AppProcessName, "Uncategorized", null))
+            .ToArray();
+
+        var sessions = v1.UsageSessions
+            .Select(s => new ImportDataContracts.V2AppUsageSession(s.AppProcessName, s.StartTime, s.EndTime))
+            .ToArray();
+
+        return new ImportDataContracts.V2Data([], apps, sessions);
+    }
+
+    private static ImportDataContracts.V3Data UpcastV2ToV3(ImportDataContracts.V2Data v2)
+    {
+        var categories = v2.AppCategories
+            .Select(c => new ImportDataContracts.V3AppCategory(c.Name, GenerateColor(), c.Icon))
+            .ToArray();
+
+        var apps = v2.Apps
+            .Select(a => new ImportDataContracts.V3App(a.Name, GenerateColor(), a.ProcessName, true, a.AppCategoryName, a.Icon))
+            .ToArray();
+
+        var sessions = v2.AppUsageSessions
+            .Select(s => new ImportDataContracts.V3AppUsageSession(s.AppProcessName, s.StartTime, s.EndTime))
+            .ToArray();
+
+        return new ImportDataContracts.V3Data(categories, apps, sessions);
+    }
+
+    private async Task<ImportDataResponse> SaveDataAsync(ImportDataContracts.V3Data data, CancellationToken cancellationToken)
+    {
         if (data.AppCategories.Length == 0 && data.Apps.Length == 0 && data.AppUsageSessions.Length == 0)
-            return new ImportDataResponse(0, 0);
+            return new ImportDataResponse(0, 0, 0, 0);
+
+        long newAppCategories = 0;
+        long newApps = 0;
+        long importedSessions = 0;
+        long skippedSessions = 0;
 
         var appIconDirectory = (await context.UserSettings.SingleAsync(cancellationToken)).AppIconDirectory;
 
@@ -160,11 +107,10 @@ public class ImportDataV2Processor(
             if (!existingCategories.TryGetValue(categoryData.Name, out var category))
             {
                 var iconPath = await SaveIconAsync(categoryData.Icon, categoryData.Name, "./Data/AppCategoryIcons", cancellationToken);
-                category = AppCategory.Create(
-                    categoryData.Name,
-                    iconPath);
+                category = AppCategory.Rehydrate(categoryData.Name, categoryData.Color, iconPath, false);
                 context.AppCategories.Add(category);
                 existingCategories[categoryData.Name] = category;
+                newAppCategories++;
             }
         }
 
@@ -177,101 +123,120 @@ public class ImportDataV2Processor(
             if (!existingApps.TryGetValue(appData.ProcessName, out var app))
             {
                 var iconPath = await SaveIconAsync(appData.Icon, appData.Name, appIconDirectory, cancellationToken);
-
-                app = App.Create(DateTime.MinValue, appData.Name, appData.ProcessName, iconPath: iconPath);
+                app = App.Rehydrate(appData.Name, appData.Color, appData.ProcessName, appData.IsAutoUpdateEnabled, DateTime.MinValue, AppCategory.UncategorizedId, null, iconPath, false);
 
                 existingCategories.TryGetValue(appData.AppCategoryName, out var matchedCategory);
                 if (matchedCategory is null)
                 {
-                    matchedCategory = AppCategory.Create(appData.AppCategoryName);
+                    matchedCategory = AppCategory.Rehydrate(appData.AppCategoryName, GenerateColor(), null, false);
                     context.AppCategories.Add(matchedCategory);
                     existingCategories[appData.AppCategoryName] = matchedCategory;
+                    newAppCategories++;
                 }
                 app.UpdateAppCategoryId(matchedCategory.Id);
 
                 context.Apps.Add(app);
                 existingApps[appData.ProcessName] = app;
+                newApps++;
             }
         }
 
         // 处理 AppUsageSessions
-        if (data.AppUsageSessions.Length == 0)
-            return new ImportDataResponse(0, 0);
-
-        // 计算导入数据的整体时间范围
         var minStart = data.AppUsageSessions.Min(s => s.StartTime);
         var maxEnd = data.AppUsageSessions.Max(s => s.EndTime);
 
-        // 一次性拉取范围内的已有记录和 App
         var existingSessions = await context.AppUsageSessions
             .Where(s => s.StartTime < maxEnd && minStart < s.EndTime)
             .ToListAsync(cancellationToken);
+
         var activeSession = activeSessionStore.Current;
         var now = timeProvider.GetLocalNow().DateTime;
         if (activeSession is not null && activeSession.StartTime < maxEnd)
-            existingSessions.Add(AppUsageSession.Create(activeSession.AppId, activeSession.StartTime, now));
-        var processNames = data.AppUsageSessions.Select(s => s.AppProcessName).Distinct().ToList();
+            existingSessions.Add(AppUsageSession.Rehydrate(activeSession.AppId, activeSession.StartTime, now));
 
-        long importedCount = 0;
-        long skippedCount = 0;
         foreach (var session in data.AppUsageSessions)
         {
             if (now <= session.EndTime)
             {
-                skippedCount++;
+                skippedSessions++;
                 continue;
             }
+
             var hasOverlap = existingSessions
                 .Any(s => s.StartTime < session.EndTime && session.StartTime < s.EndTime);
             if (hasOverlap)
             {
-                skippedCount++;
+                skippedSessions++;
                 continue;
             }
 
             if (!existingApps.TryGetValue(session.AppProcessName, out var app))
             {
-                app = App.Create(DateTime.MinValue, session.AppProcessName, session.AppProcessName);
+                app = App.Rehydrate(session.AppProcessName, GenerateColor(), session.AppProcessName, true, DateTime.MinValue, AppCategory.UncategorizedId, null, null, false);
                 context.Apps.Add(app);
                 existingApps[session.AppProcessName] = app;
             }
 
-            var usageSession = AppUsageSession.Create(app.Id, session.StartTime, session.EndTime);
+            var usageSession = AppUsageSession.Rehydrate(app.Id, session.StartTime, session.EndTime, false);
             context.AppUsageSessions.Add(usageSession);
-            // 信任同批次数据不会重叠
-            // existingSessions.Add(usageSession);
-            importedCount++;
+            importedSessions++;
         }
 
         await context.SaveChangesAsync(cancellationToken);
-        return new ImportDataResponse(importedCount, skippedCount);
+        return new ImportDataResponse(newAppCategories, newApps, importedSessions, skippedSessions);
     }
 
-    private static async Task<string?> SaveIconAsync(
-        Data.Icon? icon,
-        string iconName,
-        string iconDirectory,
-        CancellationToken cancellationToken)
+    private static async Task<string?> SaveIconAsync(ImportDataContracts.Icon? icon, string iconName, string iconDirectory, CancellationToken cancellationToken)
     {
-        if (icon is null || icon.Data is null || icon.Data.Length == 0)
-            return null;
-
+        if (icon is null || icon.Data is null || icon.Data.Length == 0) return null;
         try
         {
-            if (!Directory.Exists(iconDirectory))
-                Directory.CreateDirectory(iconDirectory);
-
-            var fileName = $"{iconName}{icon.Extension}";
-            var filePath = Path.Combine(iconDirectory, fileName);
-
+            if (!Directory.Exists(iconDirectory)) Directory.CreateDirectory(iconDirectory);
+            var filePath = Path.Combine(iconDirectory, $"{iconName}{icon.Extension}");
             await File.WriteAllBytesAsync(filePath, icon.Data, cancellationToken);
-
             return filePath;
         }
-        catch (Exception)
-        {
-            return null;
-        }
+        catch { return null; }
+    }
+
+    private static string HslToHex(double h, double s, double l)
+    {
+        h %= 360;
+        s /= 100.0;
+        l /= 100.0;
+
+        double c = (1 - Math.Abs(2 * l - 1)) * s;
+        double x = c * (1 - Math.Abs((h / 60.0) % 2 - 1));
+        double m = l - c / 2;
+
+        double r1 = 0, g1 = 0, b1 = 0;
+
+        if (h < 60)
+            (r1, g1, b1) = (c, x, 0);
+        else if (h < 120)
+            (r1, g1, b1) = (x, c, 0);
+        else if (h < 180)
+            (r1, g1, b1) = (0, c, x);
+        else if (h < 240)
+            (r1, g1, b1) = (0, x, c);
+        else if (h < 300)
+            (r1, g1, b1) = (x, 0, c);
+        else
+            (r1, g1, b1) = (c, 0, x);
+
+        int r = (int)Math.Round((r1 + m) * 255);
+        int g = (int)Math.Round((g1 + m) * 255);
+        int b = (int)Math.Round((b1 + m) * 255);
+
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    private static string GenerateColor()
+    {
+        int h = Random.Shared.Next(360);
+        int s = Random.Shared.Next(60, 100);
+        int l = Random.Shared.Next(50, 80);
+        return HslToHex(h, s, l);
     }
 }
 

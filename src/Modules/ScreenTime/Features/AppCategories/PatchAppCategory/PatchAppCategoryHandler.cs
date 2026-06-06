@@ -25,6 +25,8 @@ public class PatchAppCategoryHandler(
 
             appCategory.UpdateName(request.Name.Value);
         }
+        if (request.Color.HasValue)
+            appCategory.UpdateColor(request.Color.Value);
         if (request.IconPath.HasValue)
             appCategory.UpdateIconPath(request.IconPath.Value);
 

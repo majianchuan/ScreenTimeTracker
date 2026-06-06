@@ -20,6 +20,7 @@ public class PatchAppEndpoint(
             new PatchAppCommand(
                 Id: req.Id,
                 Name: req.Name,
+                Color: req.Color,
                 IsAutoUpdateEnabled: req.IsAutoUpdateEnabled,
                 AppCategoryId: req.AppCategoryId,
                 IconPath: req.IconPath

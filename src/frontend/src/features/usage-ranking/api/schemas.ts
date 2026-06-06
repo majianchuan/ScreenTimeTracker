@@ -4,6 +4,7 @@ import { z } from "zod";
 export const appUsageRankingItemDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   iconPath: z.string().nullable(),
   durationSeconds: z.number(),
   percentage: z.number(),
@@ -15,6 +16,7 @@ export type AppUsageRankingItemDto = z.infer<
 export const appCategoryUsageRankingItemDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   iconPath: z.string().nullable(),
   durationSeconds: z.number(),
   percentage: z.number(),

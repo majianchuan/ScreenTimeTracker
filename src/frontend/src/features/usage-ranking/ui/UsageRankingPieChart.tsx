@@ -134,6 +134,9 @@ export const UsageRankingPieChart = ({
               iconPath: v.iconPath,
               durationSeconds: v.durationSeconds,
               percentage: v.percentage,
+              itemStyle: {
+                color: v.color,
+              },
             })),
             ...(otherPercentage > 0
               ? [
@@ -142,6 +145,9 @@ export const UsageRankingPieChart = ({
                     value: otherPercentage,
                     id: null,
                     percentage: otherPercentage,
+                    itemStyle: {
+                      color: isDark ? "#9CA3AF" : "#6B7280",
+                    },
                   },
                 ]
               : []),
@@ -149,7 +155,7 @@ export const UsageRankingPieChart = ({
         },
       ],
     };
-  }, [type, appUsageRankingData, appCategoryUsageRankingData]);
+  }, [type, appUsageRankingData, appCategoryUsageRankingData, isDark]);
 
   return (
     <ReactECharts

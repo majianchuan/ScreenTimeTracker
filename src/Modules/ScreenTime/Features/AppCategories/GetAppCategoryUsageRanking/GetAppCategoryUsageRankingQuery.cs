@@ -1,6 +1,6 @@
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageRanking.GetAppCategoryUsageRanking;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageRanking;
 
 public record GetAppCategoryUsageRankingQuery(
     DateOnly StartDate,

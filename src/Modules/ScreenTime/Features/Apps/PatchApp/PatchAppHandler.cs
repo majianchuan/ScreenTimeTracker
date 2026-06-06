@@ -16,6 +16,8 @@ public class PatchAppHandler(
 
         if (request.Name.HasValue)
             App.UpdateName(request.Name.Value);
+        if (request.Color.HasValue)
+            App.UpdateColor(request.Color.Value);
         if (request.IsAutoUpdateEnabled.HasValue)
             App.UpdateIsAutoUpdateEnabled(request.IsAutoUpdateEnabled.Value);
         if (request.AppCategoryId.HasValue)

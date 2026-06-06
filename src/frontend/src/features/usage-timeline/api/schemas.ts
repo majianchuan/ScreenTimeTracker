@@ -4,6 +4,7 @@ import { z } from "zod";
 export const appUsageTimelineItemDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
 });
@@ -14,6 +15,7 @@ export type AppUsageTimelineItemDto = z.infer<
 export const appCategoryUsageTimelineItemDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
 });

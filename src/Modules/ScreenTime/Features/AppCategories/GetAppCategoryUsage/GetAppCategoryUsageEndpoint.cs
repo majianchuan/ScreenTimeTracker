@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Mediator;
-using Microsoft.AspNetCore.Http;
 
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsage;
 

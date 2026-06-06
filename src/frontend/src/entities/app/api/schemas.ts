@@ -4,6 +4,7 @@ import { appSchema } from "../model/schemas";
 export const appDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   processName: z.string(),
   isAutoUpdateEnabled: z.boolean(),
   lastAutoUpdated: z.coerce.date(),
@@ -24,6 +25,7 @@ export const patchAppSchema = z.object({
   body: appSchema
     .pick({
       name: true,
+      color: true,
       isAutoUpdateEnabled: true,
       appCategoryId: true,
       iconPath: true,

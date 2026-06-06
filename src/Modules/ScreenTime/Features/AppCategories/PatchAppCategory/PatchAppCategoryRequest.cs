@@ -7,5 +7,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.PatchAppCa
 public record PatchAppCategoryRequest(
     Guid AppCategoryId,
     [property: JsonConverter(typeof(OptionalJsonConverter<string>))] Optional<string> Name,
+    [property: JsonConverter(typeof(OptionalJsonConverter<string>))] Optional<string> Color,
     [property: JsonConverter(typeof(OptionalJsonConverter<string?>))] Optional<string?> IconPath
 );

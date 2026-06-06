@@ -18,6 +18,7 @@ export const getAppCategories = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       iconPath: validated.iconPath,
       isSystem: validated.isSystem,
     };
@@ -35,6 +36,7 @@ export const createAppCategory = async (
   return {
     id: validated.id,
     name: validated.name,
+    color: validated.color,
     iconPath: validated.iconPath,
     isSystem: validated.isSystem,
   };

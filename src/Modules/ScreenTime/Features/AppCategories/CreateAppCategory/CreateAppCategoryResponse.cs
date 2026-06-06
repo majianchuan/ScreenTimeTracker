@@ -3,6 +3,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.CreateAppC
 public record CreateAppCategoryResponse(
     Guid Id,
     string Name,
+    string Color,
     string? IconPath,
     bool IsSystem
 );

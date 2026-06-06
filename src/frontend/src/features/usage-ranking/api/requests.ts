@@ -19,6 +19,7 @@ export const getAppUsageRanking = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       iconPath: validated.iconPath,
       durationSeconds: validated.durationSeconds,
       percentage: validated.percentage,
@@ -40,6 +41,7 @@ export const getAppCategoryUsageRanking = async (
     return {
       id: validated.id,
       name: validated.name,
+      color: validated.color,
       iconPath: validated.iconPath,
       durationSeconds: validated.durationSeconds,
       percentage: validated.percentage,

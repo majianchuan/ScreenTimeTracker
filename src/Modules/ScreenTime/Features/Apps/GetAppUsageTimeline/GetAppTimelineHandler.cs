@@ -31,6 +31,7 @@ public class GetAppUsageTimelineHandler(
             {
                 Id = x.AppId,
                 x.App!.Name,
+                x.App!.Color,
                 x.StartTime,
                 x.EndTime
             })
@@ -52,6 +53,7 @@ public class GetAppUsageTimelineHandler(
                 {
                     activeApp.Id,
                     activeApp.Name,
+                    activeApp.Color,
                     activeSession.StartTime,
                     EndTime = timeProvider.GetLocalNow().DateTime
                 });
@@ -69,6 +71,7 @@ public class GetAppUsageTimelineHandler(
             .Select(x => new GetAppUsageTimelineResponseItem(
                 Id: x.Id,
                 Name: x.Name,
+                Color: x.Color,
                 StartTime: x.StartTime.ToString("O"),
                 EndTime: x.EndTime.ToString("O")
             ))];

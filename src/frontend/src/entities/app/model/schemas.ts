@@ -3,6 +3,7 @@ import { z } from "zod";
 export const appSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   processName: z.string(),
   isAutoUpdateEnabled: z.boolean(),
   lastAutoUpdated: z.date(),

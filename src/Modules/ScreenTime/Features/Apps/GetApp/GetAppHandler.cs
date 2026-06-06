@@ -21,6 +21,7 @@ public class GetAppHandler(
             : new GetAppResponse(
                 app.Id,
                 app.Name,
+                app.Color,
                 app.ProcessName,
                 app.IsAutoUpdateEnabled,
                 app.LastAutoUpdated.ToString("O"),

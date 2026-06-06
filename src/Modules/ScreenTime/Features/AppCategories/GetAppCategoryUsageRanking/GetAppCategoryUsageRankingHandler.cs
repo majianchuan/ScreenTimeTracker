@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScreenTimeTracker.Modules.ScreenTime.Domain;
 using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageRanking.GetAppCategoryUsageRanking;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageRanking;
 
 public class GetAppCategoryUsageRankingHandler(
     ScreenTimeDbContext context,
@@ -27,6 +27,7 @@ public class GetAppCategoryUsageRankingHandler(
             {
                 Id = x.App!.AppCategoryId,
                 x.App!.AppCategory!.Name,
+                x.App!.AppCategory!.Color,
                 x.App.AppCategory!.IconPath,
                 x.StartTime,
                 x.EndTime
@@ -45,14 +46,15 @@ public class GetAppCategoryUsageRankingHandler(
                 sessions.Add(new
                 {
                     Id = activeApp.AppCategoryId,
-                    activeApp!.AppCategory!.Name,
+                    activeApp.AppCategory!.Name,
+                    activeApp.AppCategory!.Color,
                     activeApp.AppCategory!.IconPath,
                     activeSession.StartTime,
                     EndTime = timeProvider.GetLocalNow().DateTime
                 });
         }
 
-        var aggregatedUsage = new Dictionary<Guid, (string Name, string? IconPath, long DurationMilliseconds)>();
+        var aggregatedUsage = new Dictionary<Guid, (string Name, string Color, string? IconPath, long DurationMilliseconds)>();
 
         foreach (var session in sessions)
         {
@@ -65,9 +67,9 @@ public class GetAppCategoryUsageRankingHandler(
                 long durationMilliseconds = (long)(actualEnd - actualStart).TotalMilliseconds;
 
                 if (!aggregatedUsage.TryGetValue(session.Id, out var current))
-                    aggregatedUsage[session.Id] = (session.Name, session.IconPath, durationMilliseconds);
+                    aggregatedUsage[session.Id] = (session.Name, session.Color, session.IconPath, durationMilliseconds);
                 else
-                    aggregatedUsage[session.Id] = (current.Name, current.IconPath, current.DurationMilliseconds + durationMilliseconds);
+                    aggregatedUsage[session.Id] = (current.Name, current.Color, current.IconPath, current.DurationMilliseconds + durationMilliseconds);
             }
         }
 
@@ -79,6 +81,7 @@ public class GetAppCategoryUsageRankingHandler(
             .Select(kvp => new GetAppCategoryUsageRankingResponseItem(
                 Id: kvp.Key,
                 Name: kvp.Value.Name,
+                Color: kvp.Value.Color,
                 IconPath: kvp.Value.IconPath,
                 DurationSeconds: kvp.Value.DurationMilliseconds / 1000,
                 // 计算百分比并四舍五入

@@ -1,6 +1,8 @@
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.ImportData;
 
 public record ImportDataResponse(
-    long ImportedCount,
-    long SkippedCount
+    long NewAppCategories,
+    long NewApps,
+    long ImportedSessions,
+    long SkippedSessions
 );

@@ -16,6 +16,7 @@ public class GetAppsHandler(
     {
         { nameof(GetAppsResponseItem.Id), [nameof(App.Id)] },
         { nameof(GetAppsResponseItem.Name), [nameof(App.Name)] },
+        { nameof(GetAppsResponseItem.Color), [nameof(App.Color)] },
         { nameof(GetAppsResponseItem.ProcessName), [nameof(App.ProcessName)] },
         { nameof(GetAppsResponseItem.IsAutoUpdateEnabled), [nameof(App.IsAutoUpdateEnabled)] },
         { nameof(GetAppsResponseItem.LastAutoUpdated), [nameof(App.LastAutoUpdated)] },
@@ -30,6 +31,7 @@ public class GetAppsHandler(
     {
         [nameof(GetAppsResponseItem.Id)] = e => e.Id,
         [nameof(GetAppsResponseItem.Name)] = e => e.Name,
+        [nameof(GetAppsResponseItem.Color)] = e => e.Color,
         [nameof(GetAppsResponseItem.ProcessName)] = e => e.ProcessName,
         [nameof(GetAppsResponseItem.IsAutoUpdateEnabled)] = e => e.IsAutoUpdateEnabled,
         [nameof(GetAppsResponseItem.LastAutoUpdated)] = e => e.LastAutoUpdated.ToString("O"),

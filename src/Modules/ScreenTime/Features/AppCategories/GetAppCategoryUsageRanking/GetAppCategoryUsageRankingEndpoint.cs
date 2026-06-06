@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Mediator;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageRanking.GetAppCategoryUsageRanking;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageRanking;
 
 public class GetAppCategoryUsageRankingEndpoint(
     IMediator mediator

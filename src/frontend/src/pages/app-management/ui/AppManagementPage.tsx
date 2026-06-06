@@ -47,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/lib/shadcn";
+import { LazyInputColor } from "@/shared/ui/LazyInputColor";
 import { LazyInputText } from "@/shared/ui/LazyInputText";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -100,6 +101,7 @@ export const AppManagementPage = () => {
 
   const columnTitlesMap = {
     name: "名称",
+    color: "颜色",
     appCategoryId: "应用类别",
     icon: "图标",
     iconPath: "图标路径",
@@ -159,6 +161,32 @@ export const AppManagementPage = () => {
       },
     },
     {
+      id: "color",
+      header: ({ column }) =>
+        columnTitlesMap[column.id as keyof typeof columnTitlesMap],
+      size: 45,
+      cell: ({ row }) => {
+        const app = row.original;
+        return (
+          <LazyInputColor
+            value={app.color}
+            style={{ width: "25px" }}
+            onValueChange={async (color) => {
+              try {
+                await patchAppAsync({
+                  id: app.id,
+                  body: { color: color },
+                });
+                toast.success("更新颜色成功");
+              } catch {
+                toast.error("更新颜色失败");
+              }
+            }}
+          />
+        );
+      },
+    },
+    {
       accessorKey: "appCategoryId",
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
@@ -208,7 +236,6 @@ export const AppManagementPage = () => {
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
       size: 45,
-      minSize: 45,
       cell: ({ row }) => {
         const app = row.original;
         return (
@@ -247,7 +274,6 @@ export const AppManagementPage = () => {
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
       size: 75,
-      minSize: 50,
       cell: ({ row }) => {
         return (
           <Switch
@@ -315,7 +341,6 @@ export const AppManagementPage = () => {
       header: ({ column }) =>
         columnTitlesMap[column.id as keyof typeof columnTitlesMap],
       size: 60,
-      minSize: 55,
       cell: ({ row }) => {
         const app = row.original;
         return (

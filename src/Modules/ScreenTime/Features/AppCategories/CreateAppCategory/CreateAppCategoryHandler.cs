@@ -16,12 +16,13 @@ public class CreateAppCategoryHandler(
         if (exists)
             throw new Exception("App category with the same name already exists.");
 
-        AppCategory appCategory = AppCategory.Create(request.Name, request.IconPath);
+        AppCategory appCategory = AppCategory.Create(request.Name, request.Color, request.IconPath);
         context.AppCategories.Add(appCategory);
         await context.SaveChangesAsync(cancellationToken);
         return new CreateAppCategoryResponse(
             appCategory.Id,
             appCategory.Name,
+            appCategory.Color,
             appCategory.IconPath,
             appCategory.IsSystem
         );

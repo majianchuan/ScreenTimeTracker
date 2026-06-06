@@ -13,7 +13,7 @@ public class ExportDataHandler(
     public async ValueTask<ExportDataResponse> Handle(ExportDataQuery request, CancellationToken cancellationToken)
     {
         var appCategories = await context.AppCategories
-            .Select(x => new { x.Name, x.IconPath })
+            .Select(x => new { x.Name, x.Color, x.IconPath })
             .ToListAsync(cancellationToken);
 
         ExportDataResponse.AppCategory[] appCategoryResults;
@@ -27,6 +27,7 @@ public class ExportDataHandler(
                    {
                        return new ExportDataResponse.AppCategory(
                            x.Name,
+                           x.Color,
                            await GetIconAsync(x.IconPath, cancellationToken));
                    }
                    finally
@@ -38,7 +39,7 @@ public class ExportDataHandler(
         }
 
         var apps = await context.Apps
-            .Select(x => new { x.Name, x.ProcessName, CategoryName = x.AppCategory!.Name, x.IconPath })
+            .Select(x => new { x.Name, x.Color, x.ProcessName, x.IsAutoUpdateEnabled, CategoryName = x.AppCategory!.Name, x.IconPath })
             .ToListAsync(cancellationToken);
 
         ExportDataResponse.App[] appResults;
@@ -52,7 +53,9 @@ public class ExportDataHandler(
                    {
                        return new ExportDataResponse.App(
                        x.Name,
+                       x.Color,
                        x.ProcessName,
+                       x.IsAutoUpdateEnabled,
                        x.CategoryName,
                        await GetIconAsync(x.IconPath, cancellationToken));
                    }

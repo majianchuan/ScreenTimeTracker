@@ -27,6 +27,20 @@ public class AppUsageSession : Entity
         };
     }
 
+    public static AppUsageSession Rehydrate(Guid appId, DateTime startTime, DateTime endTime, bool isOptimized = false)
+    {
+        if (endTime <= startTime)
+            throw new ArgumentException("End time must be greater than start time.", nameof(endTime));
+        return new AppUsageSession()
+        {
+            Id = Guid.CreateVersion7(),
+            AppId = appId,
+            StartTime = startTime,
+            EndTime = endTime,
+            IsOptimized = isOptimized
+        };
+    }
+
     public void MarkAsIdle(Guid idleAppId) => AppId = idleAppId;
 
     public void UpdateEndTime(DateTime endTime)

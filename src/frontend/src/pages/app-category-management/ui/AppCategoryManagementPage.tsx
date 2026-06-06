@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { LazyInputText } from "@/shared/ui/LazyInputText";
+import { LazyInputColor } from "@/shared/ui/LazyInputColor";
 
 export const AppCategoryManagementPage = () => {
   const { data: appCategoriesData } = useQuery(
@@ -85,10 +86,34 @@ export const AppCategoryManagementPage = () => {
       },
     },
     {
+      id: "color",
+      header: "颜色",
+      size: 45,
+      cell: ({ row }) => {
+        const app = row.original;
+        return (
+          <LazyInputColor
+            value={app.color}
+            style={{ width: "25px" }}
+            onValueChange={async (color) => {
+              try {
+                await patchAppCategoryAsync({
+                  id: app.id,
+                  body: { color: color },
+                });
+                toast.success("更新颜色成功");
+              } catch {
+                toast.error("更新颜色失败");
+              }
+            }}
+          />
+        );
+      },
+    },
+    {
       id: "icon",
       header: "图标",
       size: 45,
-      minSize: 45,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -128,7 +153,6 @@ export const AppCategoryManagementPage = () => {
       accessorKey: "isSystem",
       header: "系统类别",
       size: 75,
-      minSize: 40,
       cell: ({ row }) => {
         return row.getValue("isSystem") ? (
           <Check className="size-5" />
@@ -141,7 +165,6 @@ export const AppCategoryManagementPage = () => {
       id: "actions",
       header: "操作",
       size: 60,
-      minSize: 55,
       cell: ({ row }) => {
         const appCategory = row.original;
         return (
@@ -194,16 +217,74 @@ export const AppCategoryManagementPage = () => {
     useState(false);
   type CreateAppCategoryInputs = {
     name: string;
+    color: string;
     iconPath: string;
   };
-  const { register, handleSubmit, reset } = useForm<CreateAppCategoryInputs>();
+  const { register, handleSubmit, reset, setValue } =
+    useForm<CreateAppCategoryInputs>();
+
+  const handleCreateDialogOpen = (open: boolean) => {
+    setIsCreateAppCategoryDialogOpen(open);
+
+    if (open) {
+      setValue("color", generateColor());
+    }
+  };
+
+  function hslToHex(h: number, s: number, l: number): string {
+    s /= 100;
+    l /= 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+
+    let r = 0;
+    let g = 0;
+    let b = 0;
+
+    if (h < 60) {
+      r = c;
+      g = x;
+    } else if (h < 120) {
+      r = x;
+      g = c;
+    } else if (h < 180) {
+      g = c;
+      b = x;
+    } else if (h < 240) {
+      g = x;
+      b = c;
+    } else if (h < 300) {
+      r = x;
+      b = c;
+    } else {
+      r = c;
+      b = x;
+    }
+
+    const toHex = (n: number) =>
+      Math.round((n + m) * 255)
+        .toString(16)
+        .padStart(2, "0");
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  function generateColor(): string {
+    const h = Math.floor(Math.random() * 360);
+    const s = 60 + Math.floor(Math.random() * 40); // 60~99
+    const l = 50 + Math.floor(Math.random() * 30); // 50~79
+
+    return hslToHex(h, s, l);
+  }
 
   return (
     <>
       <div className="flex flex-row justify-end">
         <Dialog
           open={isCreateAppCategoryDialogOpen}
-          onOpenChange={setIsCreateAppCategoryDialogOpen}
+          onOpenChange={handleCreateDialogOpen}
         >
           <DialogTrigger asChild>
             <Button variant="outline">创建类别</Button>
@@ -218,6 +299,7 @@ export const AppCategoryManagementPage = () => {
               onSubmit={handleSubmit(async (data) => {
                 await createAppCategoryAsync({
                   name: data.name,
+                  color: data.color,
                   iconPath: data.iconPath !== "" ? data.iconPath : null,
                 });
                 toast.success("类别创建成功");
@@ -229,6 +311,10 @@ export const AppCategoryManagementPage = () => {
                 <Field>
                   <FieldLabel>名称</FieldLabel>
                   <Input {...register("name")} />
+                </Field>
+                <Field>
+                  <FieldLabel>颜色</FieldLabel>
+                  <input type="color" {...register("color")} />
                 </Field>
                 <Field>
                   <FieldLabel>图标路径</FieldLabel>

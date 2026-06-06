@@ -2,5 +2,6 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.CreateAppC
 
 public record CreateAppCategoryRequest(
     string Name,
+    string Color,
     string? IconPath
 );

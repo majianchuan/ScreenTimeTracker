@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace ScreenTimeTracker.Modules.ScreenTime.Features.UsageTimeline.GetAppCategoryUsageTimeline;
+namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsageTimeline;
 
 public record GetAppCategoryUsageTimelineRequest(
     [property: QueryParam] DateOnly StartDate,
