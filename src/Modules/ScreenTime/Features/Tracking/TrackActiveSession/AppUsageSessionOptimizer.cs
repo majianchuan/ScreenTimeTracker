@@ -9,7 +9,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSess
 
 public class AppUsageSessionOptimizer(
     ILogger<AppUsageSessionOptimizer> logger,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider,
     IServiceScopeFactory scopeFactory) : BackgroundService
 {

@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<AppUsageSessionOptimizer>();
 
         // 状态存储
-        services.AddSingleton<IActiveSessionStore, InMemoryActiveSessionStore>();
+        services.AddSingleton<IActiveAppUsageSessionStore, InMemoryActiveAppUsageSessionStore>();
 
         // 平台
         if (OperatingSystem.IsWindowsVersionAtLeast(6, 0, 6000))

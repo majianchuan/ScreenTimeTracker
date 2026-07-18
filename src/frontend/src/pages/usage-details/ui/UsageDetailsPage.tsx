@@ -1,30 +1,58 @@
 import type { SearchParams } from "../model/schemas";
 import {
   DateRangeSelector,
-  PeriodTypeSelector,
+  TimeFrameSelector,
   useDateFilter,
 } from "@/features/date-filter";
 import { dateOnlyToDate, dateToDateOnly } from "@/shared/lib/date-only";
 import {
   DimensionMemberPicker,
   DimensionTypeSelector,
-  useDimensionControl,
+  type Dimension,
 } from "@/features/dimension-control";
-import { useEffect, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { UsageChart } from "@/features/usage-chart";
 import { UsageTimeline } from "@/features/usage-timeline";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import CircularProgress from "@mui/material/CircularProgress";
+import z from "zod";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
 
 interface UsageDetailsPageProps {
   search: SearchParams;
   onSearchChange: (newParams: Partial<SearchParams>) => void;
 }
 
+const dimensionCacheSchema = z.record(
+  z.enum(["app", "app-category"]),
+  z.string().nullable(),
+);
+type DimensionCache = z.infer<typeof dimensionCacheSchema>;
+
+const defaultDimensionCache: DimensionCache = {
+  app: null,
+  "app-category": null,
+};
+
+const DIMENSION_CACHE_STORAGE_KEY = "page_usage_details_page_dimension_cache";
+
+function getSavedDimensionCache(): DimensionCache | null {
+  if (typeof window === "undefined") return null;
+
+  const saved = localStorage.getItem(DIMENSION_CACHE_STORAGE_KEY);
+  if (saved === null) return null;
+  const parsed = JSON.parse(saved);
+  const result = dimensionCacheSchema.safeParse(parsed);
+  if (result.success) return result.data;
+  else return null;
+}
+
 export const UsageDetailsPage = ({
   search,
   onSearchChange,
 }: UsageDetailsPageProps) => {
-  const DIMENSION_CACHE_STORAGE_KEY = "page_usage_details_page_dimension_cache";
-
   const {
     handleTimeFrameChange,
     handleDateRangeChange,
@@ -44,74 +72,77 @@ export const UsageDetailsPage = ({
     },
   });
 
-  const getSavedDimensionCache = () => {
-    if (typeof window === "undefined") return {};
-
-    const saved = localStorage.getItem(DIMENSION_CACHE_STORAGE_KEY);
-    try {
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  };
-
-  const initialDimensionCache = useMemo(() => getSavedDimensionCache(), []);
-
   useEffect(() => {
-    if (search.id) return;
+    if (search.id !== undefined) return;
 
+    const dimensionCache = getSavedDimensionCache() || defaultDimensionCache;
     onSearchChange({
-      id: (getSavedDimensionCache()[search.dimension] || [])[0],
+      id: dimensionCache[search.dimension],
     });
   }, [search.dimension, search.id, onSearchChange]);
 
-  const { handleDimensionChange, handleMemberIdsChange } = useDimensionControl({
-    currentDimension: search.dimension,
-    initialCache: initialDimensionCache,
-    onValueChange: (dimension, memberIds) => {
-      onSearchChange({ dimension, id: memberIds[0] });
-    },
-    onCacheSync: (cache) => {
-      localStorage.setItem(DIMENSION_CACHE_STORAGE_KEY, JSON.stringify(cache));
-    },
-  });
+  const dimensionCacheRef = useRef<DimensionCache>(
+    getSavedDimensionCache() || defaultDimensionCache,
+  );
+
+  const handleDimensionChange = (newDimension: Dimension) => {
+    onSearchChange({
+      dimension: newDimension,
+      id: dimensionCacheRef.current[newDimension],
+    });
+  };
+
+  const handleMemberIdChange = (newMemberId: string | null) => {
+    dimensionCacheRef.current[search.dimension] = newMemberId;
+    localStorage.setItem(
+      DIMENSION_CACHE_STORAGE_KEY,
+      JSON.stringify(dimensionCacheRef.current),
+    );
+    onSearchChange({ id: newMemberId });
+  };
 
   if (isDateFilterLoading)
     return (
-      <div className="flex h-full items-center justify-center">
-        <span>正在获取数据，加载中。。。</span>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
 
   return (
-    <>
-      <div>
-        <div className="flex w-full">
-          <div className="flex flex-1 justify-start">
+    <Stack spacing={2}>
+      {/* 类别切换，时间范围选择 */}
+      <Stack spacing={1}>
+        <Stack direction="row" sx={{ alignItems: "center" }}>
+          <Box sx={{ flex: 1, display: "flex", justifyContent: "start" }}>
             <DimensionTypeSelector
               value={search.dimension}
               onValueChange={handleDimensionChange}
             />
-          </div>
-          <div className="flex flex-1 justify-center">
-            <PeriodTypeSelector
-              value={search.timeFrame}
-              onValueChange={handleTimeFrameChange}
-            />
-          </div>
-          <div className="flex flex-1 justify-end">
+          </Box>
+          <TimeFrameSelector
+            value={search.timeFrame}
+            onValueChange={handleTimeFrameChange}
+          />
+          <Box sx={{ flex: 1, display: "flex", justifyContent: "end" }}>
             <DimensionMemberPicker
+              sx={{ width: "90%" }}
               dimension={search.dimension}
-              value={search.id ? [search.id] : []}
-              onValueChange={handleMemberIdsChange}
+              value={search.id || null}
+              onValueChange={handleMemberIdChange}
               mode="single"
               placeholder="查看项"
             />
-          </div>
-        </div>
+          </Box>
+        </Stack>
 
-        <div className="mt-2 flex justify-center">
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <DateRangeSelector
+            sx={{ width: "19rem" }}
             timeFrame={search.timeFrame}
             value={{
               start: dateOnlyToDate(search.startDate),
@@ -119,44 +150,68 @@ export const UsageDetailsPage = ({
             }}
             onValueChange={handleDateRangeChange}
           />
-        </div>
-      </div>
+        </Box>
+      </Stack>
 
-      {/* 使用时间柱状图 */}
-      <div className="border-border mt-4 rounded-lg border p-3">
-        {search.id ? (
-          <UsageChart
-            type={search.dimension}
-            granularity={search.timeFrame === "day" ? "hour" : "day"}
-            xAxisType={
-              search.timeFrame === "day"
-                ? "hour"
-                : search.timeFrame === "week"
-                  ? "week"
-                  : "day"
-            }
-            startDate={search.startDate}
-            endDate={search.endDate}
-            includedIds={[search.id]}
-          />
-        ) : (
-          <div className="text-center">请选择查看项</div>
-        )}
-
-        {/* 日使用时间线 */}
-      </div>
-      {search.timeFrame === "day" && search.id ? (
-        <div className="border-border mt-4 rounded-lg border p-3">
-          <UsageTimeline
-            className="h-30! w-full"
-            type={search.dimension}
-            date={search.startDate}
-            includedIds={[search.id]}
-          />
-        </div>
+      {search.id == null ? (
+        <Paper
+          variant="outlined"
+          sx={{
+            p: 2,
+          }}
+        >
+          <Typography sx={{ textAlign: "center" }}>请选择查看项</Typography>
+        </Paper>
       ) : (
-        <></>
+        <>
+          {/* 使用时间柱状图 */}
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+            }}
+          >
+            <UsageChart
+              sx={{
+                height: "18rem",
+              }}
+              type={search.dimension}
+              granularity={search.timeFrame === "day" ? "hour" : "day"}
+              xAxisType={
+                search.timeFrame === "day"
+                  ? "hour"
+                  : search.timeFrame === "week"
+                    ? "week"
+                    : "day"
+              }
+              startDate={search.startDate}
+              endDate={search.endDate}
+              includedIds={[search.id]}
+            />
+          </Paper>
+
+          {/* 日使用时间线 */}
+          {search.timeFrame === "day" ? (
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+              }}
+            >
+              <UsageTimeline
+                sx={{
+                  height: "7.5rem",
+                }}
+                type={search.dimension}
+                date={search.startDate}
+                includedIds={[search.id]}
+              />
+            </Paper>
+          ) : (
+            <></>
+          )}
+        </>
       )}
-    </>
+    </Stack>
   );
 };

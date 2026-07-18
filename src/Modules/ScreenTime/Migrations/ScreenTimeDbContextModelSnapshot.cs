@@ -15,7 +15,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
 
             modelBuilder.Entity("ScreenTimeTracker.Modules.ScreenTime.Domain.App", b =>
                 {
@@ -33,6 +33,9 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<string>("ExecutablePath")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("IconLastUpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("IconPath")
                         .HasColumnType("TEXT");
 
@@ -42,7 +45,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                     b.Property<bool>("IsSystem")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("LastAutoUpdated")
+                    b.Property<DateTime>("LastAutoUpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -68,9 +71,10 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
                             AppCategoryId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Color = "#636366",
+                            IconLastUpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsAutoUpdateEnabled = false,
                             IsSystem = true,
-                            LastAutoUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastAutoUpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Unknown",
                             ProcessName = "Unknown"
                         },
@@ -79,9 +83,10 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             AppCategoryId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Color = "#C7C7CC",
+                            IconLastUpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsAutoUpdateEnabled = false,
                             IsSystem = true,
-                            LastAutoUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastAutoUpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Idle",
                             ProcessName = "Idle"
                         });
@@ -95,6 +100,9 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
 
                     b.Property<string>("Color")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("IconLastUpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IconPath")
@@ -119,6 +127,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Color = "#8E8E93",
+                            IconLastUpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsSystem = true,
                             Name = "Uncategorized"
                         });
@@ -199,7 +208,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             ActiveSessionAutoSaveInterval = new TimeSpan(0, 0, 0, 15, 0),
-                            AppIconDirectory = "./Data/Icons",
+                            AppIconDirectory = "./Data/AppIcons",
                             AppInfoStaleThreshold = new TimeSpan(1, 0, 0, 0, 0),
                             DayCutoffHour = 5,
                             IdleDetectionPollingInterval = new TimeSpan(0, 0, 0, 10, 0),

@@ -9,7 +9,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.DataManagement.ImportDat
 public class ImportDataHandler(
     ScreenTimeDbContext context,
     TimeProvider timeProvider,
-    IActiveSessionStore activeSessionStore)
+    IActiveAppUsageSessionStore activeSessionStore)
     : IRequestHandler<ImportDataCommand, ImportDataResponse>
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
@@ -95,6 +95,8 @@ public class ImportDataHandler(
         long importedSessions = 0;
         long skippedSessions = 0;
 
+        DateTime now = timeProvider.GetLocalNow().DateTime;
+
         var appIconDirectory = (await context.UserSettings.SingleAsync(cancellationToken)).AppIconDirectory;
 
         // 处理 AppCategory
@@ -106,7 +108,7 @@ public class ImportDataHandler(
             if (!existingCategories.TryGetValue(categoryData.Name, out var category))
             {
                 var iconPath = await SaveIconAsync(categoryData.Icon, categoryData.Name, "./Data/AppCategoryIcons", cancellationToken);
-                category = AppCategory.Rehydrate(categoryData.Name, categoryData.Color, iconPath, false);
+                category = AppCategory.Rehydrate(categoryData.Name, categoryData.Color, iconPath, now, false);
                 context.AppCategories.Add(category);
                 existingCategories[categoryData.Name] = category;
                 newAppCategories++;
@@ -122,12 +124,12 @@ public class ImportDataHandler(
             if (!existingApps.TryGetValue(appData.ProcessName, out var app))
             {
                 var iconPath = await SaveIconAsync(appData.Icon, appData.Name, appIconDirectory, cancellationToken);
-                app = App.Rehydrate(appData.Name, appData.Color, appData.ProcessName, appData.IsAutoUpdateEnabled, DateTime.MinValue, AppCategory.UncategorizedId, null, iconPath, false);
+                app = App.Rehydrate(appData.Name, appData.Color, appData.ProcessName, appData.IsAutoUpdateEnabled, DateTime.MinValue, AppCategory.UncategorizedId, null, iconPath, now, false);
 
                 existingCategories.TryGetValue(appData.AppCategoryName, out var matchedCategory);
                 if (matchedCategory is null)
                 {
-                    matchedCategory = AppCategory.Rehydrate(appData.AppCategoryName, GenerateColor(), null, false);
+                    matchedCategory = AppCategory.Rehydrate(appData.AppCategoryName, GenerateColor(), null, now, false);
                     context.AppCategories.Add(matchedCategory);
                     existingCategories[appData.AppCategoryName] = matchedCategory;
                     newAppCategories++;
@@ -149,7 +151,6 @@ public class ImportDataHandler(
             .ToListAsync(cancellationToken);
 
         var activeSession = activeSessionStore.Current;
-        var now = timeProvider.GetLocalNow().DateTime;
         if (activeSession is not null && activeSession.StartTime < maxEnd)
             existingSessions.Add(AppUsageSession.Rehydrate(activeSession.AppId, activeSession.StartTime, now));
 
@@ -171,7 +172,7 @@ public class ImportDataHandler(
 
             if (!existingApps.TryGetValue(session.AppProcessName, out var app))
             {
-                app = App.Rehydrate(session.AppProcessName, GenerateColor(), session.AppProcessName, true, DateTime.MinValue, AppCategory.UncategorizedId, null, null, false);
+                app = App.Rehydrate(session.AppProcessName, GenerateColor(), session.AppProcessName, true, DateTime.MinValue, AppCategory.UncategorizedId, null, null, now, false);
                 context.Apps.Add(app);
                 existingApps[session.AppProcessName] = app;
             }

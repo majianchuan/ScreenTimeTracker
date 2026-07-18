@@ -11,18 +11,15 @@ namespace ScreenTimeTracker.Hosts.Desktop.UI.Views;
 
 public partial class MainView : Window
 {
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IOptions<WebViewOptions> _webViewOptions;
     private readonly IWindowPlacementStore _windowLayoutStore;
     private readonly TaskCompletionSource _webViewReady = new();
-    private bool _isClosingConfirmed = false;
 
     public MainView(
         IServiceScopeFactory scopeFactory,
         IOptions<WebViewOptions> webViewOptions,
         IWindowPlacementStore windowLayoutStore)
     {
-        _scopeFactory = scopeFactory;
         _webViewOptions = webViewOptions;
         _windowLayoutStore = windowLayoutStore;
         InitializeComponent();
@@ -63,24 +60,6 @@ public partial class MainView : Window
 
         // 保存窗口位置和大小
         SaveWindowPlacement();
-
-        if (_isClosingConfirmed)
-            return; // 走第二次关闭流程，直接放行
-
-        // 先阻止关闭，等异步结果
-        e.Cancel = true;
-
-        // 是否销毁窗口
-        using var scope = _scopeFactory.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var appSettings = await mediator.Send(new GetAppSettingsQuery());
-        if (appSettings.ShouldDestroyWindowOnClose)
-        {
-            _isClosingConfirmed = true;
-            await Dispatcher.InvokeAsync(Close); // 触发第二次 Closing，这次放行
-        }
-        else
-            Hide();
     }
 
     private void EnsureWindowIsVisible()

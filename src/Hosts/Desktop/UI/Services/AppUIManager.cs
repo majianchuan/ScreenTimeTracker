@@ -1,6 +1,7 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using ScreenTimeTracker.Hosts.Desktop.Hosting;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
 using ScreenTimeTracker.Hosts.Desktop.UI.Views;
 using System.Diagnostics;
@@ -26,7 +27,7 @@ public class AppUIManager(
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var settings = await mediator.Send(new GetAppSettingsQuery());
 
-        if (settings.DefaultUIOpenMode == UIOpenModeDto.Browser)
+        if (settings.DefaultUIOpenMode == UIOpenMode.Browser)
             await OpenUIInBrowserAsync();
         else
             await OpenUIInWindowAsync();

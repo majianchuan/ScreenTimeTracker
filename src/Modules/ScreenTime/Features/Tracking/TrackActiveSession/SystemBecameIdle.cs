@@ -12,7 +12,7 @@ public record SystemBecameIdleCommand(
 
 public class SystemBecameIdleHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider,
     IMediator mediator) : IRequestHandler<SystemBecameIdleCommand>
 {
@@ -22,7 +22,7 @@ public class SystemBecameIdleHandler(
 
         if (activeSessionStore.Current is not null)
             await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
-        activeSessionStore.Current = new ActiveSessionState(App.IdleAppId, now);
+        activeSessionStore.Current = new ActiveAppUsageSessionState(App.IdleAppId, now);
 
         // 修正已有数据中空闲开始到现在范围内数据为空闲
         var affectedSessions = await context.AppUsageSessions

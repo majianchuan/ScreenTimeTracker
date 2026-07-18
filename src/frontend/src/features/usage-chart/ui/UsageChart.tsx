@@ -5,14 +5,16 @@ import {
   appUsageQueryOptions,
 } from "../api/queries";
 import type { DateOnly } from "@/shared/lib/date-only";
-import { cn } from "@/shared/lib/shadcn";
 import { formatSecondsDuration } from "@/shared/lib/time";
-import { useTheme } from "next-themes";
 import { useMemo } from "react";
-import { format } from "date-fns";
+import type { Theme } from "@emotion/react";
+import { useTheme, type SxProps } from "@mui/material/styles";
+import dayjs from "@/shared/lib/dayjs";
+import Box from "@mui/material/Box";
 
 export type UsageChartProps = {
   className?: string;
+  sx?: SxProps<Theme>;
   type: "app" | "app-category";
   granularity: "hour" | "day";
   xAxisType: "hour" | "day" | "week";
@@ -24,6 +26,7 @@ export type UsageChartProps = {
 
 export const UsageChart = ({
   className,
+  sx,
   type,
   granularity,
   xAxisType,
@@ -52,8 +55,9 @@ export const UsageChart = ({
     }),
     enabled: type === "app-category",
   });
-  const { theme, systemTheme } = useTheme();
-  const isDark = (theme === "system" ? systemTheme : theme) === "dark";
+
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   const option = useMemo(() => {
     const usageData =
@@ -67,7 +71,8 @@ export const UsageChart = ({
         name = item.startTime.getHours().toString().padStart(2, "0") + ":00";
       } else if (xAxisType === "day") {
         name = item.startTime.toLocaleDateString();
-      } else if (xAxisType === "week") name = format(item.startTime, "EEE");
+      } else if (xAxisType === "week")
+        name = dayjs(item.startTime).format("ddd");
 
       return { name, value: item.durationSeconds };
     });
@@ -121,11 +126,22 @@ export const UsageChart = ({
   }, [granularity, type, xAxisType, appUsageData, appCategoryUsageData]);
 
   return (
-    <ReactECharts
-      className={cn(className)}
-      theme={isDark ? "dark" : undefined}
-      option={option}
-      notMerge={true}
-    />
+    <Box
+      sx={[
+        { minWidth: 0, width: "100%", overflow: "hidden" },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+      className={className}
+    >
+      <ReactECharts
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
+        theme={isDark ? "dark" : undefined}
+        option={option}
+        notMerge={true}
+      />
+    </Box>
   );
 };

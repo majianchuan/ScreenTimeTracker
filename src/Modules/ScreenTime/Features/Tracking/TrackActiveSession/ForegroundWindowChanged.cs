@@ -11,7 +11,7 @@ public record ForegroundWindowChangedCommand(
 
 public class ForegroundWindowChangedHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     IExecutableMetadataProvider executableMetadataProvider,
     IMediator mediator,
     TimeProvider timeProvider) : IRequestHandler<ForegroundWindowChangedCommand>
@@ -34,7 +34,7 @@ public class ForegroundWindowChangedHandler(
 
             if (activeSessionStore.Current is null)
             {
-                activeSessionStore.Current = new ActiveSessionState(appId, now);
+                activeSessionStore.Current = new ActiveAppUsageSessionState(appId, now);
                 return Unit.Value;
             }
             else if (activeSessionStore.Current.AppId == appId)
@@ -42,7 +42,7 @@ public class ForegroundWindowChangedHandler(
             else
             {
                 await mediator.Send(new SaveActiveSessionCommand(), cancellationToken);
-                activeSessionStore.Current = new ActiveSessionState(appId, now);
+                activeSessionStore.Current = new ActiveAppUsageSessionState(appId, now);
             }
             return Unit.Value;
         }

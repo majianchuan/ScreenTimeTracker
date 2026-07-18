@@ -1,19 +1,25 @@
-import { cn, ToggleGroup, ToggleGroupItem } from "@/shared/lib/shadcn";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type { TimeFrame } from "../model/schemas";
+import type { Theme } from "@emotion/react";
+import type { SxProps } from "@mui/material/styles";
+import ToggleButton from "@mui/material/ToggleButton";
 
-export type PeriodTypeSelectorProps = {
+type TimeFrameOption = { value: TimeFrame; label: string };
+
+export type TimeFrameSelectorProps = {
+  sx?: SxProps<Theme>;
   className?: string;
   value: TimeFrame;
   onValueChange: (value: TimeFrame) => void;
 };
 
-export const PeriodTypeSelector = ({
+export const TimeFrameSelector = ({
+  sx,
   className,
   value,
   onValueChange,
-}: PeriodTypeSelectorProps) => {
-  type PeriodTypeOption = { value: TimeFrame; label: string };
-  const options: PeriodTypeOption[] = [
+}: TimeFrameSelectorProps) => {
+  const options: TimeFrameOption[] = [
     {
       value: "day",
       label: "日",
@@ -33,21 +39,23 @@ export const PeriodTypeSelector = ({
   ];
 
   return (
-    <ToggleGroup
-      className={cn(className)}
-      variant="outline"
-      type="single"
+    <ToggleButtonGroup
+      size="small"
+      exclusive
+      sx={sx}
+      className={className}
       value={value}
-      onValueChange={(v) => {
-        if (v === "") return;
-        onValueChange(v as TimeFrame);
+      onChange={(_, newTimeFrame: TimeFrame | null) => {
+        if (newTimeFrame !== null) {
+          onValueChange(newTimeFrame);
+        }
       }}
     >
       {options.map((item) => (
-        <ToggleGroupItem key={item.value} value={item.value}>
+        <ToggleButton key={item.value} value={item.value}>
           {item.label}
-        </ToggleGroupItem>
+        </ToggleButton>
       ))}
-    </ToggleGroup>
+    </ToggleButtonGroup>
   );
 };

@@ -5,6 +5,7 @@ export const appCategorySchema = z.object({
   name: z.string(),
   color: z.string(),
   iconPath: z.string().nullable(),
+  iconLastUpdatedAt: z.date(),
   isSystem: z.boolean(),
 });
 export type AppCategory = z.infer<typeof appCategorySchema>;

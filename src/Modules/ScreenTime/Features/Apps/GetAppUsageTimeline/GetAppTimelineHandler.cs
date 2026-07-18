@@ -7,7 +7,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Apps.GetAppUsageTimeline
 
 public class GetAppUsageTimelineHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider
     ) : IRequestHandler<GetAppUsageTimelineQuery, List<GetAppUsageTimelineResponseItem>>
 {
@@ -72,8 +72,8 @@ public class GetAppUsageTimelineHandler(
                 Id: x.Id,
                 Name: x.Name,
                 Color: x.Color,
-                StartTime: x.StartTime.ToString("O"),
-                EndTime: x.EndTime.ToString("O")
+                StartTime: x.StartTime,
+                EndTime: x.EndTime
             ))];
     }
 }

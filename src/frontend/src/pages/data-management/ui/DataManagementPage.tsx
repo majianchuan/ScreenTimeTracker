@@ -1,50 +1,50 @@
+import Paper from "@mui/material/Paper";
 import {
   exportDataQueryOptions,
   useDeleteData,
   useImportData,
 } from "../api/queries";
 import { dateToDateOnly } from "@/shared/lib/date-only";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  Button,
-  Calendar,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/lib/shadcn";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { CalendarIcon, CopyIcon, ClipboardIcon } from "lucide-react";
 import { useState } from "react";
-import type { DateRange } from "react-day-picker";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import Typography from "@mui/material/Typography";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
+import { useSnackbar } from "notistack";
+import dayjs from "@/shared/lib/dayjs";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import IconButton from "@mui/material/IconButton";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import Stack from "@mui/material/Stack";
 
 export const DataManagementPage = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync: deleteUsageDataAsync } = useDeleteData();
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), 0, 1),
-    to: new Date(),
-  });
   const { refetch } = useQuery({
     ...exportDataQueryOptions(),
     enabled: false,
   });
   const { mutateAsync: importDataAsync } = useImportData();
 
+  const [deleteUsageDataStartDate, setDeleteUsageDataStartDate] =
+    useState<Date | null>(new Date(new Date().getFullYear(), 0, 1));
+  const [deleteUsageDataEndDate, setDeleteUsageDataEndDate] =
+    useState<Date | null>(new Date());
+  const [
+    deleteUsageDataComfirmDialogOpen,
+    setDeleteUsageDataComfirmDialogOpen,
+  ] = useState(false);
+
   const handleImportError = (err: unknown) => {
     if (axios.isAxiosError(err) && err.response?.status === 422) {
-      toast.error("配置版本不受支持，导入失败");
+      enqueueSnackbar("配置版本不受支持，导入失败", { variant: "error" });
     } else {
-      toast.error("导入数据失败");
+      enqueueSnackbar("导入数据失败", { variant: "success" });
     }
   };
 
@@ -54,164 +54,198 @@ export const DataManagementPage = () => {
   };
 
   return (
-    <>
-      <div className="flex items-center gap-1">
-        删除
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date-picker-range"
-              className="justify-start px-2.5 font-normal"
-            >
-              <CalendarIcon />
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {date.from.toLocaleDateString()} -{" "}
-                    {date.to.toLocaleDateString()}
-                  </>
-                ) : (
-                  date.from.toLocaleDateString()
-                )
-              ) : (
-                <span>Pick a date</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
-        的所有使用时间数据
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">删除</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                你确定要删除{date?.from?.toLocaleDateString()}至
-                {date?.to?.toLocaleDateString()}的所有使用时间数据吗？
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                不包括应用数据、类别数据和用户配置。
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+      }}
+    >
+      <Stack spacing={2}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: "center",
+          }}
+        >
+          <Typography>删除</Typography>
+          <DatePicker
+            sx={{ width: "10rem" }}
+            value={dayjs(deleteUsageDataStartDate)}
+            onChange={(newdate) =>
+              setDeleteUsageDataStartDate(newdate?.toDate() || null)
+            }
+            slotProps={{
+              textField: {
+                size: "small",
+              },
+            }}
+          />
+          <Typography>到</Typography>
+          <DatePicker
+            sx={{ width: "10rem" }}
+            value={dayjs(deleteUsageDataEndDate)}
+            onChange={(newdate) =>
+              setDeleteUsageDataEndDate(newdate?.toDate() || null)
+            }
+            slotProps={{
+              textField: {
+                size: "small",
+              },
+            }}
+          />
+          <Typography>的所有使用时间数据</Typography>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (
+                deleteUsageDataStartDate === null ||
+                deleteUsageDataEndDate === null
+              ) {
+                enqueueSnackbar("请选择日期范围", { variant: "error" });
+                return;
+              }
+              setDeleteUsageDataComfirmDialogOpen(true);
+            }}
+          >
+            删除
+          </Button>
+        </Stack>
+
+        <Box>
+          <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
                 onClick={async () => {
-                  if (!date?.from || !date?.to) {
-                    toast.error("无效的日期范围");
-                    return;
-                  }
                   try {
-                    await deleteUsageDataAsync({
-                      startDate: dateToDateOnly(date.from),
-                      endDate: dateToDateOnly(date.to),
+                    const content = await fetchExportContent();
+                    const blob = new Blob([content], {
+                      type: "application/json",
                     });
-                    toast.success("删除使用时间数据成功");
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `screen-time-tracker-data-${dayjs(new Date()).format("YYYY-MM-DD")}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    enqueueSnackbar("导出数据到文件成功", {
+                      variant: "success",
+                    });
                   } catch {
-                    toast.error("删除使用时间数据失败");
+                    enqueueSnackbar("导出数据到文件失败", { variant: "error" });
                   }
                 }}
               >
-                删除
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-      <div className="mt-2 flex gap-3">
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              try {
-                const content = await fetchExportContent();
-                const blob = new Blob([content], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `screen-time-tracker-data-${format(new Date(), "yyyy-MM-dd")}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-
-                toast.success("导出数据到文件成功");
-              } catch {
-                toast.error("导出数据到文件失败");
-              }
-            }}
-          >
-            导出数据
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={async () => {
-              try {
-                const content = await fetchExportContent();
-                await navigator.clipboard.writeText(content);
-                toast.success("导出数据到剪贴板成功");
-              } catch {
-                toast.error("导出数据到剪贴板失败");
-              }
-            }}
-          >
-            <CopyIcon />
-          </Button>
-        </div>
-        <div className="flex gap-1">
-          <Button asChild variant="outline">
-            <label>
-              导入数据
-              <input
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
+                导出数据
+              </Button>
+              <IconButton
+                onClick={async () => {
                   try {
-                    const result = await importDataAsync(await file.text());
-                    toast.success(
-                      `从文件导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
+                    const content = await fetchExportContent();
+                    await navigator.clipboard.writeText(content);
+                    enqueueSnackbar("导出数据到剪贴板成功", {
+                      variant: "success",
+                    });
+                  } catch {
+                    enqueueSnackbar("导出数据到剪贴板失败", {
+                      variant: "error",
+                    });
+                  }
+                }}
+              >
+                <ContentCopyIcon />
+              </IconButton>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button component="label" variant="contained">
+                导入数据
+                <input
+                  hidden
+                  type="file"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const result = await importDataAsync(await file.text());
+                      enqueueSnackbar(
+                        `从文件导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
+                        { variant: "success" },
+                      );
+                    } catch (err: unknown) {
+                      handleImportError(err);
+                    } finally {
+                      e.target.value = "";
+                    }
+                  }}
+                />
+              </Button>
+              <IconButton
+                sx={{ ml: 1 }}
+                onClick={async () => {
+                  try {
+                    const result = await importDataAsync(
+                      await navigator.clipboard.readText(),
+                    );
+                    enqueueSnackbar(
+                      `从剪贴板导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
+                      { variant: "success" },
                     );
                   } catch (err: unknown) {
                     handleImportError(err);
-                  } finally {
-                    e.target.value = "";
                   }
                 }}
-              />
-            </label>
+              >
+                <ContentPasteIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Box>
+      </Stack>
+
+      <Dialog
+        open={deleteUsageDataComfirmDialogOpen}
+        onClose={() => setDeleteUsageDataComfirmDialogOpen(false)}
+        role="alertdialog"
+      >
+        <DialogTitle>
+          确定删除 {deleteUsageDataStartDate?.toLocaleDateString()} 至{" "}
+          {deleteUsageDataEndDate?.toLocaleDateString()} 的所有使用时间数据吗？
+        </DialogTitle>
+        <DialogActions>
+          <Button
+            onClick={() => setDeleteUsageDataComfirmDialogOpen(false)}
+            autoFocus
+          >
+            取消
           </Button>
           <Button
-            variant="outline"
             onClick={async () => {
+              if (
+                deleteUsageDataStartDate === null ||
+                deleteUsageDataEndDate === null
+              )
+                return;
               try {
-                const result = await importDataAsync(
-                  await navigator.clipboard.readText(),
-                );
-                toast.success(
-                  `从剪贴板导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
-                );
-              } catch (err: unknown) {
-                handleImportError(err);
+                await deleteUsageDataAsync({
+                  startDate: dateToDateOnly(deleteUsageDataStartDate),
+                  endDate: dateToDateOnly(deleteUsageDataEndDate),
+                });
+                enqueueSnackbar("删除使用时间数据成功", { variant: "success" });
+              } catch {
+                enqueueSnackbar("删除使用时间数据失败", { variant: "error" });
+              } finally {
+                setDeleteUsageDataComfirmDialogOpen(false);
               }
             }}
+            color="error"
           >
-            <ClipboardIcon />
+            确定
           </Button>
-        </div>
-      </div>
-    </>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   );
 };

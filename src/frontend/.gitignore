@@ -1,8 +1,5 @@
 # Tanstack Router generated files
-src/app/routeTree.gen.ts
-
-# Tanstack Temp
-.tanstack/
+routeTree.gen.ts
 
 # Logs
 logs

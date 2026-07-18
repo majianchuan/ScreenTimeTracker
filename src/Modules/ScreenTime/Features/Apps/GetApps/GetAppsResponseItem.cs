@@ -6,9 +6,10 @@ public record GetAppsResponseItem(
     string Color,
     string ProcessName,
     bool IsAutoUpdateEnabled,
-    string LastAutoUpdated,
+    DateTime LastAutoUpdated,
     Guid AppCategoryId,
     string? ExecutablePath,
     string IconPath,
+    DateTime IconLastUpdatedAt,
     bool IsSystem
 );

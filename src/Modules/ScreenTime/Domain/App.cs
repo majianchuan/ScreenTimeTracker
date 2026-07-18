@@ -11,11 +11,12 @@ public class App : Entity
     public string Color { get; private set; }
     public string ProcessName { get; private set; }
     public bool IsAutoUpdateEnabled { get; private set; }
-    public DateTime LastAutoUpdated { get; private set; }
+    public DateTime LastAutoUpdatedAt { get; private set; }
     public Guid AppCategoryId { get; private set; }
     public AppCategory? AppCategory { get; private set; }
     public string? ExecutablePath { get; private set; }
     public string? IconPath { get; private set; }
+    public DateTime IconLastUpdatedAt { get; private set; }
     public bool IsSystem { get; private set; }
 
     // EF Core
@@ -38,10 +39,11 @@ public class App : Entity
             Color = GenerateColor(),
             ProcessName = processName,
             IsAutoUpdateEnabled = autoUpdate,
-            LastAutoUpdated = now,
+            LastAutoUpdatedAt = now,
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = executablePath,
             IconPath = iconPath,
+            IconLastUpdatedAt = now,
             IsSystem = false
         };
     }
@@ -55,6 +57,7 @@ public class App : Entity
         Guid appCategoryId,
         string? executablePath,
         string? iconPath,
+        DateTime iconLastUpdatedAt,
         bool isSystem)
     {
         return new App
@@ -63,10 +66,11 @@ public class App : Entity
             Color = color,
             ProcessName = processName,
             IsAutoUpdateEnabled = isAutoUpdateEnabled,
-            LastAutoUpdated = lastAutoUpdated,
+            LastAutoUpdatedAt = lastAutoUpdated,
             AppCategoryId = appCategoryId,
             ExecutablePath = executablePath,
             IconPath = iconPath,
+            IconLastUpdatedAt = iconLastUpdatedAt,
             IsSystem = isSystem
         };
     }
@@ -79,10 +83,11 @@ public class App : Entity
             Color = "#C7C7CC",
             ProcessName = "Idle",
             IsAutoUpdateEnabled = false,
-            LastAutoUpdated = DateTime.MinValue,
+            LastAutoUpdatedAt = DateTime.MinValue,
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
+            IconLastUpdatedAt = DateTime.MinValue,
             IsSystem = true
         };
 
@@ -94,10 +99,11 @@ public class App : Entity
             Color = "#636366",
             ProcessName = "Unknown",
             IsAutoUpdateEnabled = false,
-            LastAutoUpdated = DateTime.MinValue,
+            LastAutoUpdatedAt = DateTime.MinValue,
             AppCategoryId = AppCategory.UncategorizedId,
             ExecutablePath = null,
             IconPath = null,
+            IconLastUpdatedAt = DateTime.MinValue,
             IsSystem = true
         };
 
@@ -105,7 +111,11 @@ public class App : Entity
     public void UpdateColor(string color) => Color = color;
     public void UpdateIsAutoUpdateEnabled(bool isAutoUpdateEnabled) => IsAutoUpdateEnabled = isAutoUpdateEnabled;
     public void UpdateAppCategoryId(Guid categoryId) => AppCategoryId = categoryId;
-    public void UpdateIconPath(string? iconPath) => IconPath = iconPath;
+    public void UpdateIconPath(string? iconPath, DateTime now)
+    {
+        IconPath = iconPath;
+        IconLastUpdatedAt = now;
+    }
 
     public void UpdateSystemDetails(DateTime now, string? executablePath, string? iconPath, string? description)
     {
@@ -113,12 +123,12 @@ public class App : Entity
 
         ExecutablePath = executablePath;
         IconPath = iconPath;
-        LastAutoUpdated = now;
+        LastAutoUpdatedAt = now;
     }
 
     public bool NeedsUpdate(DateTime now, TimeSpan threshold)
     {
-        return IsAutoUpdateEnabled && (now - LastAutoUpdated) >= threshold;
+        return IsAutoUpdateEnabled && (now - LastAutoUpdatedAt) >= threshold;
     }
 
     private static string HslToHex(double h, double s, double l)
@@ -156,7 +166,7 @@ public class App : Entity
     private static string GenerateColor()
     {
         int h = Random.Shared.Next(360);
-        int s = Random.Shared.Next(60, 100);
+        int s = Random.Shared.Next(50, 80);
         int l = Random.Shared.Next(50, 80);
         return HslToHex(h, s, l);
     }

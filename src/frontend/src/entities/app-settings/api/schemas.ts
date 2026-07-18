@@ -5,7 +5,6 @@ export const appSettingsDtoSchema = z.object({
   isAutoStartEnabled: z.boolean(),
   isSilentStartEnabled: z.boolean(),
   language: z.string(),
-  shouldDestroyWindowOnClose: z.boolean(),
 });
 export type AppSettingsDto = z.infer<typeof appSettingsDtoSchema>;
 

@@ -19,7 +19,10 @@
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
-      "extensions": ["esbenp.prettier-vscode", "bradlc.vscode-tailwindcss"]
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "styled-components.vscode-styled-components"
+      ]
     }
   }
 

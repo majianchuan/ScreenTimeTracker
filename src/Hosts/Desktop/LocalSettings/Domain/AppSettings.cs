@@ -11,7 +11,6 @@ public class AppSettings : Entity
     public bool IsAutoStartEnabled { get; private set; }
     public bool IsSilentStartEnabled { get; private set; }
     public string Language { get; private set; }
-    public bool ShouldDestroyWindowOnClose { get; private set; }
 
     // EF Core 构造函数
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -25,7 +24,6 @@ public class AppSettings : Entity
         IsAutoStartEnabled = false,
         IsSilentStartEnabled = false,
         Language = "en-US",
-        ShouldDestroyWindowOnClose = true,
     };
 
     public void UpdateUIOpenMode(UIOpenMode uiOpenMode) => DefaultUIOpenMode = uiOpenMode;
@@ -41,8 +39,6 @@ public class AppSettings : Entity
     public void UpdateSilentStart(bool silentStart) => IsSilentStartEnabled = silentStart;
 
     public void UpdateLanguage(string language) => Language = language;
-
-    public void UpdateWindowDestroyOnClose(bool windowDestroyOnClose) => ShouldDestroyWindowOnClose = windowDestroyOnClose;
 }
 
 public enum UIOpenMode

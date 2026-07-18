@@ -32,7 +32,7 @@ public class UserSettings : Entity
     public static UserSettings CreateDefault() => new()
     {
         Id = DefaultId,
-        AppIconDirectory = "./Data/Icons",
+        AppIconDirectory = "./Data/AppIcons",
         AppInfoStaleThreshold = TimeSpan.FromHours(24),
         ActiveSessionAutoSaveInterval = TimeSpan.FromSeconds(15),
         IsIdleDetectionEnabled = false,

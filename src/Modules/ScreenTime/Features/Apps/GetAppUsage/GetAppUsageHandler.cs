@@ -7,7 +7,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Apps.GetAppUsage;
 
 public class GetAppUsageHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider
     ) : IRequestHandler<GetAppUsageQuery, List<GetAppUsageResponseItem>>
 {
@@ -42,10 +42,10 @@ public class GetAppUsageHandler(
         }
         // 初始化结果字典,使用时长的单位为Milliseconds
         var usage = new Dictionary<DateTime, long>();
-        if (request.Granularity == "hour")
+        if (request.Granularity == UsageGranularity.Hour)
             for (var day = startTime; day < endTime; day = day.AddHours(1))
                 usage[day] = 0;
-        else if (request.Granularity == "day")
+        else if (request.Granularity == UsageGranularity.Day)
             for (var day = startTime; day < endTime; day = day.AddDays(1))
                 usage[day] = 0;
 
@@ -56,14 +56,14 @@ public class GetAppUsageHandler(
             var sessionEnd = endTime < session.EndTime ? endTime : session.EndTime;
 
             DateTime current;
-            if (request.Granularity == "hour")
+            if (request.Granularity == UsageGranularity.Hour)
                 current = new DateTime(sessionStart.Year, sessionStart.Month, sessionStart.Day, sessionStart.Hour, 0, 0);
-            else if (request.Granularity == "day")
+            else if (request.Granularity == UsageGranularity.Day)
             {
                 var temp = sessionStart.AddHours(-settings.DayCutoffHour);
                 current = new DateTime(temp.Year, temp.Month, temp.Day, settings.DayCutoffHour, 0, 0);
             }
-            if (request.Granularity == "hour")
+            if (request.Granularity == UsageGranularity.Hour)
             {
                 // 对齐到整点
                 var startHour = new DateTime(sessionStart.Year, sessionStart.Month, sessionStart.Day, sessionStart.Hour, 0, 0);
@@ -81,7 +81,7 @@ public class GetAppUsageHandler(
 
                 }
             }
-            else if (request.Granularity == "day")
+            else if (request.Granularity == UsageGranularity.Day)
             {
                 var temp = sessionStart.AddHours(-settings.DayCutoffHour);
                 var startDay = new DateTime(temp.Year, temp.Month, temp.Day, settings.DayCutoffHour, 0, 0);
@@ -105,7 +105,7 @@ public class GetAppUsageHandler(
 
         // 使用时长精度保留到秒
         return [.. usage
-            .Select(kvp => new GetAppUsageResponseItem(kvp.Key.ToString("O"), kvp.Value / 1000))
+            .Select(kvp => new GetAppUsageResponseItem(kvp.Key, kvp.Value / 1000))
             .OrderBy(x => x.StartTime)];
     }
 }

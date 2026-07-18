@@ -23,8 +23,8 @@ public record ExportDataResponse(
 
     public record AppUsageSession(
         string AppProcessName,
-        string StartTime,
-        string EndTime
+        DateTime StartTime,
+        DateTime EndTime
     );
 };
 

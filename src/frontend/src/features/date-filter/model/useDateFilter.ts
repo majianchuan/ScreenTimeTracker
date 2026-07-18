@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { DateRange, TimeFrame } from "./schemas";
-import { startOfDay, subDays, subHours } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { userSettingsQueries } from "@/entities/user-settings";
+import dayjs from "@/shared/lib/dayjs";
 
 export type TimeFrameCache = Partial<Record<TimeFrame, DateRange>>;
 
@@ -22,7 +22,10 @@ export const useDateFilter = ({
     ...userSettingsQueries.userSettings(),
   });
   const dayCutoffHour = data?.dayCutoffHour || 5;
-  const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
+  const logicalToday = dayjs()
+    .subtract(dayCutoffHour, "hour")
+    .startOf("day")
+    .toDate();
 
   const getDefaultDateRange = useCallback(
     (timeFrame: TimeFrame): DateRange => {
@@ -30,9 +33,15 @@ export const useDateFilter = ({
         case "day":
           return { start: logicalToday, end: logicalToday };
         case "week":
-          return { start: subDays(logicalToday, 6), end: logicalToday };
+          return {
+            start: dayjs(logicalToday).subtract(6, "day").toDate(),
+            end: logicalToday,
+          };
         case "month":
-          return { start: subDays(logicalToday, 30), end: logicalToday };
+          return {
+            start: dayjs(logicalToday).subtract(30, "day").toDate(),
+            end: logicalToday,
+          };
         default:
           return { start: logicalToday, end: logicalToday };
       }

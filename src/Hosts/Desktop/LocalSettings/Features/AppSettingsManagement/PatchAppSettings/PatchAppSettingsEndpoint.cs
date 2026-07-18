@@ -21,8 +21,7 @@ public class PatchAppSettingsEndpoint(
                 req.DefaultUIOpenMode,
                 req.IsAutoStartEnabled,
                 req.IsSilentStartEnabled,
-                req.Language,
-                req.ShouldDestroyWindowOnClose
+                req.Language
             ),
             cancellationToken
         );

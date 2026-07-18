@@ -11,7 +11,7 @@ export const userSettingsDtoSchema = z.object({
 
   minValidSessionDurationSeconds: z.int(),
   sessionMergeToleranceSeconds: z.int(),
-  sessionOptimizationIntervalSeconds: z.int(),
+  sessionOptimizationIntervalMinutes: z.int(),
 
   dayCutoffHour: z.int(),
 });

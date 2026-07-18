@@ -8,7 +8,7 @@ export const searchParamsSchema = z.object({
   startDate: dateOnlySchema,
   endDate: dateOnlySchema,
   dimension: dimensionSchema.default("app"),
-  id: z.string().optional(),
+  id: z.string().nullable().optional(),
 });
 
 export type SearchParams = z.infer<typeof searchParamsSchema>;

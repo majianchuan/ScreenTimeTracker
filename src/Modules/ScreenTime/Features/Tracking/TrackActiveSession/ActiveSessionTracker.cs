@@ -11,7 +11,7 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Features.Tracking.TrackActiveSess
 public class ActiveSessionTracker(
         ILogger<ActiveSessionTracker> logger,
         IServiceScopeFactory scopeFactory,
-        IActiveSessionStore activeSessionStore,
+        IActiveAppUsageSessionStore activeSessionStore,
         IForegroundWindowMonitor foregroundWindowMonitor,
         IIdleTimeProvider idleTimeProvider,
         TimeProvider timeProvider) : BackgroundService

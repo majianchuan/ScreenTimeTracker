@@ -1,36 +1,18 @@
-import {
-  Button,
-  Calendar,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  cn,
-} from "@/shared/lib/shadcn";
-import { CalendarIcon, ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import type { DateRange, TimeFrame } from "../model/schemas";
-import type { DateRange as DayPickerRange } from "react-day-picker";
-import { useMemo } from "react";
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  endOfISOWeek,
-  endOfMonth,
-  isAfter,
-  isSameDay,
-  startOfDay,
-  startOfISOWeek,
-  startOfMonth,
-  subDays,
-  subHours,
-  subMonths,
-  subWeeks,
-} from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { userSettingsQueries } from "@/entities/user-settings";
+import Box from "@mui/material/Box";
+import type { Theme } from "@emotion/react";
+import type { SxProps } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import dayjs from "@/shared/lib/dayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 export type DateRangeSelectorProps = {
   className?: string;
+  sx?: SxProps<Theme>;
   timeFrame: TimeFrame;
   value: DateRange;
   onValueChange: (value: DateRange) => void;
@@ -38,6 +20,7 @@ export type DateRangeSelectorProps = {
 
 export const DateRangeSelector = ({
   className,
+  sx,
   timeFrame,
   value,
   onValueChange,
@@ -45,83 +28,95 @@ export const DateRangeSelector = ({
   const { data: userSettingsDtoData } = useQuery(
     userSettingsQueries.userSettings(),
   );
-  const dayCutoffHour = userSettingsDtoData?.dayCutoffHour ?? 0;
+  if (!userSettingsDtoData) return null;
+
+  const dayCutoffHour = userSettingsDtoData.dayCutoffHour;
+  const logicalToday = dayjs().subtract(dayCutoffHour, "hour").startOf("day");
+  const isEndToday = dayjs(value.end).isSame(logicalToday, "day");
+  const dateLabel = (() => {
+    switch (timeFrame) {
+      case "day": {
+        if (isEndToday) return "今天";
+        if (dayjs(value.end).isSame(logicalToday.subtract(1, "day"), "day"))
+          return "昨天";
+        return new Date(value.end).toLocaleDateString();
+      }
+      case "week": {
+        if (isEndToday) return "近 7 天";
+        const lastWeekEnd = logicalToday.subtract(1, "week").endOf("isoWeek");
+        if (dayjs(value.end).isSame(lastWeekEnd, "day")) return "上周";
+        return `${new Date(value.start).toLocaleDateString()}~${new Date(value.end).toLocaleDateString()}`;
+      }
+      case "month": {
+        if (isEndToday) return "近 31 天";
+        const lastMonthEnd = logicalToday.subtract(1, "month").endOf("month");
+        if (dayjs(value.end).isSame(lastMonthEnd, "day")) return "上个月";
+        return `${new Date(value.start).toLocaleDateString()}~${new Date(value.end).toLocaleDateString()}`;
+      }
+      default:
+        return "";
+    }
+  })();
 
   const shiftDateRange = (direction: "forward" | "backward") => {
-    const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
-    const isBackward = direction === "backward";
-    const isEndToday = isSameDay(value.end, logicalToday);
+    const isForward = direction === "forward";
+    const isEndToday = dayjs(value.end).isSame(logicalToday, "day");
 
     let newStartDate: Date;
     let newEndDate: Date;
 
-    // 日视图逻辑
     switch (timeFrame) {
       case "day": {
-        newEndDate = isBackward ? subDays(value.end, 1) : addDays(value.end, 1);
-        // 如果新计算的结束日期 > 今天，强制回到今天
-        if (isAfter(newEndDate, logicalToday)) newEndDate = logicalToday;
-        newStartDate = newEndDate;
+        if (isForward) {
+          let newEnd = dayjs(value.end).add(1, "day");
+          if (newEnd.isSameOrAfter(logicalToday, "day")) newEnd = logicalToday;
+          newEndDate = newEnd.toDate();
+          newStartDate = newEndDate;
+        } else {
+          const newEnd = dayjs(value.end).subtract(1, "day");
+          newEndDate = newEnd.toDate();
+          newStartDate = newEndDate;
+        }
         break;
       }
-      // 周视图逻辑
       case "week": {
-        if (isBackward) {
-          // 向过去移动
-          if (isEndToday) {
-            // 从“近 7 天”向以前跳到“上一个完整自然周”
-            const lastWeek = subWeeks(logicalToday, 1);
-            newStartDate = startOfISOWeek(lastWeek);
-            newEndDate = endOfISOWeek(lastWeek);
-          } else {
-            // 普通向以前移动 7 天
-            newStartDate = subWeeks(value.start, 1);
-            newEndDate = subWeeks(value.end, 1);
-          }
+        if (isForward) {
+          let newEnd = logicalToday.add(1, "week");
+          if (newEnd.isSameOrAfter(logicalToday, "day")) newEnd = logicalToday;
+          newEndDate = newEnd.toDate();
+          newStartDate = newEnd.subtract(6, "day").toDate();
         } else {
-          // 向未来移动
-          newStartDate = addWeeks(value.end, 1);
-          newEndDate = addWeeks(value.end, 1);
-
-          // 如果新计算的结束日期 >= 今天，回归“近 7 天”
-          if (
-            newEndDate >= logicalToday ||
-            isSameDay(newEndDate, logicalToday)
-          ) {
-            newEndDate = logicalToday;
-            newStartDate = subDays(logicalToday, 6);
+          if (isEndToday) {
+            const lastWeek = logicalToday.subtract(1, "week");
+            newStartDate = lastWeek.startOf("isoWeek").toDate();
+            newEndDate = lastWeek.endOf("isoWeek").toDate();
+          } else {
+            const newEnd = logicalToday.subtract(1, "week");
+            newEndDate = newEnd.toDate();
+            newStartDate = newEnd.subtract(6, "day").toDate();
           }
         }
         break;
       }
-      // 月视图逻辑
       case "month": {
-        if (isBackward) {
-          // 向过去移动
-          if (isEndToday) {
-            // 从“近 31 天”向以前跳到“上个完整自然月”
-            const lastMonth = subMonths(logicalToday, 1);
-            newStartDate = startOfMonth(lastMonth);
-            newEndDate = endOfMonth(lastMonth);
+        if (isForward) {
+          const newEnd = dayjs(value.end).add(1, "month");
+          if (newEnd.isSameOrAfter(logicalToday, "day")) {
+            newEndDate = logicalToday.toDate();
+            newStartDate = logicalToday.subtract(30, "day").toDate();
           } else {
-            // 普通向以前移动 31 天
-            const prevMonthBase = subMonths(value.end, 1);
-            newStartDate = startOfMonth(prevMonthBase);
-            newEndDate = endOfMonth(prevMonthBase);
+            newEndDate = newEnd.toDate();
+            newStartDate = newEnd.startOf("month").toDate();
           }
         } else {
-          // 向未来移动
-          const nextMonthBase = addMonths(value.end, 1);
-          newStartDate = startOfMonth(nextMonthBase);
-          newEndDate = endOfMonth(nextMonthBase);
-
-          // 如果新月度的结束日期 >= 今天，回归“近 31 天”
-          if (
-            newEndDate >= logicalToday ||
-            isSameDay(newEndDate, logicalToday)
-          ) {
-            newEndDate = logicalToday;
-            newStartDate = subDays(logicalToday, 30);
+          if (isEndToday) {
+            const lastMonth = logicalToday.subtract(1, "month");
+            newStartDate = lastMonth.startOf("month").toDate();
+            newEndDate = lastMonth.endOf("month").toDate();
+          } else {
+            const prevMonthBase = dayjs(value.end).subtract(1, "month");
+            newStartDate = prevMonthBase.startOf("month").toDate();
+            newEndDate = prevMonthBase.endOf("month").toDate();
           }
         }
         break;
@@ -133,88 +128,85 @@ export const DateRangeSelector = ({
     onValueChange({ start: newStartDate, end: newEndDate });
   };
 
-  const dateLabel = useMemo(() => {
-    const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
-    const isEndToday = isSameDay(value.end, logicalToday);
-
-    switch (timeFrame) {
-      case "day": {
-        if (isEndToday) return "今天";
-        if (isSameDay(value.end, subDays(logicalToday, 1))) return "昨天";
-        return value.end.toLocaleDateString();
-      }
-      case "week": {
-        if (isEndToday) return "近 7 天";
-        const lastWeekEnd = endOfISOWeek(subWeeks(logicalToday, 1));
-        if (isSameDay(value.end, lastWeekEnd)) return "上周";
-        return `${value.start.toLocaleDateString()}~${value.end.toLocaleDateString()}`;
-      }
-      case "month": {
-        if (isEndToday) return "近 31 天";
-        const lastMonthEnd = endOfMonth(subMonths(logicalToday, 1));
-        if (isSameDay(value.end, lastMonthEnd)) return "上个月";
-        return `${value.start.toLocaleDateString()}~${value.end.toLocaleDateString()}`;
-      }
-      default:
-        return "";
-    }
-  }, [dayCutoffHour, timeFrame, value.end, value.start]);
-
   return (
-    <div className={cn(className, "flex justify-center")}>
+    <>
       {/* 预定义日期范围选择 */}
-      <div
-        className={cn(
-          "border-input flex min-w-65 rounded-lg border",
-          timeFrame === "custom" ? "hidden" : "",
-        )}
+      <Box
+        sx={[
+          {
+            display: timeFrame === "custom" ? "none" : "flex",
+            alignItems: "center",
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 1,
+          },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
+        className={className}
       >
-        <Button variant="ghost" onClick={() => shiftDateRange("backward")}>
-          <ArrowLeftIcon />
+        <Button
+          // size="small"
+          variant="text"
+          onClick={() => shiftDateRange("backward")}
+        >
+          <ChevronLeftIcon />
         </Button>
-        <div className="flex flex-1 items-center justify-center">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {dateLabel}
-        </div>
-        <Button variant="ghost" onClick={() => shiftDateRange("forward")}>
-          <ArrowRightIcon />
+        </Box>
+        <Button
+          // size="small"
+          variant="text"
+          onClick={() => shiftDateRange("forward")}
+          disabled={isEndToday}
+        >
+          <ChevronRightIcon />
         </Button>
-      </div>
+      </Box>
+
       {/* 自定义日期范围选择 */}
-      <div
-        className={cn(
-          "border-input rounded-lg border",
-          timeFrame === "custom" ? "" : "hidden",
-        )}
+      <Box
+        sx={[
+          {
+            display: timeFrame === "custom" ? "flex" : "none",
+          },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
       >
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              id="date-picker-range"
-              className="justify-start px-2.5 font-normal"
-            >
-              <CalendarIcon />
-              {`${value.start.toLocaleDateString()} ~ ${value.end.toLocaleDateString()}`}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={value.start}
-              selected={{
-                from: value.start,
-                to: value.end,
-              }}
-              onSelect={(range: DayPickerRange | undefined) =>
-                range?.from && range?.to
-                  ? onValueChange({ start: range.from, end: range.to })
-                  : undefined
-              }
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
+        <DatePicker
+          value={dayjs(value.start)}
+          sx={{ flex: "1" }}
+          onChange={(newdate) =>
+            newdate !== null &&
+            onValueChange({ start: newdate.toDate(), end: value.end })
+          }
+          slotProps={{
+            textField: {
+              size: "small",
+            },
+          }}
+        />
+        <DatePicker
+          value={dayjs(value.end)}
+          sx={{ flex: "1" }}
+          onChange={(newdate) =>
+            newdate !== null &&
+            onValueChange({ start: value.start, end: newdate.toDate() })
+          }
+          slotProps={{
+            textField: {
+              size: "small",
+            },
+          }}
+        />
+      </Box>
+    </>
   );
 };

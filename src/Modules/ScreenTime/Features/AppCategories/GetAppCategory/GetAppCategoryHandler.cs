@@ -23,6 +23,7 @@ public class GetAppCategoryHandler(
                 appCategory.Name,
                 appCategory.Color,
                 appCategory.IconPath,
+                appCategory.IconLastUpdatedAt,
                 appCategory.IsSystem
             );
     }

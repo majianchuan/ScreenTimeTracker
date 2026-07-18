@@ -16,7 +16,7 @@ export const userSettingsQueries = {
   },
 };
 
-export const usePatchuserSettings = () => {
+export const usePatchUserSettings = () => {
   const queryClient = useQueryClient();
   return useMutation<UserSettingsDto, Error, PatchUserSettingsParams>({
     mutationFn: patchUserSettingsDto,

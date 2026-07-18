@@ -6,15 +6,15 @@ namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsMana
 
 public class PatchAppSettingsHandler(
     LocalSettingsDbContext context,
-    IStartupManager windowsStartupManager
-    ) : IRequestHandler<PatchAppSettingsCommand>
+    IStartupManager windowsStartupManager)
+    : IRequestHandler<PatchAppSettingsCommand>
 {
     public async ValueTask<Unit> Handle(PatchAppSettingsCommand request, CancellationToken cancellationToken)
     {
         AppSettings appSettings = await context.AppSettings.SingleAsync(cancellationToken);
 
         if (request.DefaultUIOpenMode is not null)
-            appSettings.UpdateUIOpenMode(request.DefaultUIOpenMode);
+            appSettings.UpdateUIOpenMode(request.DefaultUIOpenMode.Value);
         if (request.IsAutoStartEnabled is not null)
         {
             if (request.IsAutoStartEnabled.Value && !windowsStartupManager.IsEnabled())
@@ -27,8 +27,6 @@ public class PatchAppSettingsHandler(
             appSettings.UpdateSilentStart(request.IsSilentStartEnabled.Value);
         if (request.Language is not null)
             appSettings.UpdateLanguage(request.Language);
-        if (request.ShouldDestroyWindowOnClose is not null)
-            appSettings.UpdateWindowDestroyOnClose(request.ShouldDestroyWindowOnClose.Value);
 
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;

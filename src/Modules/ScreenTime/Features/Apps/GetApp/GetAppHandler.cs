@@ -24,10 +24,11 @@ public class GetAppHandler(
                 app.Color,
                 app.ProcessName,
                 app.IsAutoUpdateEnabled,
-                app.LastAutoUpdated.ToString("O"),
+                app.LastAutoUpdatedAt,
                 app.AppCategoryId,
                 app.ExecutablePath,
                 app.IconPath,
+                app.IconLastUpdatedAt,
                 app.IsSystem
             );
     }

@@ -1,6 +1,6 @@
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.GetAppCategoryUsage;
 
 public record GetAppCategoryUsageResponseItem(
-    string StartTime,
+    DateTime StartTime,
     long DurationSeconds
 );

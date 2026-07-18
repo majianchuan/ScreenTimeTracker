@@ -13,20 +13,11 @@ public class GetAppSettingsHandler(
     {
         AppSettings desktopPreferences = await context.AppSettings.AsNoTracking().SingleAsync(cancellationToken);
 
-
         return new GetAppSettingsResult(
-            desktopPreferences.DefaultUIOpenMode switch
-            {
-                UIOpenMode.Window => UIOpenModeDto.Window,
-                UIOpenMode.Browser => UIOpenModeDto.Browser,
-                _ => throw new ArgumentOutOfRangeException(nameof(request),
-                    desktopPreferences.DefaultUIOpenMode,
-                    "Unhandled UIOpenMode value")
-            },
+            desktopPreferences.DefaultUIOpenMode,
             desktopPreferences.IsAutoStartEnabled,
             desktopPreferences.IsSilentStartEnabled,
-            desktopPreferences.Language,
-            desktopPreferences.ShouldDestroyWindowOnClose
+            desktopPreferences.Language
         );
     }
 }

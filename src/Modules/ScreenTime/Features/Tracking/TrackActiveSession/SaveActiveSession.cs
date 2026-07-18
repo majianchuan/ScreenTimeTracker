@@ -10,7 +10,7 @@ public record SaveActiveSessionCommand() : IRequest;
 
 public class SaveActiveSessionHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider) : IRequestHandler<SaveActiveSessionCommand>
 {
     public async ValueTask<Unit> Handle(SaveActiveSessionCommand request, CancellationToken cancellationToken)

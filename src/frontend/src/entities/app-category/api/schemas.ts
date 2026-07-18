@@ -6,6 +6,7 @@ export const appCategoryDtoSchema = z.object({
   name: z.string(),
   color: z.string(),
   iconPath: z.string().nullable(),
+  iconLastUpdatedAt: z.coerce.date(),
   isSystem: z.boolean(),
 });
 export type AppCategoryDto = z.infer<typeof appCategoryDtoSchema>;

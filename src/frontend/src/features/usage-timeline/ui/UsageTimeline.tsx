@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { dateOnlyToDate, type DateOnly } from "@/shared/lib/date-only";
-import { cn } from "@/shared/lib/shadcn";
-import { addHours, format } from "date-fns";
 import { type CustomSeriesRenderItem, graphic } from "echarts";
-import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import {
   appCategoryUsageTimelineQueryOptions,
@@ -15,9 +12,14 @@ import type {
   AppCategoryUsageTimelineItemDto,
   AppUsageTimelineItemDto,
 } from "../api/schemas";
+import type { Theme } from "@emotion/react";
+import { useTheme, type SxProps } from "@mui/material/styles";
+import dayjs from "@/shared/lib/dayjs";
+import Box from "@mui/material/Box";
 
 export type UsageTimelineProps = {
   className?: string;
+  sx?: SxProps<Theme>;
   type: "app" | "app-category";
   date: DateOnly;
   includedIds?: string[];
@@ -65,13 +67,14 @@ const renderItem: CustomSeriesRenderItem = (params, api) => {
 
 export const UsageTimeline = ({
   className,
+  sx,
   date,
   type,
   includedIds,
   excludedIds,
 }: UsageTimelineProps) => {
-  const { theme, systemTheme } = useTheme();
-  const isDark = (theme === "system" ? systemTheme : theme) === "dark";
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   const { data: userSettingsDtoData } = useQuery(
     userSettingsQueries.userSettings(),
@@ -100,7 +103,9 @@ export const UsageTimeline = ({
     type === "app" ? appUsageTimelineData : appCategoryUsageTimelineData;
 
   const option = useMemo(() => {
-    const dayStart = addHours(dateOnlyToDate(date), dayCutoffHour);
+    const dayStart = dayjs(dateOnlyToDate(date))
+      .add(dayCutoffHour, "hour")
+      .toDate();
     const dayStartMs = dayStart.getTime();
     const dayEndMs = dayStartMs + 24 * 3600 * 1000;
 
@@ -167,7 +172,7 @@ export const UsageTimeline = ({
           height: 20,
           bottom: 10,
           labelFormatter: (value: Date) => {
-            return format(value, "HH:mm");
+            return dayjs(value).format("HH:mm");
           },
         },
       ],
@@ -197,8 +202,8 @@ export const UsageTimeline = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formatter: (params: any) => {
           const { value, seriesName, color } = params;
-          const startStr = format(new Date(value[0]), "HH:mm:ss");
-          const endStr = format(new Date(value[1]), "HH:mm:ss");
+          const startStr = dayjs(new Date(value[0])).format("HH:mm:ss");
+          const endStr = dayjs(new Date(value[1])).format("HH:mm:ss");
 
           return `
             <div>
@@ -214,11 +219,16 @@ export const UsageTimeline = ({
   }, [timelineData, date, dayCutoffHour]);
 
   return (
-    <ReactECharts
-      className={cn(className)}
-      theme={isDark ? "dark" : undefined}
-      option={option}
-      notMerge={true}
-    />
+    <Box sx={sx} className={className}>
+      <ReactECharts
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
+        theme={isDark ? "dark" : undefined}
+        option={option}
+        notMerge={true}
+      />
+    </Box>
   );
 };

@@ -6,3 +6,4 @@ export * from "./api/requests";
 
 export * from "./ui/AppCategoryIcon";
 export * from "./ui/AppCategoryPicker";
+export * from "./ui/AppCategorySelecter";

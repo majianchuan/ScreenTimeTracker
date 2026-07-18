@@ -19,10 +19,11 @@ public class GetAppsHandler(
         { nameof(GetAppsResponseItem.Color), [nameof(App.Color)] },
         { nameof(GetAppsResponseItem.ProcessName), [nameof(App.ProcessName)] },
         { nameof(GetAppsResponseItem.IsAutoUpdateEnabled), [nameof(App.IsAutoUpdateEnabled)] },
-        { nameof(GetAppsResponseItem.LastAutoUpdated), [nameof(App.LastAutoUpdated)] },
+        { nameof(GetAppsResponseItem.LastAutoUpdated), [nameof(App.LastAutoUpdatedAt)] },
         { nameof(GetAppsResponseItem.AppCategoryId), [nameof(App.AppCategoryId)] },
         { nameof(GetAppsResponseItem.ExecutablePath), [nameof(App.ExecutablePath)] },
         { nameof(GetAppsResponseItem.IconPath), [nameof(App.IconPath)] },
+        { nameof(GetAppsResponseItem.IconLastUpdatedAt), [nameof(App.IconLastUpdatedAt)] },
         { nameof(GetAppsResponseItem.IsSystem), [nameof(App.IsSystem)] }
     };
 
@@ -34,10 +35,11 @@ public class GetAppsHandler(
         [nameof(GetAppsResponseItem.Color)] = e => e.Color,
         [nameof(GetAppsResponseItem.ProcessName)] = e => e.ProcessName,
         [nameof(GetAppsResponseItem.IsAutoUpdateEnabled)] = e => e.IsAutoUpdateEnabled,
-        [nameof(GetAppsResponseItem.LastAutoUpdated)] = e => e.LastAutoUpdated.ToString("O"),
+        [nameof(GetAppsResponseItem.LastAutoUpdated)] = e => e.LastAutoUpdatedAt,
         [nameof(GetAppsResponseItem.AppCategoryId)] = e => e.AppCategoryId,
-        [nameof(GetAppsResponseItem.IconPath)] = e => e.IconPath,
         [nameof(GetAppsResponseItem.ExecutablePath)] = e => e.ExecutablePath,
+        [nameof(GetAppsResponseItem.IconPath)] = e => e.IconPath,
+        [nameof(GetAppsResponseItem.IconLastUpdatedAt)] = e => e.IconLastUpdatedAt,
         [nameof(GetAppsResponseItem.IsSystem)] = e => e.IsSystem,
     };
 

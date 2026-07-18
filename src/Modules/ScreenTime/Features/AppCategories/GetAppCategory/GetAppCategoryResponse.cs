@@ -5,5 +5,6 @@ public record GetAppCategoryResponse(
     string Name,
     string Color,
     string? IconPath,
+    DateTime IconLastUpdatedAt,
     bool IsSystem
 );

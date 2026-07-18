@@ -5,7 +5,8 @@ using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.Apps.PatchApp;
 
 public class PatchAppHandler(
-    ScreenTimeDbContext context
+    ScreenTimeDbContext context,
+    TimeProvider timeProvider
     ) : IRequestHandler<PatchAppCommand>
 {
     public async ValueTask<Unit> Handle(PatchAppCommand request, CancellationToken cancellationToken)
@@ -23,7 +24,7 @@ public class PatchAppHandler(
         if (request.AppCategoryId.HasValue)
             App.UpdateAppCategoryId(request.AppCategoryId.Value);
         if (request.IconPath.HasValue)
-            App.UpdateIconPath(request.IconPath.Value);
+            App.UpdateIconPath(request.IconPath.Value, timeProvider.GetLocalNow().DateTime);
 
         await context.SaveChangesAsync(cancellationToken);
         return Unit.Value;

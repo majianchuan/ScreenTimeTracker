@@ -69,8 +69,8 @@ public class ExportDataHandler(
         var appUsageSessions = await context.AppUsageSessions
             .Select(x => new ExportDataResponse.AppUsageSession(
                 x.App!.ProcessName,
-                x.StartTime.ToString("O"),
-                x.EndTime.ToString("O")
+                x.StartTime,
+                x.EndTime
                 ))
             .ToListAsync(cancellationToken);
 

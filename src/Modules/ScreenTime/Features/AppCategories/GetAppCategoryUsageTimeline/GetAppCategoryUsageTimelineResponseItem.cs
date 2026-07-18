@@ -4,6 +4,6 @@ public record GetAppCategoryUsageTimelineResponseItem(
     Guid Id,
     string Name,
     string Color,
-    string StartTime,
-    string EndTime
+    DateTime StartTime,
+    DateTime EndTime
 );

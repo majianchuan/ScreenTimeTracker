@@ -12,7 +12,7 @@ public record SystemResumeFromSuspendCommand(
 
 public class SystemResumeFromSuspendHandler(
     ScreenTimeDbContext context,
-    IActiveSessionStore activeSessionStore,
+    IActiveAppUsageSessionStore activeSessionStore,
     TimeProvider timeProvider,
     IMediator mediator) : IRequestHandler<SystemResumeFromSuspendCommand>
 {

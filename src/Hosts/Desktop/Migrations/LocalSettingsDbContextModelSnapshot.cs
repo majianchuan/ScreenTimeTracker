@@ -15,7 +15,7 @@ namespace ScreenTimeTracker.Hosts.Desktop.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
 
             modelBuilder.Entity("ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain.AppSettings", b =>
                 {
@@ -36,9 +36,6 @@ namespace ScreenTimeTracker.Hosts.Desktop.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("ShouldDestroyWindowOnClose")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.ToTable("Desktop_LocalSettings_AppSettings");
@@ -50,8 +47,7 @@ namespace ScreenTimeTracker.Hosts.Desktop.Migrations
                             DefaultUIOpenMode = 0,
                             IsAutoStartEnabled = false,
                             IsSilentStartEnabled = false,
-                            Language = "en-US",
-                            ShouldDestroyWindowOnClose = true
+                            Language = "en-US"
                         });
                 });
 #pragma warning restore 612, 618

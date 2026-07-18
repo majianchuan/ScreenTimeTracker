@@ -20,13 +20,17 @@ export const getAppCategories = async (
       name: validated.name,
       color: validated.color,
       iconPath: validated.iconPath,
+      iconLastUpdatedAt: validated.iconLastUpdatedAt,
       isSystem: validated.isSystem,
     };
   });
 };
 
-export const getAppCategoryIconUrl = (appCategoryId: string) =>
-  `${baseApiUrl}/screen-time/app-categories/${appCategoryId}/icon`;
+export const getAppCategoryIconUrl = (
+  appCategoryId: string,
+  iconLastUpdatedAt: Date,
+) =>
+  `${baseApiUrl}/screen-time/app-categories/${appCategoryId}/icon?v=${iconLastUpdatedAt.getTime()}`;
 
 export const createAppCategory = async (
   params: CreateAppCategoryParams,
@@ -38,6 +42,7 @@ export const createAppCategory = async (
     name: validated.name,
     color: validated.color,
     iconPath: validated.iconPath,
+    iconLastUpdatedAt: validated.iconLastUpdatedAt,
     isSystem: validated.isSystem,
   };
 };

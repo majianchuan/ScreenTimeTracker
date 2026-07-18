@@ -1,46 +1,67 @@
 import type { SearchParams } from "../model/schemas";
 import {
   DateRangeSelector,
-  PeriodTypeSelector,
+  TimeFrameSelector,
   useDateFilter,
 } from "@/features/date-filter";
 import { dateOnlyToDate, dateToDateOnly } from "@/shared/lib/date-only";
 import {
   DimensionMemberPicker,
   DimensionTypeSelector,
-  useDimensionControl,
+  type Dimension,
 } from "@/features/dimension-control";
-import { useEffect, useMemo, useState } from "react";
-import {
-  SelectTrigger,
-  SelectContent,
-  Select,
-  SelectValue,
-  SelectItem,
-  SelectGroup,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/shared/lib/shadcn";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
-  UsageRankingList,
-  UsageRankingPieChart,
-} from "@/features/usage-ranking";
+  UsageDistributionList,
+  UsageDistributionPieChart,
+} from "@/features/usage-distribution";
 import { UsageTimeline } from "@/features/usage-timeline";
 import { UsageChart } from "@/features/usage-chart";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import ToggleButton from "@mui/material/ToggleButton";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import z from "zod";
+import Stack from "@mui/material/Stack";
 
 interface UsageSummaryPageProps {
   search: SearchParams;
   onSearchChange: (newParams: Partial<SearchParams>) => void;
 }
 
+const dimensionCacheSchema = z.record(
+  z.enum(["app", "app-category"]),
+  z.array(z.string()),
+);
+type DimensionCache = z.infer<typeof dimensionCacheSchema>;
+
+const defaultDimensionCache: DimensionCache = {
+  app: [],
+  "app-category": [],
+};
+
+const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
+const DISTRIBUTION_TYPE_STORAGE_KEY = "page_usage_summary_page_ranking_type";
+
+function getSavedDimensionCache(): DimensionCache | null {
+  if (typeof window === "undefined") return null;
+
+  const saved = localStorage.getItem(DIMENSION_CACHE_STORAGE_KEY);
+  if (saved === null) return null;
+  const parsed = JSON.parse(saved);
+  const result = dimensionCacheSchema.safeParse(parsed);
+  if (result.success) return result.data;
+  else return null;
+}
+
 export const UsageSummaryPage = ({
   search,
   onSearchChange,
 }: UsageSummaryPageProps) => {
-  const DIMENSION_CACHE_STORAGE_KEY = "page_usage_summary_page_dimension_cache";
-  const RANKING_TYPE_STORAGE_KEY = "page_usage_summary_page_ranking_type";
-
   const {
     handleTimeFrameChange,
     handleDateRangeChange,
@@ -60,81 +81,81 @@ export const UsageSummaryPage = ({
     },
   });
 
-  const getSavedDimensionCache = () => {
-    if (typeof window === "undefined") return {};
-
-    const saved = localStorage.getItem(DIMENSION_CACHE_STORAGE_KEY);
-    try {
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  };
-
-  const initialDimensionCache = useMemo(() => getSavedDimensionCache(), []);
-
   useEffect(() => {
-    if (search.excludedIds) return;
+    if (search.excludedIds !== undefined) return;
 
+    const dimensionCache = getSavedDimensionCache() || defaultDimensionCache;
     onSearchChange({
-      excludedIds: getSavedDimensionCache()[search.dimension] || [],
+      excludedIds: dimensionCache[search.dimension],
     });
   }, [search.dimension, search.excludedIds, onSearchChange]);
 
-  const { handleDimensionChange, handleMemberIdsChange } = useDimensionControl({
-    currentDimension: search.dimension,
-    initialCache: initialDimensionCache,
-    onValueChange: (dimension, memberIds) => {
-      onSearchChange({ dimension, excludedIds: memberIds });
-    },
-    onCacheSync: (cache) => {
-      localStorage.setItem(DIMENSION_CACHE_STORAGE_KEY, JSON.stringify(cache));
-    },
-  });
+  const dimensionCacheRef = useRef<DimensionCache>(
+    getSavedDimensionCache() || defaultDimensionCache,
+  );
+  const handleDimensionChange = (newDimension: Dimension) => {
+    onSearchChange({
+      dimension: newDimension,
+      excludedIds: dimensionCacheRef.current[newDimension],
+    });
+  };
+  const handleMemberIdsChange = (newMemberIds: string[]) => {
+    dimensionCacheRef.current[search.dimension] = newMemberIds;
+    localStorage.setItem(
+      DIMENSION_CACHE_STORAGE_KEY,
+      JSON.stringify(dimensionCacheRef.current),
+    );
+    onSearchChange({ excludedIds: newMemberIds });
+  };
 
   const navigate = useNavigate();
 
-  const [rankingType, setRankingType] = useState(
-    localStorage.getItem(RANKING_TYPE_STORAGE_KEY) || "pieChart",
+  const [distributionType, setDistributionType] = useState(
+    localStorage.getItem(DISTRIBUTION_TYPE_STORAGE_KEY) || "pieChart",
   );
 
   if (isDateFilterLoading)
     return (
-      <div className="flex h-full items-center justify-center">
-        <span>正在获取数据，加载中。。。</span>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
 
   return (
-    <>
+    <Stack spacing={2}>
       {/* 类别切换，时间范围选择 */}
-      <div>
-        <div className="flex w-full">
-          <div className="flex flex-1 justify-start">
+      <Stack spacing={1}>
+        <Stack direction="row" sx={{ alignItems: "center" }}>
+          <Box sx={{ flex: 1, display: "flex", justifyContent: "start" }}>
             <DimensionTypeSelector
               value={search.dimension}
               onValueChange={handleDimensionChange}
             />
-          </div>
-          <div className="flex flex-1 justify-center">
-            <PeriodTypeSelector
-              value={search.timeFrame}
-              onValueChange={handleTimeFrameChange}
-            />
-          </div>
-          <div className="flex flex-1 justify-end">
+          </Box>
+          <TimeFrameSelector
+            value={search.timeFrame}
+            onValueChange={handleTimeFrameChange}
+          />
+          <Box sx={{ flex: 1, display: "flex", justifyContent: "end" }}>
             <DimensionMemberPicker
+              sx={{ width: "90%" }}
               dimension={search.dimension}
               value={search.excludedIds || []}
               onValueChange={handleMemberIdsChange}
               mode="multiple"
               placeholder="排除项"
             />
-          </div>
-        </div>
+          </Box>
+        </Stack>
 
-        <div className="mt-2 flex justify-center">
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <DateRangeSelector
+            sx={{ width: "19rem" }}
             timeFrame={search.timeFrame}
             value={{
               start: dateOnlyToDate(search.startDate),
@@ -142,13 +163,20 @@ export const UsageSummaryPage = ({
             }}
             onValueChange={handleDateRangeChange}
           />
-        </div>
-      </div>
+        </Box>
+      </Stack>
 
       {/* 使用时间柱状图 */}
-      <div className="border-border mt-4 rounded-lg border p-3">
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 2,
+        }}
+      >
         <UsageChart
-          className="h-70!"
+          sx={{
+            height: "18rem",
+          }}
           type={search.dimension}
           granularity={search.timeFrame === "day" ? "hour" : "day"}
           xAxisType={
@@ -162,98 +190,113 @@ export const UsageSummaryPage = ({
           endDate={search.endDate}
           excludedIds={search.excludedIds}
         />
-      </div>
+      </Paper>
 
       {/* 日使用时间线 */}
       {search.timeFrame === "day" ? (
-        <div className="border-border mt-4 rounded-lg border p-3">
+        <Paper
+          variant="outlined"
+          sx={{
+            p: 2,
+          }}
+        >
           <UsageTimeline
-            className="h-30! w-full"
+            sx={{
+              height: "7.5rem",
+            }}
             type={search.dimension}
             date={search.startDate}
             excludedIds={search.excludedIds}
           />
-        </div>
+        </Paper>
       ) : (
         <></>
       )}
 
-      {/* 使用排名 */}
-      <div className="border-border mt-4 rounded-lg border p-3">
-        <div className="flex flex-row justify-between">
-          <ToggleGroup
-            variant="outline"
-            type="single"
-            value={rankingType}
-            onValueChange={(type) => {
-              if (type === "") return;
-              setRankingType(type);
-              localStorage.setItem(RANKING_TYPE_STORAGE_KEY, type);
+      {/* 使用分布 */}
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 2,
+        }}
+      >
+        <Stack spacing={1}>
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: "space-between",
             }}
           >
-            <ToggleGroupItem value="pieChart">饼图</ToggleGroupItem>
-            <ToggleGroupItem value="listChart">列表</ToggleGroupItem>
-          </ToggleGroup>
-          <Select
-            value={`${search.topN}`}
-            onValueChange={(value) => onSearchChange({ topN: Number(value) })}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectGroup>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        {rankingType === "pieChart" ? (
-          <UsageRankingPieChart
-            className="mt-4 h-100!"
-            type={search.dimension}
-            startDate={search.startDate}
-            endDate={search.endDate}
-            topN={search.topN}
-            onItemClick={(id) =>
-              navigate({
-                to: "/usage/details",
-                search: {
-                  dimension: search.dimension,
-                  id: id,
-                  timeFrame: search.timeFrame,
-                  startDate: search.startDate,
-                  endDate: search.endDate,
-                },
-              })
-            }
-            excludedIds={search.excludedIds}
-          />
-        ) : (
-          <UsageRankingList
-            className="mt-2"
-            type={search.dimension}
-            startDate={search.startDate}
-            endDate={search.endDate}
-            topN={search.topN}
-            onItemClick={(id) =>
-              navigate({
-                to: "/usage/details",
-                search: {
-                  dimension: search.dimension,
-                  id: id,
-                  timeFrame: search.timeFrame,
-                  startDate: search.startDate,
-                  endDate: search.endDate,
-                },
-              })
-            }
-            excludedIds={search.excludedIds}
-          />
-        )}
-      </div>
-    </>
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={distributionType}
+              onChange={(_, newType) => {
+                if (newType !== null) {
+                  setDistributionType(newType);
+                  localStorage.setItem(DISTRIBUTION_TYPE_STORAGE_KEY, newType);
+                }
+              }}
+            >
+              <ToggleButton value="pieChart">饼图</ToggleButton>
+              <ToggleButton value="list">列表</ToggleButton>
+            </ToggleButtonGroup>
+            <Select
+              value={search.topN}
+              size="small"
+              onChange={(event) => onSearchChange({ topN: event.target.value })}
+            >
+              <MenuItem value={5}>5</MenuItem>
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={20}>20</MenuItem>
+            </Select>
+          </Stack>
+          {distributionType === "pieChart" ? (
+            <UsageDistributionPieChart
+              sx={{
+                height: "25rem",
+              }}
+              type={search.dimension}
+              startDate={search.startDate}
+              endDate={search.endDate}
+              topN={search.topN}
+              onItemClick={(id) =>
+                navigate({
+                  to: "/usage/details",
+                  search: {
+                    dimension: search.dimension,
+                    id: id,
+                    timeFrame: search.timeFrame,
+                    startDate: search.startDate,
+                    endDate: search.endDate,
+                  },
+                })
+              }
+              excludedIds={search.excludedIds}
+            />
+          ) : (
+            <UsageDistributionList
+              type={search.dimension}
+              startDate={search.startDate}
+              endDate={search.endDate}
+              topN={search.topN}
+              onItemClick={(id) =>
+                navigate({
+                  to: "/usage/details",
+                  search: {
+                    dimension: search.dimension,
+                    id: id,
+                    timeFrame: search.timeFrame,
+                    startDate: search.startDate,
+                    endDate: search.endDate,
+                  },
+                })
+              }
+              excludedIds={search.excludedIds}
+            />
+          )}
+        </Stack>
+      </Paper>
+    </Stack>
   );
 };

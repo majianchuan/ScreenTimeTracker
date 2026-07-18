@@ -1,107 +1,135 @@
 import {
-  Combobox,
-  ComboboxChip,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  useComboboxAnchor,
-} from "@/shared/lib/shadcn";
-import {
   AppCategoryIcon,
   appCategoryQueries,
   type AppCategory,
 } from "@/entities/app-category";
+import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import type { SxProps, Theme } from "@mui/material/styles";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type SyntheticEvent } from "react";
+
+type Item = Pick<AppCategory, "id" | "name" | "iconPath" | "iconLastUpdatedAt">;
 
 export type AppCategoryPickerProps = {
   className?: string;
-  mode: "multiple" | "single";
-  value: string[];
-  onValueChange: (value: string[]) => void;
+  sx?: SxProps<Theme>;
   placeholder?: string;
-};
+} & (
+  | {
+      mode: "single";
+      value: string | null;
+      onValueChange: (value: string | null) => void;
+    }
+  | {
+      mode: "multiple";
+      value: string[];
+      onValueChange: (value: string[]) => void;
+    }
+);
 
-export const AppCategoryPicker = ({
-  mode,
-  value,
-  onValueChange,
-  placeholder,
-}: AppCategoryPickerProps) => {
-  const anchor = useComboboxAnchor();
-  type Item = Pick<AppCategory, "id" | "name" | "iconPath">;
-  const { data: appCategoriesData } = useQuery(
-    appCategoryQueries.appCategories({ fields: "id,name,iconPath" }),
+export const AppCategoryPicker = (props: AppCategoryPickerProps) => {
+  const { className, sx, mode, value, onValueChange, placeholder } = props;
+  const { data, isLoading } = useQuery(
+    appCategoryQueries.appCategories({
+      fields: "id,name,iconPath,iconLastUpdatedAt",
+    }),
   ) as {
     data?: Item[];
+    isLoading: boolean;
   };
 
-  const selectedEntities = useMemo(() => {
-    if (!appCategoriesData) return [];
-    const valueSet = new Set(value);
-    return appCategoriesData.filter((entity) => valueSet.has(entity.id));
-  }, [appCategoriesData, value]);
+  // 将外部的 string/string[] 转换为 Autocomplete 需要的对象数组
+  const selectedOptions = useMemo(() => {
+    if (!data) return [];
 
-  useEffect(() => {
-    if (!appCategoriesData) return;
-
-    const validIdSet = new Set(appCategoriesData.map((e) => e.id));
-
-    const nextValue = value.filter((id) => validIdSet.has(id));
-
-    // 有变化才触发
-    if (nextValue.length !== value.length) {
-      onValueChange(nextValue);
+    if (mode === "single") {
+      const found = data.find((item) => item.id === value);
+      return found ? [found] : [];
+    } else {
+      const valueSet = new Set(value as string[]);
+      return data.filter((item) => valueSet.has(item.id));
     }
-  }, [appCategoriesData, value, onValueChange]);
+  }, [data, value, mode]);
 
-  const handleSelectedChange = (value: Item[]) => {
-    if (mode === "single" && value.length >= 1)
-      onValueChange([value[value.length - 1].id]);
-    else onValueChange(value.map((v) => v.id));
+  // 数据校验：自动移除不存在的 ID
+  useEffect(() => {
+    if (!data) return;
+    const validIdSet = new Set(data.map((e) => e.id));
+
+    if (mode === "single") {
+      if (value && !validIdSet.has(value as string)) onValueChange(null);
+    } else {
+      const nextValue = (value as string[]).filter((id) => validIdSet.has(id));
+      if (nextValue.length !== (value as string[]).length)
+        onValueChange(nextValue);
+    }
+  }, [data, value, mode, onValueChange]);
+
+  const handleChange = (_: SyntheticEvent, newValue: Item[]) => {
+    if (mode === "single") {
+      const lastSelected =
+        newValue.length > 0 ? newValue[newValue.length - 1] : null;
+      onValueChange(lastSelected ? lastSelected.id : null);
+    } else {
+      onValueChange(newValue.map((v) => v.id));
+    }
   };
 
   return (
-    // 用[]而不是null传给value表示无选择项会导致问题
-    <Combobox
+    <Autocomplete
       multiple
-      items={appCategoriesData || []}
-      value={selectedEntities?.length !== 0 ? selectedEntities : null}
-      onValueChange={handleSelectedChange}
-    >
-      <ComboboxChips ref={anchor}>
-        <ComboboxValue>
-          {(val) => (
-            <>
-              {val?.map((v: Item) => (
-                <ComboboxChip key={`${v.id}`}>{v.name}</ComboboxChip>
-              ))}
-              <ComboboxChipsInput
-                placeholder={val && val.length !== 0 ? undefined : placeholder}
-              />
-            </>
-          )}
-        </ComboboxValue>
-      </ComboboxChips>
-      <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>暂无</ComboboxEmpty>
-        <ComboboxList>
-          {(item) => (
-            <ComboboxItem key={item.id} value={item}>
-              <AppCategoryIcon
-                className="size-5"
-                id={item.id}
-                iconPath={item.iconPath}
-              />
-              <span className="wrap-anywhere">{item.name}</span>
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
+      className={className}
+      sx={[{}, ...(Array.isArray(sx) ? sx : [sx])]}
+      options={data || []}
+      loading={isLoading}
+      value={selectedOptions}
+      onChange={handleChange}
+      getOptionLabel={(option) => option.name}
+      isOptionEqualToValue={(option, v) => option.id === v.id}
+      renderValue={(value: readonly Item[], getItemProps) =>
+        value.map((option: Item, index: number) => {
+          const { key, ...itemProps } = getItemProps({ index });
+          void key;
+          return (
+            <Chip
+              variant="outlined"
+              size="small"
+              label={option.name}
+              key={option.id}
+              {...itemProps}
+            />
+          );
+        })
+      }
+      renderOption={(props, option) => {
+        const { key, ...otherProps } = props;
+        void key;
+        return (
+          <Box component="li" key={option.id} {...otherProps}>
+            <AppCategoryIcon
+              sx={{
+                width: "1.5rem",
+                height: "1.r5em",
+                mr: 1,
+              }}
+              id={option.id}
+              iconPath={option.iconPath}
+              iconLastUpdatedAt={option.iconLastUpdatedAt}
+            />
+            <Typography>{option.name}</Typography>
+          </Box>
+        );
+      }}
+      renderInput={(params) => (
+        <TextField {...params} size="small" placeholder={placeholder} />
+      )}
+      disableCloseOnSelect={mode === "multiple"}
+      noOptionsText="暂无数据"
+      fullWidth
+    />
   );
 };

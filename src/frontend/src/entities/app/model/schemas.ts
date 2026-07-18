@@ -10,5 +10,7 @@ export const appSchema = z.object({
   appCategoryId: z.string(),
   executablePath: z.string().nullable(),
   iconPath: z.string().nullable(),
+  iconLastUpdatedAt: z.date(),
+  isSystem: z.boolean(),
 });
 export type App = z.infer<typeof appSchema>;

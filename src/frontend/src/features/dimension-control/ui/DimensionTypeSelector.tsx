@@ -1,21 +1,27 @@
-import { cn, ToggleGroup, ToggleGroupItem } from "@/shared/lib/shadcn";
 import type { Dimension } from "../model/schemas";
+import type { Theme } from "@emotion/react";
+import type { SxProps } from "@mui/material/styles";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+
+type DimensionOption = {
+  value: Dimension;
+  label: string;
+};
 
 export type DateRangeSelectorProps = {
   className?: string;
+  sx?: SxProps<Theme>;
   value: Dimension;
   onValueChange: (value: Dimension) => void;
 };
+
 export const DimensionTypeSelector = ({
   className,
+  sx,
   value,
   onValueChange,
 }: DateRangeSelectorProps) => {
-  type DimensionOption = {
-    value: Dimension;
-    label: string;
-  };
-
   const dimensionOptions: DimensionOption[] = [
     {
       value: "app",
@@ -28,21 +34,23 @@ export const DimensionTypeSelector = ({
   ];
 
   return (
-    <ToggleGroup
-      variant="outline"
-      type="single"
+    <ToggleButtonGroup
+      size="small"
+      exclusive
+      sx={sx}
+      className={className}
       value={value}
-      onValueChange={(dimension) => {
-        if (dimension === "") return;
-        onValueChange(dimension as Dimension);
+      onChange={(_, newDimension: Dimension | null) => {
+        if (newDimension !== null) {
+          onValueChange(newDimension);
+        }
       }}
-      className={cn(className)}
     >
       {dimensionOptions.map((item) => (
-        <ToggleGroupItem key={item.value} value={item.value}>
+        <ToggleButton key={item.value} value={item.value}>
           {item.label}
-        </ToggleGroupItem>
+        </ToggleButton>
       ))}
-    </ToggleGroup>
+    </ToggleButtonGroup>
   );
 };

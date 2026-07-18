@@ -6,10 +6,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores([
-    "dist",
-    "src/app/routeTree.gen.ts", // 排除 Tanstack Router generated files
-  ]),
+  globalIgnores(["dist", "**/routeTree.gen.ts"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -19,8 +16,30 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
       globals: globals.browser,
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          // 允许变量名以 _ 开头但未使用
+          varsIgnorePattern: "^_",
+          // 允许参数名以 _ 开头但未使用
+          argsIgnorePattern: "^_",
+          // 允许解构中的 _ 被忽略
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^@mui/(?!x-)[^/]+$",
+            },
+          ],
+        },
+      ],
     },
   },
 ]);

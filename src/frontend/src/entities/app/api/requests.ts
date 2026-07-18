@@ -24,12 +24,13 @@ export const getApps = async (
       appCategoryId: validated.appCategoryId,
       executablePath: validated.executablePath,
       iconPath: validated.iconPath,
+      iconLastUpdatedAt: validated.iconLastUpdatedAt,
     };
   });
 };
 
-export const getAppIconUrl = (appId: string) =>
-  `${baseApiUrl}/screen-time/apps/${appId}/icon`;
+export const getAppIconUrl = (appId: string, iconLastUpdatedAt: Date) =>
+  `${baseApiUrl}/screen-time/apps/${appId}/icon?v=${iconLastUpdatedAt.getTime()}`;
 
 export const patchApp = async (params: PatchAppParams) => {
   const { data } = await apiClient.patch(

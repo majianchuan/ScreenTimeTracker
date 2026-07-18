@@ -12,8 +12,11 @@ public class DeleteAppCategoryHandler(
     public async ValueTask<Unit> Handle(DeleteAppCategoryCommand request, CancellationToken cancellationToken)
     {
         AppCategory? appCategory = await context.AppCategories.FindAsync([request.AppCategoryId], cancellationToken);
-        if (appCategory is null || appCategory.IsSystem)
+        if (appCategory is null)
             return Unit.Value;
+
+        if (appCategory.IsSystem)
+            throw new InvalidOperationException("Cannot delete a system app category.");
 
         // 把所有这个类别的 App 都设置为默认类别
         await context.Apps

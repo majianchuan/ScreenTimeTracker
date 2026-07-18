@@ -6,7 +6,7 @@ using ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 namespace ScreenTimeTracker.Modules.ScreenTime.Features.AppCategories.CreateAppCategory;
 
 public class CreateAppCategoryHandler(
-    ScreenTimeDbContext context
+    ScreenTimeDbContext context, TimeProvider timeProvider
     ) : IRequestHandler<CreateAppCategoryCommand, CreateAppCategoryResponse>
 {
     public async ValueTask<CreateAppCategoryResponse> Handle(CreateAppCategoryCommand request, CancellationToken cancellationToken)
@@ -16,7 +16,7 @@ public class CreateAppCategoryHandler(
         if (exists)
             throw new Exception("App category with the same name already exists.");
 
-        AppCategory appCategory = AppCategory.Create(request.Name, request.Color, request.IconPath);
+        AppCategory appCategory = AppCategory.Create(timeProvider.GetLocalNow().DateTime, request.Name, request.Color, request.IconPath);
         context.AppCategories.Add(appCategory);
         await context.SaveChangesAsync(cancellationToken);
         return new CreateAppCategoryResponse(

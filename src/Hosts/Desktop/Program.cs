@@ -18,6 +18,7 @@ using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Windows;
 
 
@@ -209,6 +210,8 @@ static void ConfigureMiddleware(WebApplication app)
     app.UseFastEndpoints(config =>
     {
         config.Endpoints.RoutePrefix = "api";
+        // 枚举转和字符串相互转换
+        config.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
     });
     app.UseSwaggerGen();  // 文档url: /swagger/v1/swagger.json
     app.MapFallbackToFile("index.html"); // SPA回退

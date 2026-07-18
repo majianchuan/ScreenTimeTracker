@@ -5,7 +5,7 @@ namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsMana
 
 public class GetAppSettingsEndpoint(
     IMediator mediator
-    ) : Endpoint<EmptyRequest, GetAppSettingsResponse>
+    ) : Endpoint<EmptyRequest, GetAppSettingsResult>
 {
     public override void Configure()
     {
@@ -16,16 +16,10 @@ public class GetAppSettingsEndpoint(
 
     public override async Task HandleAsync(EmptyRequest req, CancellationToken cancellationToken)
     {
-        GetAppSettingsResult userSettings = await mediator.Send(
+        GetAppSettingsResult response = await mediator.Send(
             new GetAppSettingsQuery(),
             cancellationToken
         );
-        await Send.OkAsync(new GetAppSettingsResponse(
-            userSettings.DefaultUIOpenMode.ToString(),
-            userSettings.IsAutoStartEnabled,
-            userSettings.IsSilentStartEnabled,
-            userSettings.Language,
-            userSettings.ShouldDestroyWindowOnClose
-        ), cancellationToken);
+        await Send.OkAsync(response, cancellationToken);
     }
 }

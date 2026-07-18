@@ -1,8 +1,7 @@
 import { defineConfig } from "vite";
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { fileURLToPath } from "node:url";
 import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
@@ -21,14 +20,11 @@ export default defineConfig({
       generatedRouteTree: "./src/app/routeTree.gen.ts",
     }),
     react(),
-    tailwindcss(),
     svgr(),
   ],
-
-  // shadcn
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 });

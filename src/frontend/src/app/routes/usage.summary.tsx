@@ -2,8 +2,10 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { UsageSummaryPage, searchParamsSchema } from "@/pages/usage-summary";
 import type { SearchParams } from "@/pages/usage-summary";
 import { userSettingsQueries } from "@/entities/user-settings";
-import { startOfDay, subHours } from "date-fns";
 import { dateToDateOnly } from "@/shared/lib/date-only";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import dayjs from "@/shared/lib/dayjs";
 
 export const Route = createFileRoute("/usage/summary")({
   component: RouteComponent,
@@ -12,14 +14,14 @@ export const Route = createFileRoute("/usage/summary")({
     endDate: true,
   }),
   pendingComponent: () => (
-    <div className="flex h-full items-center justify-center">
-      <span>正在获取数据，加载中。。。</span>
-    </div>
-  ),
-  errorComponent: () => (
-    <div className="flex h-full items-center justify-center">
-      <span>无法获取数据，请检查网络</span>
-    </div>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <CircularProgress />
+    </Box>
   ),
   beforeLoad: async ({ context, search }) => {
     if (search.startDate && search.endDate) return;
@@ -27,7 +29,10 @@ export const Route = createFileRoute("/usage/summary")({
     const { dayCutoffHour } = await context.queryClient.ensureQueryData(
       userSettingsQueries.userSettings(),
     );
-    const logicalToday = startOfDay(subHours(new Date(), dayCutoffHour));
+    const logicalToday = dayjs()
+      .subtract(dayCutoffHour, "hour")
+      .startOf("day")
+      .toDate();
     const logicalTodayDateOnly = dateToDateOnly(logicalToday);
 
     throw redirect({
