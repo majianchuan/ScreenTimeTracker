@@ -92,7 +92,7 @@ try
     if (!singleInstanceLock.TryAcquire())
     {
         Log.Information("Application is already running.");
-        if (!await instanceMessenger.SendMessageAsync("Show"))
+        if (!await instanceMessenger.SendMessageAsync("OpenUI"))
         {
             Log.Error("Failed to send message to existing instance.");
             ShowErrorDialog("错误！", "程序已经在运行，请查看托盘处");
@@ -102,7 +102,7 @@ try
     }
     instanceMessenger.MessageReceived += (sender, e) =>
     {
-        if (e.Message == "Show")
+        if (e.Message == "OpenUI")
         {
             Log.Information("Received message from existing instance to show UI.");
             var appUIManager = app.Services.GetRequiredService<IAppUIManager>();

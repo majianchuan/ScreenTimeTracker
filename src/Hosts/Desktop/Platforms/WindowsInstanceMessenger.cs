@@ -23,7 +23,7 @@ public class WindowsInstanceMessenger(ILogger<WindowsInstanceMessenger> logger) 
     {
         try
         {
-            using var clientStream = new NamedPipeClientStream(".", _pipeName);
+            using var clientStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.Out);
             await clientStream.ConnectAsync(cancellationToken);
             byte[] msg = Encoding.UTF8.GetBytes(message);
             await clientStream.WriteAsync(msg.AsMemory(), cancellationToken);
