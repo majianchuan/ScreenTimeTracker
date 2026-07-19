@@ -8,7 +8,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { LazyColorField } from "@/shared/ui/LazyColorField";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import { useSnackbar } from "notistack";
 import Switch from "@mui/material/Switch";
@@ -25,17 +25,33 @@ import {
   type GridRenderCellParams,
   type GridRowsProp,
 } from "@mui/x-data-grid";
-import { AppCategorySelecter } from "@/entities/app-category";
+import {
+  appCategoryQueries,
+  AppCategorySelecter,
+  type AppCategory,
+} from "@/entities/app-category";
 import { LazyTextField } from "@/shared/ui/LazyTextField";
 import dayjs from "@/shared/lib/dayjs";
 export const AppManagementPage = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { data: appsData, isLoading } = useQuery(appQueries.apps({})) as {
+  const { data: appsData, isLoading: isAppsDataLoading } = useQuery(
+    appQueries.apps({}),
+  ) as {
     isLoading: boolean;
     data?: App[];
   };
   const { mutateAsync: patchAppAsync } = usePatchApp();
   const { mutateAsync: deleteAppAsync } = useDeleteApp();
+  const { data: appCategoriesData, isLoading: isAppCategoriesDataLoading } =
+    useQuery(appCategoryQueries.appCategories({ fields: "id,name" })) as {
+      isLoading: boolean;
+      data?: Pick<AppCategory, "id" | "name">[];
+    };
+  const categoryMap = useMemo(() => {
+    return new Map(
+      appCategoriesData?.map((item) => [item.id, item.name]) ?? [],
+    );
+  }, [appCategoriesData]);
 
   const [deleteAppComfirmDialogOpen, setDeleteAppComfirmDialogOpen] =
     useState(false);
@@ -99,6 +115,9 @@ export const AppManagementPage = () => {
       field: "appCategory",
       headerName: "应用类别",
       width: 210,
+      valueGetter: (_, row) => {
+        return categoryMap.get(row.appCategoryId) ?? "";
+      },
       renderCell: (params: GridRenderCellParams<App>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <AppCategorySelecter
@@ -241,7 +260,7 @@ export const AppManagementPage = () => {
             },
           }}
           pageSizeOptions={[5, 10, 20, 40]}
-          loading={isLoading}
+          loading={isAppsDataLoading || isAppCategoriesDataLoading}
           rows={rows}
           columns={columns}
         />
