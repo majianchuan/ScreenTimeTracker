@@ -4,27 +4,18 @@ using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.DependencyInjection;
-using ScreenTimeTracker.Hosts.Desktop.Configuration;
+using Microsoft.Extensions.Hosting;
 using ScreenTimeTracker.Hosts.Desktop.Hosting;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
-using ScreenTimeTracker.Hosts.Desktop.Modules.Preferences;
+using ScreenTimeTracker.Hosts.Desktop.Platforms;
 using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using ScreenTimeTracker.Hosts.Desktop.UI.State;
-using ScreenTimeTracker.Hosts.Desktop.UI.Views;
 using ScreenTimeTracker.Modules.ScreenTime;
 using Serilog;
-using System.IO;
-using System.IO.Pipes;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Windows;
-
-
-string MutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";
-Mutex? mutex = null;
-bool hasMutexOwnership = false;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 // 切换工作目录为程序所在目录
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -57,119 +48,12 @@ TaskScheduler.UnobservedTaskException += (sender, e) =>
 
 try
 {
-    // 单实例检查，防止重复运行
-    try
-    {
-        var mutexSecurity = new MutexSecurity();
-
-        // 允许所有用户读取/修改 Mutex 状态
-        mutexSecurity.AddAccessRule(new MutexAccessRule(
-            new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-            MutexRights.FullControl,
-            AccessControlType.Allow
-        ));
-        mutex = MutexAcl.Create(false, MutexName, out _, mutexSecurity);
-
-        try
-        {
-            hasMutexOwnership = mutex.WaitOne(0);
-        }
-        catch (AbandonedMutexException)
-        {
-            // 如果上一个实例崩溃退出，系统会废弃Mutex。
-            // 此时当前实例会自动接管 Mutex 的所有权，并抛出此异常。
-            Log.Warning("Previous instance crashed. Acquired abandoned mutex.");
-            hasMutexOwnership = true;
-        }
-
-        if (!hasMutexOwnership)
-        {
-            Log.Information("Application is already running. Exiting...");
-            try
-            {
-                using var client = new NamedPipeClientStream(".", PipeServerService.PipeName);
-                client.Connect(1000);
-                byte[] msg = Encoding.UTF8.GetBytes("SHOW");
-                client.Write(msg, 0, msg.Length);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to connect to pipe server.");
-                MessageBox.Show("程序已经在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            Log.CloseAndFlush();
-            return;
-        }
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        Log.Error(ex, "Access denied when creating mutex. Likely another instance is running with higher privileges.");
-        MessageBox.Show("已经有一个更高权限的实例在运行，请查看托盘处", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        Log.CloseAndFlush();
-        return;
-    }
-
-    // 构建并启动 WebApplication
-    using WebApplication app = BuildWebApplication();
-    ConfigureMiddleware(app);
-
-    app.Lifetime.ApplicationStopped.Register(() =>
-    {
-        Log.Information("Application Stopped.");
-    });
-
-    app.Lifetime.ApplicationStarted.Register(() =>
-    {
-        using var scope = app.Services.CreateScope();
-        var serverUrlProvider = scope.ServiceProvider.GetRequiredService<IServerUrlProvider>();
-        var serverUrl = serverUrlProvider.GetServerUrl();
-        Log.Information("Kestrel server address: {address}", serverUrl);
-
-        // 初始化托盘图标
-        var trayService = scope.ServiceProvider.GetRequiredService<TrayService>();
-        _ = trayService.InitializeAsync();
-        // 非静默启动时打开UI
-        _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
-    });
-
-    try
-    {
-        app.Run();
-    }
-    catch (IOException ex) when (ex.InnerException is AddressInUseException)
-    {
-        Log.Error(ex, "Address already in use.");
-        app.StopAsync().GetAwaiter().GetResult();
-        MessageBox.Show("端口已被占用，请修改程序目录下appsettings.json文件中Urls的端口号", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly.");
-    MessageBox.Show("程序启动时出错，请检查日志", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    Log.CloseAndFlush();
-    Environment.Exit(1);
-}
-finally
-{
-    if (mutex is not null)
-    {
-        if (hasMutexOwnership)
-            mutex.ReleaseMutex();
-        mutex.Dispose();
-    }
-    Log.CloseAndFlush();
-}
-
-static WebApplication BuildWebApplication()
-{
     var builder = WebApplication.CreateBuilder();
-    // 日志
+    // 通用服务
     builder.Services.AddSerilog((services, loggerConfig) =>
     {
         loggerConfig.ReadFrom.Configuration(builder.Configuration);
     });
-    // 通用服务
     builder.Services.AddMediator(options =>
     {
         options.Namespace = "ScreenTimeTracker.Mediator";
@@ -181,25 +65,53 @@ static WebApplication BuildWebApplication()
     builder.Services.SwaggerDocument();
     builder.Services.AddCors();
     builder.Services.AddSingleton<IServerUrlProvider, ServerUrlProvider>();
-    // WPF
-    builder.Services.AddHostedService<WpfHostedService>();
-    builder.Services.AddTransient<IViewFactory, ViewFactory>();
+    // 桌面
     builder.Services.AddSingleton<IAppUIManager, AppUIManager>();
     builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
-    builder.Services.Configure<WebViewOptions>(builder.Configuration.GetSection(WebViewOptions.SectionName));
-    // 托盘服务
-    builder.Services.AddSingleton<TrayService>();
-    // 管道服务
-    builder.Services.AddHostedService<PipeServerService>();
+    // 平台特异
+    if (OperatingSystem.IsWindowsVersionAtLeast(5, 1, 2600))
+    {
+        builder.Services.AddSingleton<ISingleInstanceLock, WindowsSingleInstanceLock>();
+        builder.Services.AddSingleton<IInstanceMessenger, WindowsInstanceMessenger>();
+        builder.Services.AddSingleton<ITrayService, TrayService>();
+    }
+    else
+    {
+        throw new PlatformNotSupportedException("Only Windows XP RTM or later is supported.");
+    }
+
     // 模块注册
     builder.Services.AddScreenTimeServices(builder.Configuration);
     builder.Services.AddLocalSettingsServices(builder.Configuration);
 
-    return builder.Build();
-}
+    using WebApplication app = builder.Build();
 
-static void ConfigureMiddleware(WebApplication app)
-{
+    // 单例检测
+    var singleInstanceLock = app.Services.GetRequiredService<ISingleInstanceLock>();
+    var instanceMessenger = app.Services.GetRequiredService<IInstanceMessenger>();
+    if (!singleInstanceLock.TryAcquire())
+    {
+        Log.Information("Application is already running.");
+        if (!await instanceMessenger.SendMessageAsync("Show"))
+        {
+            Log.Error("Failed to send message to existing instance.");
+            ShowErrorDialog("错误！", "程序已经在运行，请查看托盘处");
+        }
+        Log.CloseAndFlush();
+        return;
+    }
+    instanceMessenger.MessageReceived += (sender, e) =>
+    {
+        if (e.Message == "Show")
+        {
+            Log.Information("Received message from existing instance to show UI.");
+            var appUIManager = app.Services.GetRequiredService<IAppUIManager>();
+            _ = appUIManager.OpenUIAsync();
+        }
+    };
+    await instanceMessenger.StartListeningAsync();
+
+    // 中间件
     app.UseStaticFiles();
     app.UseCors(cors =>
     {
@@ -215,6 +127,43 @@ static void ConfigureMiddleware(WebApplication app)
     });
     app.UseSwaggerGen();  // 文档url: /swagger/v1/swagger.json
     app.MapFallbackToFile("index.html"); // SPA回退
+
+    app.Lifetime.ApplicationStopped.Register(() =>
+    {
+        Log.Information("Application Stopped.");
+    });
+
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        var serverUrlProvider = app.Services.GetRequiredService<IServerUrlProvider>();
+        var serverUrl = serverUrlProvider.GetServerUrl();
+        Log.Information("Kestrel server address: {address}", serverUrl);
+
+        // 初始化托盘图标
+        var trayService = app.Services.GetRequiredService<ITrayService>();
+        trayService.Initialize();
+        // 非静默启动时打开UI
+        _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
+    });
+
+    try
+    {
+        app.Run();
+    }
+    catch (IOException ex) when (ex.InnerException is AddressInUseException)
+    {
+        Log.Error(ex, "Address already in use.");
+        await app.StopAsync();
+        ShowErrorDialog("错误！", "端口已被占用，请修改程序目录下appsettings.json文件中Urls的端口号");
+    }
+    Log.CloseAndFlush();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly.");
+    ShowErrorDialog("错误！", "程序启动时出错，请检查日志");
+    Log.CloseAndFlush();
+    Environment.Exit(1);
 }
 
 static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverUrl)
@@ -226,5 +175,13 @@ static async Task OpenUIIfNotSilentStartAsync(WebApplication app, string serverU
     {
         var appUIManager = scope.ServiceProvider.GetRequiredService<IAppUIManager>();
         await appUIManager.OpenUIAsync();
+    }
+}
+
+static void ShowErrorDialog(string title, string message)
+{
+    if (OperatingSystem.IsWindows())
+    {
+        PInvoke.MessageBox(default, message, title, MESSAGEBOX_STYLE.MB_ICONERROR | MESSAGEBOX_STYLE.MB_OK);
     }
 }

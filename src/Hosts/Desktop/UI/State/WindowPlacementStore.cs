@@ -1,13 +1,26 @@
 using Microsoft.Extensions.Logging;
-using ScreenTimeTracker.Hosts.Desktop.UI.Views;
-using System.IO;
 using System.Text.Json;
 
 namespace ScreenTimeTracker.Hosts.Desktop.UI.State;
 
+
+public class WindowPlacement
+{
+    public double Left { get; set; } = double.NaN;
+    public double Top { get; set; } = double.NaN;
+    public double Width { get; set; } = 1600;
+    public double Height { get; set; } = 1100;
+}
+
+public interface IWindowPlacementStore
+{
+    WindowPlacement Load();
+    void Save(WindowPlacement settings);
+}
+
 public class WindowPlacementStore(ILogger<WindowPlacementStore> logger) : IWindowPlacementStore
 {
-    private static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WindowSettings.json");
+    private static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WindowPlacement.json");
     private static readonly JsonSerializerOptions jsonSerializerOptions = new() { WriteIndented = true };
 
     public WindowPlacement Load()

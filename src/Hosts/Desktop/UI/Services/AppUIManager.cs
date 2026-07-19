@@ -1,11 +1,15 @@
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Photino.NET;
 using ScreenTimeTracker.Hosts.Desktop.Hosting;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
-using ScreenTimeTracker.Hosts.Desktop.UI.Views;
+using ScreenTimeTracker.Hosts.Desktop.UI.State;
 using System.Diagnostics;
-using System.Windows;
+using System.Drawing;
+using System.Reflection;
 
 namespace ScreenTimeTracker.Hosts.Desktop.UI.Services;
 
@@ -16,14 +20,48 @@ public interface IAppUIManager
     Task OpenUIInBrowserAsync();
 }
 
-public class AppUIManager(
-    IServiceScopeFactory scopeFactory,
-    IServerUrlProvider urlProvider,
-    IViewFactory viewFactory) : IAppUIManager
+public class AppUIManager : IAppUIManager
 {
+    private readonly ILogger<AppUIManager> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IServerUrlProvider _urlProvider;
+    private readonly IWindowPlacementStore _placementStore;
+    private PhotinoWindow? _window;
+    private readonly Lock _windowLock = new();
+
+    public AppUIManager(
+        ILogger<AppUIManager> logger,
+        IServiceScopeFactory scopeFactory,
+        IServerUrlProvider urlProvider,
+        IWindowPlacementStore placementStore,
+        IHostApplicationLifetime lifetime)
+    {
+        _logger = logger;
+        _scopeFactory = scopeFactory;
+        _placementStore = placementStore;
+        _urlProvider = urlProvider;
+
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            lock (_windowLock)
+            {
+                if (_window is not null)
+                {
+                    try
+                    {
+                        _window.Invoke(() => _window.Close());
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        });
+    }
+
     public async Task OpenUIAsync()
     {
-        using var scope = scopeFactory.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var settings = await mediator.Send(new GetAppSettingsQuery());
 
@@ -35,7 +73,7 @@ public class AppUIManager(
 
     public async Task OpenUIInBrowserAsync()
     {
-        string uiUrl = urlProvider.GetServerUrl();
+        string uiUrl = _urlProvider.GetServerUrl();
         Process.Start(new ProcessStartInfo
         {
             FileName = uiUrl,
@@ -45,29 +83,109 @@ public class AppUIManager(
 
     public async Task OpenUIInWindowAsync()
     {
-        string uiUrl = urlProvider.GetServerUrl();
-        await Application.Current.Dispatcher.InvokeAsync(() =>
+        string uiUrl = _urlProvider.GetServerUrl();
+
+        lock (_windowLock)
         {
-            if (Application.Current.MainWindow is not MainView mainView)
+            if (_window is null)
             {
-                mainView = viewFactory.Create<MainView>();
-                mainView.LoadUrl(uiUrl);
-                Application.Current.MainWindow = mainView;
-            }
-            else if (mainView.WindowState == WindowState.Minimized)
-            {
-                mainView.WindowState = WindowState.Normal;
-            }
+                ResetPhotinoMessageLoop();
+                var uiThread = new Thread(() =>
+                {
+                    try
+                    {
+                        var placement = _placementStore.Load();
 
-            mainView.Show();
-            mainView.Activate();
+                        _window = new PhotinoWindow()
+                            .SetTitle("Screen Time Tracker")
+                            .SetUseOsDefaultSize(false)
+                            .SetUseOsDefaultLocation(false)
+                        .SetSize(new Size((int)placement.Width, (int)placement.Height));
+                        if (double.IsNaN(placement.Left) || double.IsNaN(placement.Top))
+                            _window.Center();
+                        else
+                        {
+                            _window.SetLeft((int)placement.Left);
+                            _window.SetTop((int)placement.Top);
+                        }
 
-            // 解决 Windows 偶尔不置顶的问题
-            if (!mainView.Topmost)
-            {
-                mainView.Topmost = true;
-                mainView.Topmost = false;
+                        var lastNormalPlacement = new WindowPlacement
+                        {
+                            Left = _window.Location.X,
+                            Top = _window.Location.Y,
+                            Width = _window.Size.Width,
+                            Height = _window.Size.Height
+                        };
+
+                        // 监听位置大小变化并保存
+                        _window.RegisterLocationChangedHandler((sender, _) =>
+                        {
+                            if (sender is PhotinoWindow window && !window.Maximized && !window.Minimized)
+                            {
+                                lastNormalPlacement.Left = window.Location.X;
+                                lastNormalPlacement.Top = window.Location.Y;
+                            }
+                        });
+                        _window.RegisterSizeChangedHandler((sender, _) =>
+                        {
+                            if (sender is PhotinoWindow window && !window.Maximized && !window.Minimized)
+                            {
+                                lastNormalPlacement.Width = window.Size.Width;
+                                lastNormalPlacement.Height = window.Size.Height;
+                            }
+                        });
+
+                        _window.RegisterWindowClosingHandler((sender, _) =>
+                        {
+                            _placementStore.Save(lastNormalPlacement);
+                            return false;
+                        });
+
+                        _window.Load(uiUrl);
+                        _window.WaitForClose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to open UI in window.");
+                    }
+                    finally
+                    {
+                        lock (_windowLock)
+                            _window = null;
+                    }
+                })
+                {
+                    IsBackground = true
+                };
+                if (OperatingSystem.IsWindows())
+                    uiThread.SetApartmentState(ApartmentState.STA);
+
+                uiThread.Start();
             }
-        });
+            else
+            {
+                // 窗口已经存在，将其唤醒/带到前台                
+                _window.Invoke(() =>
+                {
+                    if (_window.Minimized)
+                        _window.SetMinimized(false);
+                    else
+                    {
+                        _window.SetTopMost(true);
+                        _window.SetTopMost(false);
+                    }
+                });
+            }
+        }
+
+        await Task.CompletedTask;
+    }
+
+    // https://github.com/tryphotino/photino.NET/issues/59
+    // Photino.NET 的 bug 导致无法在 WaitForClose() 返回后创建第二个窗口
+    private static void ResetPhotinoMessageLoop()
+    {
+        var field = typeof(PhotinoWindow).GetField("_messageLoopIsStarted", BindingFlags.Static | BindingFlags.NonPublic);
+        field?.SetValue(null, false);
     }
 }

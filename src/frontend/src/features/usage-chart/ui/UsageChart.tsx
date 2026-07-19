@@ -81,8 +81,8 @@ export const UsageChart = ({
       backgroundColor: "transparent",
       grid: {
         bottom: 30,
-        left: 90,
-        right: 90,
+        left: 70,
+        right: 70,
       },
       title: {
         text: `总计：${formatSecondsDuration(sum)} ${granularity !== "hour" ? `| 平均：${formatSecondsDuration(avg)}` : ""}`,

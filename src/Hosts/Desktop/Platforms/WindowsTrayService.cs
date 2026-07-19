@@ -1,24 +1,29 @@
 using H.NotifyIcon.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.Versioning;
 
-namespace ScreenTimeTracker.Hosts.Desktop.UI.Services;
+namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
 
+[SupportedOSPlatform("windows5.1.2600")]
 public class TrayService(
     ILogger<TrayService> logger,
     IAppUIManager appUIManager,
-    IHostApplicationLifetime lifetime) : IDisposable
+    IHostApplicationLifetime lifetime) : ITrayService
 {
     private Icon? _iconHandle;
     private TrayIconWithContextMenu? _trayIcon;
+    private bool _disposed;
 
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+
+    public void Initialize()
     {
         if (_trayIcon is not null) return;
 
-        using var iconStream = typeof(App).Assembly.GetManifestResourceStream("ScreenTimeTracker.Hosts.Desktop.Resources.Icon.ico")
+        using var iconStream = typeof(Program).Assembly.GetManifestResourceStream($"AppIcon")
             ?? throw new InvalidOperationException("Icon resource not found.");
         _iconHandle = new Icon(iconStream);
 
@@ -46,29 +51,27 @@ public class TrayService(
             OpenUI();
         };
 
-        // 异步非阻塞的托盘重试逻辑，防止卡死主线程
+        _ = InitializeTrayIconWithRetryAsync();
+    }
+
+    private async Task InitializeTrayIconWithRetryAsync()
+    {
         int maxRetries = 10;
-        int delayMilliseconds = 1500;
+        int delayMilliseconds = 1000;
         for (int i = 0; i < maxRetries; i++)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                _trayIcon.Create();
+                _trayIcon!.Create();
                 break;
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("TryCreate failed"))
             {
-                logger.LogWarning(ex, "Tray icon creation failed, retrying... ({Retry}/{MaxRetries})", i + 1, maxRetries);
                 if (i == maxRetries - 1) throw;
-                await Task.Delay(delayMilliseconds, cancellationToken);
+                Thread.Sleep(delayMilliseconds);
             }
         }
     }
-
-    public void Show() => _trayIcon?.Show();
-
-    public void Hide() => _trayIcon?.Hide();
 
     private static void OpenAppDirectory()
     {
@@ -120,12 +123,25 @@ public class TrayService(
         }
     }
 
+
     public void Dispose()
     {
-        _trayIcon?.Dispose();
-        _trayIcon = null;
-        _iconHandle?.Dispose();
-        _iconHandle = null;
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            _trayIcon?.Dispose();
+            _trayIcon = null;
+            _iconHandle?.Dispose();
+            _iconHandle = null;
+        }
+
+        _disposed = true;
     }
 }

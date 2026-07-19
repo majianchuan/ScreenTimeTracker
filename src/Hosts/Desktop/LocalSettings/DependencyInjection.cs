@@ -3,11 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.PatchAppSettings;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.OS;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.Persistence;
-using ScreenTimeTracker.Hosts.Desktop.Modules.Preferences.Infrastructure.OS;
 using ScreenTimeTracker.Shared.Infrastructure.Options;
 
-namespace ScreenTimeTracker.Hosts.Desktop.Modules.Preferences;
+namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings;
 
 public static class ServiceCollectionExtensions
 {

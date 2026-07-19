@@ -44,7 +44,7 @@ export const DataManagementPage = () => {
     if (axios.isAxiosError(err) && err.response?.status === 422) {
       enqueueSnackbar("配置版本不受支持，导入失败", { variant: "error" });
     } else {
-      enqueueSnackbar("导入数据失败", { variant: "success" });
+      enqueueSnackbar("导入数据失败", { variant: "error" });
     }
   };
 

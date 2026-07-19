@@ -4,7 +4,7 @@ using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManageme
 using System.Runtime.Versioning;
 using System.Security.Principal;
 
-namespace ScreenTimeTracker.Hosts.Desktop.Modules.Preferences.Infrastructure.OS;
+namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.OS;
 
 [SupportedOSPlatform("windows")]
 public class WindowsStartupManager : IStartupManager
