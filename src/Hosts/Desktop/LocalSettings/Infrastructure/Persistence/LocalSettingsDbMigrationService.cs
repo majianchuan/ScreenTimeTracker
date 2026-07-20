@@ -2,13 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Data;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.State;
+using System.Globalization;
 
 namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.Persistence;
 
 public class LocalSettingsDbMigrationService(
     ILogger<LocalSettingsDbMigrationService> logger,
-    IServiceScopeFactory scopeFactory) : IHostedLifecycleService
+AppSettingsProvider appSettingsState,
+    IServiceScopeFactory scopeFactory)
+    : IHostedLifecycleService
 {
     // 在所有服务启动之前执行
     public async Task StartingAsync(CancellationToken cancellationToken)
@@ -19,52 +22,21 @@ public class LocalSettingsDbMigrationService(
         var context = scope.ServiceProvider.GetRequiredService<LocalSettingsDbContext>();
 
         await EnsureDatabaseDirectoryAsync(context);
-        await context.Database.MigrateAsync(cancellationToken: cancellationToken);
-        await MigrateFromAppBehaviorAsync(context);
-    }
 
-    private async Task MigrateFromAppBehaviorAsync(LocalSettingsDbContext context)
-    {
-        await using var conn = context.Database.GetDbConnection();
-        if (conn.State != ConnectionState.Open)
-            await conn.OpenAsync();
+        var allMigrations = context.Database.GetMigrations();
+        var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
+        bool isNewDatabase = pendingMigrations.Count() == allMigrations.Count();
 
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
-            SELECT EXISTS(
-                SELECT 1
-                FROM sqlite_master
-                WHERE type='table'
-                AND name='AppBehavior_UserPreferences'
-            );
-        """;
+        await context.Database.MigrateAsync(cancellationToken);
 
-        var result = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-
-        // 旧表存在
-        if (result == 1)
+        if (isNewDatabase)
         {
-            logger.LogInformation("AppBehavior_UserPreferences table exists.");
-            // 用旧表数据替换到新表
-            await context.Database.ExecuteSqlRawAsync("""
-                REPLACE INTO Desktop_LocalSettings_AppSettings
-                SELECT Id, 
-                       DefaultUIOpenMode, 
-                       IsAutoStartEnabled, 
-                       IsSilentStartEnabled, 
-                       Language, 
-                       ShouldDestroyWindowOnClose
-                FROM AppBehavior_UserPreferences
-            """);
-            // 删旧表
-            await context.Database.ExecuteSqlRawAsync("""
-                DROP TABLE IF EXISTS AppBehavior_UserPreferences;
-            """);
-
-            // 删旧迁移历史表
-            await context.Database.ExecuteSqlRawAsync("""
-                DROP TABLE IF EXISTS __EFMigrationsHistory_AppBehavior;
-            """);
+            logger.LogInformation("New database detected, correcting the current language...");
+            string osLanguage = CultureInfo.CurrentUICulture.Name;
+            var appSettings = await context.AppSettings.SingleAsync(cancellationToken);
+            appSettings.UpdateLanguage(osLanguage);
+            await context.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Language corrected to: {Language}", osLanguage);
         }
     }
 
@@ -83,7 +55,19 @@ public class LocalSettingsDbMigrationService(
             Directory.CreateDirectory(directory);
     }
 
-    public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Initializing AppSettingsStore with baseline values...");
+
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocalSettingsDbContext>();
+        var appSettings = await context.AppSettings.SingleAsync(cancellationToken);
+
+        appSettingsState.Initialize(appSettings.DefaultUIOpenMode, appSettings.IsAutoStartEnabled, appSettings.IsSilentStartEnabled, appSettings.Language);
+
+        logger.LogInformation("Memory AppSettingsStore initialized quietly.");
+    }
+
     public Task StartedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     public Task StoppingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

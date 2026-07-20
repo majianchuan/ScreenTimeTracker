@@ -63,4 +63,19 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="TaskScheduler" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources\Platforms.TrayService.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Platforms.TrayService.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Platforms.TrayService.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Platforms.TrayService.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

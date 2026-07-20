@@ -10,7 +10,7 @@ public class GetAppSettingsEndpoint(
     public override void Configure()
     {
         Get("app-settings");
-        Group<DesktopGroup>();
+        Group<LocalSettingsGroup>();
         AllowAnonymous();
     }
 

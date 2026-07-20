@@ -14,17 +14,17 @@ public class PatchAppSettingsHandler(
         AppSettings appSettings = await context.AppSettings.SingleAsync(cancellationToken);
 
         if (request.DefaultUIOpenMode is not null)
-            appSettings.UpdateUIOpenMode(request.DefaultUIOpenMode.Value);
+            appSettings.UpdateDefaultUIOpenMode(request.DefaultUIOpenMode.Value);
         if (request.IsAutoStartEnabled is not null)
         {
             if (request.IsAutoStartEnabled.Value && !windowsStartupManager.IsEnabled())
                 windowsStartupManager.Enable();
             else if (!request.IsAutoStartEnabled.Value && windowsStartupManager.IsEnabled())
                 windowsStartupManager.Disable();
-            appSettings.UpdateAutoStart(request.IsAutoStartEnabled.Value);
+            appSettings.UpdateIsAutoStartEnabled(request.IsAutoStartEnabled.Value);
         }
         if (request.IsSilentStartEnabled is not null)
-            appSettings.UpdateSilentStart(request.IsSilentStartEnabled.Value);
+            appSettings.UpdateIsSilentStartEnabled(request.IsSilentStartEnabled.Value);
         if (request.Language is not null)
             appSettings.UpdateLanguage(request.Language);
 

@@ -10,7 +10,7 @@ public class PatchAppSettingsEndpoint(
     public override void Configure()
     {
         Patch("app-settings");
-        Group<DesktopGroup>();
+        Group<LocalSettingsGroup>();
         AllowAnonymous();
     }
 

@@ -4,10 +4,11 @@ using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 using ScreenTimeTracker.Hosts.Desktop.Hosting;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.GetAppSettings;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.State;
 using ScreenTimeTracker.Hosts.Desktop.Platforms;
 using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using ScreenTimeTracker.Hosts.Desktop.UI.State;
@@ -16,6 +17,9 @@ using Serilog;
 using System.Text.Json.Serialization;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
+
+
+[assembly: RootNamespace("ScreenTimeTracker.Hosts.Desktop")]
 
 // 切换工作目录为程序所在目录
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -66,6 +70,12 @@ try
     builder.Services.AddCors();
     builder.Services.AddSingleton<IServerUrlProvider, ServerUrlProvider>();
     // 桌面
+    builder.Services.AddLocalization(options =>
+    {
+        options.ResourcesPath = "Resources";
+    });
+    builder.Services.AddSingleton<AppSettingsProvider>();
+    builder.Services.AddSingleton<IAppSettingsProvider>(sp => sp.GetRequiredService<AppSettingsProvider>());
     builder.Services.AddSingleton<IAppUIManager, AppUIManager>();
     builder.Services.AddSingleton<IWindowPlacementStore, WindowPlacementStore>();
     // 平台特异

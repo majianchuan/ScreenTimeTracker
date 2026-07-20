@@ -26,7 +26,7 @@ public class DispatchDomainEventsInterceptor(IPublisher publisher) : SaveChanges
 
     private async Task DispatchDomainEventsAsync(DbContext? context, CancellationToken cancellationToken = default)
     {
-        if (context == null) return;
+        if (context is null) return;
 
         var entities = context.ChangeTracker
             .Entries<Entity>()
@@ -44,9 +44,6 @@ public class DispatchDomainEventsInterceptor(IPublisher publisher) : SaveChanges
         entities.ForEach(e => e.ClearDomainEvents());
 
         foreach (var domainEvent in events)
-        {
             await publisher.Publish(domainEvent, cancellationToken);
-        }
-
     }
 }

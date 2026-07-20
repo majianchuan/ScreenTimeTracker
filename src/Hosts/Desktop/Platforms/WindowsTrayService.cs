@@ -1,6 +1,8 @@
 using H.NotifyIcon.Core;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.State;
 using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using System.Diagnostics;
 using System.Drawing;
@@ -12,12 +14,18 @@ namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
 public class TrayService(
     ILogger<TrayService> logger,
     IAppUIManager appUIManager,
+    IAppSettingsProvider appSettingsProvider,
+    IStringLocalizer<TrayService> localizer,
     IHostApplicationLifetime lifetime) : ITrayService
 {
     private Icon? _iconHandle;
     private TrayIconWithContextMenu? _trayIcon;
     private bool _disposed;
 
+    private PopupMenuItem? _openAppDirItem;
+    private PopupMenuItem? _openUIBrowserItem;
+    private PopupMenuItem? _openUIWindowItem;
+    private PopupMenuItem? _exitItem;
 
     public void Initialize()
     {
@@ -27,6 +35,11 @@ public class TrayService(
             ?? throw new InvalidOperationException("Icon resource not found.");
         _iconHandle = new Icon(iconStream);
 
+        _openAppDirItem = new PopupMenuItem("打开程序目录", (_, _) => OpenAppDirectory());
+        _openUIBrowserItem = new PopupMenuItem("在浏览器打开界面", (_, _) => OpenUIInBrowser());
+        _openUIWindowItem = new PopupMenuItem("在窗口打开界面", (_, _) => OpenUIInWindow());
+        _exitItem = new PopupMenuItem("退出", (_, _) => ExitApplication());
+
         _trayIcon = new TrayIconWithContextMenu
         {
             Icon = _iconHandle.Handle,
@@ -35,15 +48,18 @@ public class TrayService(
             {
                 Items =
                 {
-                    new PopupMenuItem("打开程序目录", (_, _) => OpenAppDirectory()),
+                    _openAppDirItem,
                     new PopupMenuSeparator(),
-                    new PopupMenuItem("在浏览器打开界面", (_, _) => OpenUIInBrowser()),
-                    new PopupMenuItem("在窗口打开界面", (_, _) => OpenUIInWindow()),
+                    _openUIBrowserItem,
+                    _openUIWindowItem,
                     new PopupMenuSeparator(),
-                    new PopupMenuItem("退出", (_, _) => ExitApplication()),
-                }
+                    _exitItem,
+                },
             }
         };
+
+        ApplyLanguage();
+        appSettingsProvider.OnSettingChanged += HandleAppSettingsChanged;
 
         _trayIcon.MessageWindow.MouseEventReceived += (_, e) =>
         {
@@ -52,6 +68,25 @@ public class TrayService(
         };
 
         _ = InitializeTrayIconWithRetryAsync();
+    }
+
+    private void HandleAppSettingsChanged(object? sender, SettingChangedEventArgs e)
+    {
+        if (e.SettingName == nameof(IAppSettingsProvider.Language))
+            ApplyLanguage();
+    }
+
+    private void ApplyLanguage()
+    {
+        if (_trayIcon == null) return;
+
+        var culture = new System.Globalization.CultureInfo(appSettingsProvider.Language);
+        System.Globalization.CultureInfo.CurrentUICulture = culture;
+
+        _openAppDirItem?.Text = localizer["OpenAppDirectory"];
+        _openUIBrowserItem?.Text = localizer["OpenUIInBrowser"];
+        _openUIWindowItem?.Text = localizer["OpenUIInWindow"];
+        _exitItem?.Text = localizer["Exit"];
     }
 
     private async Task InitializeTrayIconWithRetryAsync()

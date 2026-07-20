@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ScreenTimeTracker.BuildingBlocks.Infrastructure.Interceptors;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Features.AppSettingsManagement.PatchAppSettings;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.OS;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Infrastructure.Persistence;
@@ -15,11 +16,15 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
 
+        services.AddScoped<DispatchDomainEventsInterceptor>();
+
         services.AddDbContext<LocalSettingsDbContext>((serviceProvider, options) =>
         {
+            var interceptor = serviceProvider.GetRequiredService<DispatchDomainEventsInterceptor>();
             var persistenceOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             options.UseSqlite($"Data Source={persistenceOptions.DBFilePath}", x =>
-                x.MigrationsHistoryTable("__EFMigrationsHistory_Desktop_LocalSettings"));
+                x.MigrationsHistoryTable("__EFMigrationsHistory_Desktop_LocalSettings"))
+                .AddInterceptors(interceptor);
         });
         services.AddHostedService<LocalSettingsDbMigrationService>();
 

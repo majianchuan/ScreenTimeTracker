@@ -9,29 +9,28 @@ namespace ScreenTimeTracker.Modules.ScreenTime.Infrastructure.Persistence;
 public class ScreenTimeDbMigrationService(
     ILogger<ScreenTimeDbMigrationService> logger,
     TimeProvider timeProvider,
-    IServiceScopeFactory scopeFactory) : IHostedLifecycleService
+    IServiceScopeFactory scopeFactory)
+    : IHostedLifecycleService
 {
-    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
-    private readonly ILogger<ScreenTimeDbMigrationService> _logger = logger;
-
     // 在所有服务启动之前执行
     public async Task StartingAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("ScreenTimeDbMigrationService is Starting");
+        logger.LogInformation("ScreenTimeDbMigrationService is Starting");
 
-        using var scope = _scopeFactory.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
 
         await EnsureDatabaseDirectoryAsync(context);
 
-        var appliedMigrations = await context.Database.GetAppliedMigrationsAsync(cancellationToken);
-        bool isNewDatabase = !appliedMigrations.Any();
+        var allMigrations = context.Database.GetMigrations();
+        var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
+        bool isNewDatabase = pendingMigrations.Count() == allMigrations.Count();
 
         await context.Database.MigrateAsync(cancellationToken: cancellationToken);
 
         if (isNewDatabase)
         {
-            _logger.LogInformation("New database detected, seeding default categories...");
+            logger.LogInformation("New database detected, seeding default categories...");
             DateTime now = timeProvider.GetLocalNow().DateTime;
             await SeedDefaultCategoriesAsync(context, now, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
