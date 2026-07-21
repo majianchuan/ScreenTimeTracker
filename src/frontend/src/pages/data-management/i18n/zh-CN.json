@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "deletePrefix": "删除",
+    "deleteSuffix": "的所有使用时间数据",
+    "importDataBtn": "导入数据",
+    "exportDataBtn": "导出数据"
+  },
+  "dialogs": {
+    "deleteConfirm": {
+      "title": "确定删除 {{startDate}} 至 {{endDate}} 的所有使用时间数据吗？"
+    }
+  },
+  "messages": {
+    "unsupportedVersion": "配置版本不受支持，导入失败",
+    "importFailed": "导入数据失败",
+    "exportFileSuccess": "导出数据到文件成功",
+    "exportFileFailed": "导出数据到文件失败",
+    "exportClipboardSuccess": "导出数据到剪贴板成功",
+    "exportClipboardFailed": "导出数据到剪贴板失败",
+    "importFileSuccess": "从文件导入数据成功。新增应用{{newApps}}个，类别{{newAppCategories}}个；导入会话{{importedSessions}}条，跳过{{skippedSessions}}条",
+    "importClipboardSuccess": "从剪贴板导入数据成功。新增应用{{newApps}}个，类别{{newAppCategories}}个；导入会话{{importedSessions}}条，跳过{{skippedSessions}}条",
+    "deleteSuccess": "删除使用时间数据成功",
+    "deleteFailed": "删除使用时间数据失败"
+  },
+  "export": {
+    "filenamePattern": "screen-time-tracker-data-{{date}}.json"
+  }
+}

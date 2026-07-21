@@ -11,6 +11,7 @@ import type { Theme } from "@emotion/react";
 import { useTheme, type SxProps } from "@mui/material/styles";
 import dayjs from "@/shared/lib/dayjs";
 import Box from "@mui/material/Box";
+import { useTranslation } from "react-i18next";
 
 export type UsageChartProps = {
   className?: string;
@@ -35,6 +36,7 @@ export const UsageChart = ({
   includedIds,
   excludedIds,
 }: UsageChartProps) => {
+  const { t } = useTranslation(["feature_usageChart", "shared"]);
   const { data: appUsageData } = useQuery({
     ...appUsageQueryOptions({
       granularity: granularity,
@@ -70,12 +72,23 @@ export const UsageChart = ({
       if (xAxisType === "hour") {
         name = item.startTime.getHours().toString().padStart(2, "0") + ":00";
       } else if (xAxisType === "day") {
-        name = item.startTime.toLocaleDateString();
+        name = dayjs(item.startTime).format("L");
       } else if (xAxisType === "week")
         name = dayjs(item.startTime).format("ddd");
 
       return { name, value: item.durationSeconds };
     });
+
+    const formattedSum = formatSecondsDuration(sum);
+    const formattedAvg = formatSecondsDuration(avg);
+
+    const titleText =
+      granularity !== "hour"
+        ? t("chart.titleWithAverage", {
+            total: formattedSum,
+            average: formattedAvg,
+          })
+        : t("chart.titleWithoutAverage", { total: formattedSum });
 
     return {
       backgroundColor: "transparent",
@@ -85,7 +98,7 @@ export const UsageChart = ({
         right: 70,
       },
       title: {
-        text: `总计：${formatSecondsDuration(sum)} ${granularity !== "hour" ? `| 平均：${formatSecondsDuration(avg)}` : ""}`,
+        text: titleText,
       },
       tooltip: {
         trigger: "axis",
@@ -115,7 +128,9 @@ export const UsageChart = ({
                     {
                       yAxis: avg,
                       label: {
-                        formatter: "平均\n" + formatSecondsDuration(avg),
+                        formatter: t("chart.averageLabel", {
+                          value: formattedAvg,
+                        }),
                       },
                     },
                   ],

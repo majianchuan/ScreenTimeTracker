@@ -1,0 +1,10 @@
+{
+  "navigation": {
+    "usageSummary": "Usage Summary",
+    "usageDetails": "Usage Details",
+    "apps": "App Management",
+    "categories": "Category Management",
+    "data": "Data Management",
+    "settings": "Settings"
+  }
+}

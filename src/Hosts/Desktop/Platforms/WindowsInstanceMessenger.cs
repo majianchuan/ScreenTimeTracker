@@ -9,7 +9,8 @@ using System.Text;
 namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
 
 [SupportedOSPlatform("windows")]
-public class WindowsInstanceMessenger(ILogger<WindowsInstanceMessenger> logger) : IInstanceMessenger
+public class WindowsInstanceMessenger(ILogger<WindowsInstanceMessenger> logger)
+    : IInstanceMessenger, IDisposable
 {
     private static readonly string _pipeName = "ScreenTimeTrackerPipe";
     private bool _disposed = false;

@@ -151,7 +151,7 @@ try
 
         // 初始化托盘图标
         var trayService = app.Services.GetRequiredService<ITrayService>();
-        trayService.Initialize();
+        trayService.Show();
         // 非静默启动时打开UI
         _ = OpenUIIfNotSilentStartAsync(app, serverUrl);
     });

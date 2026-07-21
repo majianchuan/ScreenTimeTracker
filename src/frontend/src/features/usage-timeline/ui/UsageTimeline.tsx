@@ -7,7 +7,7 @@ import {
   appUsageTimelineQueryOptions,
 } from "../api/queries";
 import ReactECharts from "echarts-for-react";
-import { userSettingsQueries } from "@/entities/user-settings/api/queries";
+import { userSettingsQueries } from "@/entities/user-settings";
 import type {
   AppCategoryUsageTimelineItemDto,
   AppUsageTimelineItemDto,

@@ -1,0 +1,14 @@
+{
+  "DimensionTypeSelector": {
+    "options": {
+      "app": "App",
+      "app-category": "Category"
+    }
+  },
+  "DimensionMemberPicker": {
+    "placeholders": {
+      "app": "Select an app...",
+      "category": "Select a category..."
+    }
+  }
+}

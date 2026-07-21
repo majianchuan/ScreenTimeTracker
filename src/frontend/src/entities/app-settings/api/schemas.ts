@@ -4,7 +4,7 @@ export const appSettingsDtoSchema = z.object({
   defaultUIOpenMode: z.enum(["Window", "Browser"]),
   isAutoStartEnabled: z.boolean(),
   isSilentStartEnabled: z.boolean(),
-  language: z.string(),
+  language: z.enum(["en-US", "zh-CN"]),
 });
 export type AppSettingsDto = z.infer<typeof appSettingsDtoSchema>;
 

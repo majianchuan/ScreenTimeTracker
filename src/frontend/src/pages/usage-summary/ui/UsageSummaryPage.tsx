@@ -27,6 +27,7 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import z from "zod";
 import Stack from "@mui/material/Stack";
+import { useTranslation } from "react-i18next";
 
 interface UsageSummaryPageProps {
   search: SearchParams;
@@ -62,6 +63,7 @@ export const UsageSummaryPage = ({
   search,
   onSearchChange,
 }: UsageSummaryPageProps) => {
+  const { t } = useTranslation(["page_usageSummary", "shared"]);
   const {
     handleTimeFrameChange,
     handleDateRangeChange,
@@ -148,14 +150,14 @@ export const UsageSummaryPage = ({
               value={search.excludedIds || []}
               onValueChange={handleMemberIdsChange}
               mode="multiple"
-              placeholder="排除项"
+              placeholder={t("filters.excludePlaceholder")}
             />
           </Box>
         </Stack>
 
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <DateRangeSelector
-            sx={{ width: "19rem" }}
+            sx={{ minWidth: "20rem" }}
             timeFrame={search.timeFrame}
             value={{
               start: dateOnlyToDate(search.startDate),
@@ -238,8 +240,10 @@ export const UsageSummaryPage = ({
                 }
               }}
             >
-              <ToggleButton value="pieChart">饼图</ToggleButton>
-              <ToggleButton value="list">列表</ToggleButton>
+              <ToggleButton value="pieChart">
+                {t("viewTypes.pieChart")}
+              </ToggleButton>
+              <ToggleButton value="list">{t("viewTypes.list")}</ToggleButton>
             </ToggleButtonGroup>
             <Select
               value={search.topN}

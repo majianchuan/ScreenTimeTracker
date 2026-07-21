@@ -1,0 +1,70 @@
+{
+  "appSettings": {
+    "title": "Application Settings",
+    "language": {
+      "label": "Language"
+    },
+    "defaultUIOpenMode": {
+      "label": "Default UI Open Mode",
+      "tooltip": "The opening mode of the interface when clicking the tray icon.",
+      "options": {
+        "window": "Window",
+        "browser": "Browser"
+      }
+    },
+    "isAutoStartEnabled": {
+      "label": "Launch on Startup",
+      "tooltip": "If the application is running as administrator, enabling 'Launch on Startup' will also launch it as administrator next time. Otherwise, it will launch as a standard user. Note: Auto-start will become invalid if you rename the executable or change its path; you will need to disable and re-enable it."
+    },
+    "autoStartAlert": {
+      "title": "Enabling this will modify the system configuration. Please make sure to disable it before deleting the program, otherwise residues will remain!"
+    },
+    "isSilentStartEnabled": {
+      "label": "Silent Startup",
+      "tooltip": "Do not automatically open the interface when running the program."
+    }
+  },
+  "screenTimeSettings": {
+    "title": "Screen Time Settings",
+    "appIconDirectory": {
+      "label": "App Icon Directory",
+      "tooltip": "App icons automatically fetched by the program will be saved under the folder path set here. Modifying this path will not change the location of existing icons; it will only affect newly fetched icons, including icons retrieved during information updates (if they have changed)."
+    },
+    "appInfoStaleThresholdMinutes": {
+      "label": "App Info Stale Threshold (Minutes)",
+      "tooltip": "The program fetches the executable file path, icon, and description when it first encounters an app. Next time it encounters this app, it determines whether the time elapsed since the last fetch exceeds the threshold set here. If it does, it refetches the information; otherwise, it keeps the old data. Note: If you need to customize an app icon and have manually modified its icon path, you should generally disable auto-update for that app, otherwise the update will overwrite your custom icon path."
+    },
+    "activeSessionAutoSaveSeconds": {
+      "label": "Active Session Auto-Save (Seconds)",
+      "tooltip": "The time interval to automatically save the currently active app usage session, preventing data loss during unexpected crashes and ensuring accurate screen time statistics."
+    },
+    "isIdleDetectionEnabled": {
+      "label": "Idle Detection",
+      "tooltip": "The program will consider the user idle after there is no keyboard or mouse activity for more than the set time, and will classify all usage duration from when key/mouse activity stopped until it resumes as the usage duration of the 'Idle' app."
+    },
+    "idleThresholdSeconds": {
+      "label": "Idle Threshold (Seconds)",
+      "tooltip": "The program will consider the user idle after there is no keyboard or mouse activity for more than the set time, and will classify all usage duration from when key/mouse activity stopped until it resumes as the usage duration of the 'Idle' app."
+    },
+    "idleDetectionPollingIntervalSeconds": {
+      "label": "Idle Detection Polling Interval (Seconds)",
+      "tooltip": "Detects whether the user is idle at the specified intervals."
+    },
+    "minValidSessionDurationSeconds": {
+      "label": "Min Valid Session Duration (Seconds)",
+      "tooltip": "Each time optimization is triggered, session records with a duration shorter than this value will be automatically filtered and deleted."
+    },
+    "sessionMergeToleranceSeconds": {
+      "label": "Session Merge Tolerance (Seconds)",
+      "tooltip": "Each time optimization is triggered, two records of the same app with an interval smaller than this value will be merged into a single long record. Note: During merging, any other usage records in between will be deleted regardless."
+    },
+    "sessionOptimizationIntervalMinutes": {
+      "label": "Session Optimization Interval (Minutes)",
+      "tooltip": "A session optimization will be triggered at the interval set here."
+    },
+    "dayCutoffHour": {
+      "label": "Day Cutoff Hour",
+      "tooltip": "Defines at what hour a day starts and at what hour the next day ends."
+    }
+  }
+}

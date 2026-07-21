@@ -1,0 +1,10 @@
+{
+  "navigation": {
+    "usageSummary": "使用汇总",
+    "usageDetails": "使用详情",
+    "apps": "应用管理",
+    "categories": "类别管理",
+    "data": "数据管理",
+    "settings": "设置"
+  }
+}

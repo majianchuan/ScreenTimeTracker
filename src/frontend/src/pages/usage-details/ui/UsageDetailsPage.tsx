@@ -19,6 +19,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import z from "zod";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import { useTranslation } from "react-i18next";
 
 interface UsageDetailsPageProps {
   search: SearchParams;
@@ -53,6 +54,7 @@ export const UsageDetailsPage = ({
   search,
   onSearchChange,
 }: UsageDetailsPageProps) => {
+  const { t } = useTranslation(["page_usageDetails", "shared"]);
   const {
     handleTimeFrameChange,
     handleDateRangeChange,
@@ -135,7 +137,7 @@ export const UsageDetailsPage = ({
               value={search.id || null}
               onValueChange={handleMemberIdChange}
               mode="single"
-              placeholder="查看项"
+              placeholder={t("filters.memberPickerPlaceholder")}
             />
           </Box>
         </Stack>
@@ -160,7 +162,9 @@ export const UsageDetailsPage = ({
             p: 2,
           }}
         >
-          <Typography sx={{ textAlign: "center" }}>请选择查看项</Typography>
+          <Typography sx={{ textAlign: "center" }}>
+            {t("states.emptyPrompt")}
+          </Typography>
         </Paper>
       ) : (
         <>

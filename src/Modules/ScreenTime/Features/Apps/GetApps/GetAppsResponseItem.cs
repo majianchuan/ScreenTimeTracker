@@ -6,7 +6,7 @@ public record GetAppsResponseItem(
     string Color,
     string ProcessName,
     bool IsAutoUpdateEnabled,
-    DateTime LastAutoUpdated,
+    DateTime LastAutoUpdatedAt,
     Guid AppCategoryId,
     string? ExecutablePath,
     string IconPath,

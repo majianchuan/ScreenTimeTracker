@@ -1,4 +1,4 @@
-import { SettingsManagementPage } from "@/pages/settings-management/ui/SettingsManagementPage";
+import { SettingsManagementPage } from "@/pages/settings-management";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/settings")({

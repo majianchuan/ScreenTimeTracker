@@ -33,6 +33,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { useColorScheme } from "@mui/material/styles";
 import { useState } from "react";
 import Stack from "@mui/material/Stack";
+import { useTranslation } from "react-i18next";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -44,6 +45,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootComponent() {
+  const { t } = useTranslation(["app"]);
   const { mode, systemMode, setMode } = useColorScheme();
 
   const drawerWidth = 200;
@@ -51,32 +53,32 @@ function RootComponent() {
     {
       to: "/usage/summary",
       icon: <DashboardOutlinedIcon />,
-      label: "使用汇总",
+      labelKey: "navigation.usageSummary",
     },
     {
       to: "/usage/details",
       icon: <BarChartOutlinedIcon />,
-      label: "使用详情",
+      labelKey: "navigation.usageDetails",
     },
     {
       to: "/apps",
       icon: <AppsOutlinedIcon />,
-      label: "应用管理",
+      labelKey: "navigation.apps",
     },
     {
       to: "/app-categories",
       icon: <CategoryOutlinedIcon />,
-      label: "类别管理",
+      labelKey: "navigation.categories",
     },
     {
       to: "/data",
       icon: <StorageOutlinedIcon />,
-      label: "数据管理",
+      labelKey: "navigation.data",
     },
     {
       to: "/settings",
       icon: <SettingsOutlinedIcon />,
-      label: "设置",
+      labelKey: "navigation.settings",
     },
   ];
 
@@ -198,7 +200,7 @@ function RootComponent() {
                   >
                     <ListItemIcon>{item.icon}</ListItemIcon>
                     <ListItemText
-                      primary={item.label}
+                      primary={t(item.labelKey)}
                       sx={{
                         textAlign: "center",
                         pr: 2,

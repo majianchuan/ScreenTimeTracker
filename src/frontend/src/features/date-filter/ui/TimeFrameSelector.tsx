@@ -3,8 +3,9 @@ import type { TimeFrame } from "../model/schemas";
 import type { Theme } from "@emotion/react";
 import type { SxProps } from "@mui/material/styles";
 import ToggleButton from "@mui/material/ToggleButton";
+import { useTranslation } from "react-i18next";
 
-type TimeFrameOption = { value: TimeFrame; label: string };
+type TimeFrameOption = { value: TimeFrame; labelKey: string };
 
 export type TimeFrameSelectorProps = {
   sx?: SxProps<Theme>;
@@ -19,22 +20,23 @@ export const TimeFrameSelector = ({
   value,
   onValueChange,
 }: TimeFrameSelectorProps) => {
+  const { t } = useTranslation(["shared"]);
   const options: TimeFrameOption[] = [
     {
       value: "day",
-      label: "日",
+      labelKey: "timeFrame.day",
     },
     {
       value: "week",
-      label: "周",
+      labelKey: "timeFrame.week",
     },
     {
       value: "month",
-      label: "月",
+      labelKey: "timeFrame.month",
     },
     {
       value: "custom",
-      label: "自定义",
+      labelKey: "timeFrame.custom",
     },
   ];
 
@@ -53,7 +55,7 @@ export const TimeFrameSelector = ({
     >
       {options.map((item) => (
         <ToggleButton key={item.value} value={item.value}>
-          {item.label}
+          {t(item.labelKey)}
         </ToggleButton>
       ))}
     </ToggleButtonGroup>

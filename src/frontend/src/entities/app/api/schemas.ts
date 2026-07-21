@@ -7,7 +7,7 @@ export const appDtoSchema = z.object({
   color: z.string(),
   processName: z.string(),
   isAutoUpdateEnabled: z.boolean(),
-  lastAutoUpdated: z.coerce.date(),
+  lastAutoUpdatedAt: z.coerce.date(),
   appCategoryId: z.string(),
   executablePath: z.string().nullable(),
   iconPath: z.string().nullable(),

@@ -9,6 +9,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import dayjs from "@/shared/lib/dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { useTranslation } from "react-i18next";
 
 export type DateRangeSelectorProps = {
   className?: string;
@@ -25,6 +26,7 @@ export const DateRangeSelector = ({
   value,
   onValueChange,
 }: DateRangeSelectorProps) => {
+  const { t } = useTranslation(["feature_dateFilter", "shared"]);
   const { data: userSettingsDtoData } = useQuery(
     userSettingsQueries.userSettings(),
   );
@@ -34,24 +36,28 @@ export const DateRangeSelector = ({
   const logicalToday = dayjs().subtract(dayCutoffHour, "hour").startOf("day");
   const isEndToday = dayjs(value.end).isSame(logicalToday, "day");
   const dateLabel = (() => {
+    const separator = t("date.rangeSeparator", { ns: "shared" });
+
     switch (timeFrame) {
       case "day": {
-        if (isEndToday) return "今天";
+        if (isEndToday) return t("date.today", { ns: "shared" });
         if (dayjs(value.end).isSame(logicalToday.subtract(1, "day"), "day"))
-          return "昨天";
-        return new Date(value.end).toLocaleDateString();
+          return t("date.yesterday", { ns: "shared" });
+        return dayjs(value.end).format("L");
       }
       case "week": {
-        if (isEndToday) return "近 7 天";
+        if (isEndToday) return t("dateRangeSelector.last7Days");
         const lastWeekEnd = logicalToday.subtract(1, "week").endOf("isoWeek");
-        if (dayjs(value.end).isSame(lastWeekEnd, "day")) return "上周";
-        return `${new Date(value.start).toLocaleDateString()}~${new Date(value.end).toLocaleDateString()}`;
+        if (dayjs(value.end).isSame(lastWeekEnd, "day"))
+          return t("dateRangeSelector.lastWeek");
+        return `${dayjs(value.start).format("L")}${separator}${dayjs(value.end).format("L")}`;
       }
       case "month": {
-        if (isEndToday) return "近 31 天";
+        if (isEndToday) return t("dateRangeSelector.last31Days");
         const lastMonthEnd = logicalToday.subtract(1, "month").endOf("month");
-        if (dayjs(value.end).isSame(lastMonthEnd, "day")) return "上个月";
-        return `${new Date(value.start).toLocaleDateString()}~${new Date(value.end).toLocaleDateString()}`;
+        if (dayjs(value.end).isSame(lastMonthEnd, "day"))
+          return t("dateRangeSelector.lastMonth");
+        return `${dayjs(value.start).format("L")}${separator}${dayjs(value.end).format("L")}`;
       }
       default:
         return "";
@@ -91,7 +97,7 @@ export const DateRangeSelector = ({
             newStartDate = lastWeek.startOf("isoWeek").toDate();
             newEndDate = lastWeek.endOf("isoWeek").toDate();
           } else {
-            const newEnd = logicalToday.subtract(1, "week");
+            const newEnd = dayjs(value.end).subtract(1, "week");
             newEndDate = newEnd.toDate();
             newStartDate = newEnd.subtract(6, "day").toDate();
           }

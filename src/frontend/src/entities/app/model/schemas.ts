@@ -6,7 +6,7 @@ export const appSchema = z.object({
   color: z.string(),
   processName: z.string(),
   isAutoUpdateEnabled: z.boolean(),
-  lastAutoUpdated: z.date(),
+  lastAutoUpdatedAt: z.date(),
   appCategoryId: z.string(),
   executablePath: z.string().nullable(),
   iconPath: z.string().nullable(),

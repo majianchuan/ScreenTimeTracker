@@ -1,0 +1,9 @@
+{
+  "filters": {
+    "excludePlaceholder": "Excluded Items"
+  },
+  "viewTypes": {
+    "pieChart": "Pie Chart",
+    "list": "List"
+  }
+}

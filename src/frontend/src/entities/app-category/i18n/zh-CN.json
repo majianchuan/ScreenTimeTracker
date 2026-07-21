@@ -1,0 +1,11 @@
+{
+  "entityName": "应用类别",
+  "fields": {
+    "id": "ID",
+    "name": "名称",
+    "color": "颜色",
+    "iconPath": "图标路径",
+    "iconLastUpdatedAt": "图标上次更新时间",
+    "isSystem": "系统分类"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "filters": {
+    "excludePlaceholder": "排除项"
+  },
+  "viewTypes": {
+    "pieChart": "饼图",
+    "list": "列表"
+  }
+}

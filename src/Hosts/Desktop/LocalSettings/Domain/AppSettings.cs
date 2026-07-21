@@ -3,10 +3,15 @@ using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain.Events;
 
 namespace ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain;
 
-
 public class AppSettings : Entity
 {
     public static readonly Guid DefaultId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    public static readonly IReadOnlySet<string> SupportedLanguages = new HashSet<string>()
+    {
+        "en-US",
+        "zh-CN"
+    };
 
     public UIOpenMode DefaultUIOpenMode { get; private set; }
     public bool IsAutoStartEnabled { get; private set; }
@@ -66,6 +71,10 @@ public class AppSettings : Entity
 
     public void UpdateLanguage(string language)
     {
+        if (!SupportedLanguages.Contains(language))
+        {
+            throw new ArgumentException($"Unsupported language: {language}", nameof(language));
+        }
         if (language != Language)
         {
             Language = language;

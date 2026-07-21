@@ -1,0 +1,8 @@
+{
+  "dateRangeSelector": {
+    "last7Days": "Last 7 Days",
+    "lastWeek": "Last Week",
+    "last31Days": "Last 31 Days",
+    "lastMonth": "Last Month"
+  }
+}

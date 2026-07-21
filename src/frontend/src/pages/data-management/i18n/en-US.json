@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "deletePrefix": "Delete",
+    "deleteSuffix": "of all usage time data",
+    "importDataBtn": "Import Data",
+    "exportDataBtn": "Export Data"
+  },
+  "dialogs": {
+    "deleteConfirm": {
+      "title": "Are you sure you want to delete all usage time data from {{startDate}} to {{endDate}}?"
+    }
+  },
+  "messages": {
+    "unsupportedVersion": "Unsupported configuration version, import failed",
+    "importFailed": "Failed to import data",
+    "exportFileSuccess": "Successfully exported data to file",
+    "exportFileFailed": "Failed to export data to file",
+    "exportClipboardSuccess": "Successfully copied data to clipboard",
+    "exportClipboardFailed": "Failed to copy data to clipboard",
+    "importFileSuccess": "Successfully imported data from file. Added {{newApps}} apps, {{newAppCategories}} categories; imported {{importedSessions}} sessions, skipped {{skippedSessions}} sessions.",
+    "importClipboardSuccess": "Successfully imported data from clipboard. Added {{newApps}} apps, {{newAppCategories}} categories; imported {{importedSessions}} sessions, skipped {{skippedSessions}} sessions.",
+    "deleteSuccess": "Successfully deleted usage time data",
+    "deleteFailed": "Failed to delete usage time data"
+  },
+  "export": {
+    "filenamePattern": "screen-time-tracker-data-{{date}}.json"
+  }
+}

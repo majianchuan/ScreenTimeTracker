@@ -1,0 +1,16 @@
+{
+  "entityName": "Application",
+  "fields": {
+    "id": "ID",
+    "name": "Name",
+    "color": "Color",
+    "processName": "Process Name",
+    "isAutoUpdateEnabled": "Auto Update",
+    "lastAutoUpdatedAt": "Last Auto Updated",
+    "appCategoryId": "Category ID",
+    "executablePath": "Executable Path",
+    "iconPath": "Icon Path",
+    "iconLastUpdatedAt": "Icon Last Updated",
+    "isSystem": "System App"
+  }
+}

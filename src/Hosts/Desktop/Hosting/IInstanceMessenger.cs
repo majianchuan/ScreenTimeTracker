@@ -1,6 +1,6 @@
 namespace ScreenTimeTracker.Hosts.Desktop.Hosting;
 
-public interface IInstanceMessenger : IDisposable
+public interface IInstanceMessenger
 {
     event EventHandler<MessageReceivedEventArgs>? MessageReceived;
     Task StartListeningAsync(CancellationToken cancellationToken = default);

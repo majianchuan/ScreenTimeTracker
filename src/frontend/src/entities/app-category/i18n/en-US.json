@@ -1,0 +1,11 @@
+{
+  "entityName": "Application Category",
+  "fields": {
+    "id": "ID",
+    "name": "Name",
+    "color": "Color",
+    "iconPath": "Icon Path",
+    "iconLastUpdatedAt": "Icon Last Updated",
+    "isSystem": "System Category"
+  }
+}

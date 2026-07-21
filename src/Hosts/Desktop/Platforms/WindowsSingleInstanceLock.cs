@@ -7,7 +7,8 @@ using System.Security.Principal;
 namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
 
 [SupportedOSPlatform("windows")]
-public class WindowsSingleInstanceLock(ILogger<WindowsSingleInstanceLock> logger) : ISingleInstanceLock
+public class WindowsSingleInstanceLock(ILogger<WindowsSingleInstanceLock> logger)
+    : ISingleInstanceLock, IDisposable
 {
 
     private readonly string _mutexName = @"Global\ScreenTimeTrackerDesktopUniqueMutexName";

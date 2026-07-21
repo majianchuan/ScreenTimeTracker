@@ -20,11 +20,12 @@ export const getApps = async (
       color: validated.color,
       processName: validated.processName,
       isAutoUpdateEnabled: validated.isAutoUpdateEnabled,
-      lastAutoUpdated: validated.lastAutoUpdated,
+      lastAutoUpdatedAt: validated.lastAutoUpdatedAt,
       appCategoryId: validated.appCategoryId,
       executablePath: validated.executablePath,
       iconPath: validated.iconPath,
       iconLastUpdatedAt: validated.iconLastUpdatedAt,
+      isSystem: validated.isSystem,
     };
   });
 };

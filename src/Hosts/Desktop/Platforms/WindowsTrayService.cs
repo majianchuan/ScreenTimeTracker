@@ -7,42 +7,69 @@ using ScreenTimeTracker.Hosts.Desktop.UI.Services;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.Versioning;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
 
 [SupportedOSPlatform("windows5.1.2600")]
-public class TrayService(
-    ILogger<TrayService> logger,
-    IAppUIManager appUIManager,
-    IAppSettingsProvider appSettingsProvider,
-    IStringLocalizer<TrayService> localizer,
-    IHostApplicationLifetime lifetime) : ITrayService
+public class TrayService : ITrayService, IDisposable
 {
-    private Icon? _iconHandle;
-    private TrayIconWithContextMenu? _trayIcon;
+    private readonly ILogger<TrayService> _logger;
+    private readonly IAppUIManager _appUIManager;
+    private readonly IAppSettingsProvider _appSettingsProvider;
+    private readonly IStringLocalizer<TrayService> _localizer;
+    private readonly IHostApplicationLifetime _lifetime;
+
+    private readonly PopupMenuItem _openAppDirItem;
+    private readonly PopupMenuItem _openUIBrowserItem;
+    private readonly PopupMenuItem _openUIWindowItem;
+    private readonly PopupMenuItem _exitItem;
+
+    private readonly Icon? _iconHandle;
+    private nint _fallbackIconHandle = nint.Zero;
+    private readonly TrayIconWithContextMenu _trayIcon;
+    private bool _isCreated = false;
+    private bool _shouldBeVisible = false;
+    private bool _isVisible = false;
     private bool _disposed;
 
-    private PopupMenuItem? _openAppDirItem;
-    private PopupMenuItem? _openUIBrowserItem;
-    private PopupMenuItem? _openUIWindowItem;
-    private PopupMenuItem? _exitItem;
-
-    public void Initialize()
+    public TrayService(
+        ILogger<TrayService> logger,
+        IAppUIManager appUIManager,
+        IAppSettingsProvider appSettingsProvider,
+        IStringLocalizer<TrayService> localizer,
+        IHostApplicationLifetime lifetime)
     {
-        if (_trayIcon is not null) return;
+        _logger = logger;
+        _appUIManager = appUIManager;
+        _appSettingsProvider = appSettingsProvider;
+        _localizer = localizer;
+        _lifetime = lifetime;
 
-        using var iconStream = typeof(Program).Assembly.GetManifestResourceStream($"AppIcon")
-            ?? throw new InvalidOperationException("Icon resource not found.");
-        _iconHandle = new Icon(iconStream);
+        using var iconStream = typeof(Program).Assembly.GetManifestResourceStream("AppIcon");
+        if (iconStream is not null)
+            _iconHandle = new Icon(iconStream);
+        else
+        {
+            logger.LogWarning("Embedded resource 'AppIcon' not found. Creating a fallback solid color icon.");
+            using var bitmap = new Bitmap(32, 32);
+            using var g = Graphics.FromImage(bitmap);
+            g.Clear(Color.RoyalBlue);
+            using var pen = new Pen(Color.White, 2);
+            g.DrawRectangle(pen, 2, 2, 28, 28);
+            _fallbackIconHandle = bitmap.GetHicon();
+            _iconHandle = null;
+        }
 
-        _openAppDirItem = new PopupMenuItem("打开程序目录", (_, _) => OpenAppDirectory());
-        _openUIBrowserItem = new PopupMenuItem("在浏览器打开界面", (_, _) => OpenUIInBrowser());
-        _openUIWindowItem = new PopupMenuItem("在窗口打开界面", (_, _) => OpenUIInWindow());
-        _exitItem = new PopupMenuItem("退出", (_, _) => ExitApplication());
+        _openAppDirItem = new PopupMenuItem(string.Empty, (_, _) => OpenAppDirectory());
+        _openUIBrowserItem = new PopupMenuItem(string.Empty, (_, _) => OpenUIInBrowser());
+        _openUIWindowItem = new PopupMenuItem(string.Empty, (_, _) => OpenUIInWindow());
+        _exitItem = new PopupMenuItem(string.Empty, (_, _) => ExitApplication());
 
         _trayIcon = new TrayIconWithContextMenu
         {
-            Icon = _iconHandle.Handle,
+            Icon = _iconHandle is null ? _fallbackIconHandle : _iconHandle.Handle,
             ToolTip = "Screen Time Tracker",
             ContextMenu = new PopupMenu
             {
@@ -59,7 +86,10 @@ public class TrayService(
         };
 
         ApplyLanguage();
-        appSettingsProvider.OnSettingChanged += HandleAppSettingsChanged;
+
+        _trayIcon.MessageWindow.TaskbarCreated += OnTaskbarCreated;
+
+        _appSettingsProvider.OnSettingChanged += HandleAppSettingsChanged;
 
         _trayIcon.MessageWindow.MouseEventReceived += (_, e) =>
         {
@@ -67,7 +97,73 @@ public class TrayService(
             OpenUI();
         };
 
-        _ = InitializeTrayIconWithRetryAsync();
+    }
+
+    public void Show()
+    {
+        if (_shouldBeVisible)
+            return;
+        _shouldBeVisible = true;
+        if (_isVisible)
+            return;
+
+        if (!_isCreated)
+        {
+            try
+            {
+                _trayIcon.Create();
+                _isCreated = true;
+                _isVisible = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create tray icon. Waiting for taskbar to be created/recreated.");
+            }
+        }
+        else
+        {
+            _trayIcon.Show();
+            _isVisible = true;
+        }
+    }
+
+    public void Hide()
+    {
+        if (!_shouldBeVisible)
+            return;
+
+        _shouldBeVisible = false;
+        if (_isCreated && _isVisible)
+        {
+            _trayIcon.Hide();
+            _isVisible = false;
+        }
+    }
+
+    private void OnTaskbarCreated(object? sender, EventArgs e)
+    {
+        _logger.LogInformation("Taskbar created/recreated.");
+
+        if (_isCreated)
+        {
+            try
+            {
+                _trayIcon.TryRemove();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to remove old tray icon registration.");
+            }
+            _isCreated = false;
+        }
+        if (_shouldBeVisible)
+        {
+            _trayIcon.Create();
+            _isCreated = true;
+            _isVisible = true;
+        }
+        else
+            _isVisible = false;
     }
 
     private void HandleAppSettingsChanged(object? sender, SettingChangedEventArgs e)
@@ -78,34 +174,13 @@ public class TrayService(
 
     private void ApplyLanguage()
     {
-        if (_trayIcon == null) return;
-
-        var culture = new System.Globalization.CultureInfo(appSettingsProvider.Language);
+        var culture = new System.Globalization.CultureInfo(_appSettingsProvider.Language);
         System.Globalization.CultureInfo.CurrentUICulture = culture;
 
-        _openAppDirItem?.Text = localizer["OpenAppDirectory"];
-        _openUIBrowserItem?.Text = localizer["OpenUIInBrowser"];
-        _openUIWindowItem?.Text = localizer["OpenUIInWindow"];
-        _exitItem?.Text = localizer["Exit"];
-    }
-
-    private async Task InitializeTrayIconWithRetryAsync()
-    {
-        int maxRetries = 10;
-        int delayMilliseconds = 1000;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                _trayIcon!.Create();
-                break;
-            }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("TryCreate failed"))
-            {
-                if (i == maxRetries - 1) throw;
-                Thread.Sleep(delayMilliseconds);
-            }
-        }
+        _openAppDirItem.Text = _localizer["OpenAppDirectory"];
+        _openUIBrowserItem.Text = _localizer["OpenUIInBrowser"];
+        _openUIWindowItem.Text = _localizer["OpenUIInWindow"];
+        _exitItem.Text = _localizer["Exit"];
     }
 
     private static void OpenAppDirectory()
@@ -119,18 +194,18 @@ public class TrayService(
 
     private void ExitApplication()
     {
-        lifetime.StopApplication();
+        _lifetime.StopApplication();
     }
 
     private async void OpenUI()
     {
         try
         {
-            await appUIManager.OpenUIAsync();
+            await _appUIManager.OpenUIAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to open UI.");
+            _logger.LogError(ex, "Failed to open UI.");
         }
     }
 
@@ -138,11 +213,11 @@ public class TrayService(
     {
         try
         {
-            await appUIManager.OpenUIInBrowserAsync();
+            await _appUIManager.OpenUIInBrowserAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to open UI in browser.");
+            _logger.LogError(ex, "Failed to open UI in browser.");
         }
     }
 
@@ -150,11 +225,11 @@ public class TrayService(
     {
         try
         {
-            await appUIManager.OpenUIInWindowAsync();
+            await _appUIManager.OpenUIInWindowAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to open UI in window.");
+            _logger.LogError(ex, "Failed to open UI in window.");
         }
     }
 
@@ -171,10 +246,15 @@ public class TrayService(
 
         if (disposing)
         {
-            _trayIcon?.Dispose();
-            _trayIcon = null;
+            _appSettingsProvider.OnSettingChanged -= HandleAppSettingsChanged;
+            _trayIcon.Dispose();
             _iconHandle?.Dispose();
-            _iconHandle = null;
+        }
+
+        if (_fallbackIconHandle != nint.Zero)
+        {
+            PInvoke.DestroyIcon(new HICON(_fallbackIconHandle));
+            _fallbackIconHandle = nint.Zero;
         }
 
         _disposed = true;

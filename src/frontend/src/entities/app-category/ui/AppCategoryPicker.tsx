@@ -11,6 +11,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, type SyntheticEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 type Item = Pick<AppCategory, "id" | "name" | "iconPath" | "iconLastUpdatedAt">;
 
@@ -32,6 +33,7 @@ export type AppCategoryPickerProps = {
 );
 
 export const AppCategoryPicker = (props: AppCategoryPickerProps) => {
+  const { t } = useTranslation(["entity_appCategory", "shared"]);
   const { className, sx, mode, value, onValueChange, placeholder } = props;
   const { data, isLoading } = useQuery(
     appCategoryQueries.appCategories({
@@ -86,6 +88,7 @@ export const AppCategoryPicker = (props: AppCategoryPickerProps) => {
       sx={[{}, ...(Array.isArray(sx) ? sx : [sx])]}
       options={data || []}
       loading={isLoading}
+      loadingText={t("common.loading", { ns: "shared" })}
       value={selectedOptions}
       onChange={handleChange}
       getOptionLabel={(option) => option.name}
@@ -128,7 +131,7 @@ export const AppCategoryPicker = (props: AppCategoryPickerProps) => {
         <TextField {...params} size="small" placeholder={placeholder} />
       )}
       disableCloseOnSelect={mode === "multiple"}
-      noOptionsText="暂无数据"
+      noOptionsText={t("common.noOptions", { ns: "shared" })}
       fullWidth
     />
   );

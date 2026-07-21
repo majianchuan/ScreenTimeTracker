@@ -10,6 +10,7 @@ import TextField from "@mui/material/TextField";
 import type { Theme } from "@emotion/react";
 import type { SxProps } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import { useTranslation } from "react-i18next";
 
 type Item = Pick<App, "id" | "name" | "iconPath" | "iconLastUpdatedAt">;
 
@@ -31,6 +32,7 @@ export type AppPickerProps = {
 );
 
 export const AppPicker = (props: AppPickerProps) => {
+  const { t } = useTranslation(["entity_app", "shared"]);
   const { className, sx, mode, value, onValueChange, placeholder } = props;
   const { data, isLoading } = useQuery(
     appQueries.apps({ fields: "id,name,iconPath,iconLastUpdatedAt" }),
@@ -83,6 +85,7 @@ export const AppPicker = (props: AppPickerProps) => {
       sx={[{}, ...(Array.isArray(sx) ? sx : [sx])]}
       options={data || []}
       loading={isLoading}
+      loadingText={t("common.loading", { ns: "shared" })}
       value={selectedOptions}
       onChange={handleChange}
       getOptionLabel={(option) => option.name}
@@ -125,7 +128,7 @@ export const AppPicker = (props: AppPickerProps) => {
         <TextField {...params} size="small" placeholder={placeholder} />
       )}
       disableCloseOnSelect={mode === "multiple"}
-      noOptionsText="暂无数据"
+      noOptionsText={t("common.noOptions", { ns: "shared" })}
       fullWidth
     />
   );

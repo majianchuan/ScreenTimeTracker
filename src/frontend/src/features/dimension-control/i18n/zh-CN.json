@@ -1,0 +1,14 @@
+{
+  "DimensionTypeSelector": {
+    "options": {
+      "app": "应用",
+      "app-category": "类别"
+    }
+  },
+  "DimensionMemberPicker": {
+    "placeholders": {
+      "app": "选择应用...",
+      "category": "选择分类..."
+    }
+  }
+}

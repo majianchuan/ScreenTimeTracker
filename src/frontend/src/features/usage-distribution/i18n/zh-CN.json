@@ -1,0 +1,6 @@
+{
+  "pieChart": {
+    "otherApps": "其他 {{count}} 个应用",
+    "otherCategories": "其他 {{count}} 个类别"
+  }
+}

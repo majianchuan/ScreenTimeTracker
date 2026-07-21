@@ -1,0 +1,16 @@
+{
+  "entityName": "应用",
+  "fields": {
+    "id": "ID",
+    "name": "应用名称",
+    "color": "颜色",
+    "processName": "进程名称",
+    "isAutoUpdateEnabled": "启用自动更新",
+    "lastAutoUpdatedAt": "上次自动更新时间",
+    "appCategoryId": "应用分类 ID",
+    "executablePath": "可执行文件路径",
+    "iconPath": "图标路径",
+    "iconLastUpdatedAt": "图标上次更新时间",
+    "isSystem": "系统应用"
+  }
+}

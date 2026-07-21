@@ -1,0 +1,8 @@
+{
+  "filters": {
+    "memberPickerPlaceholder": "查看项"
+  },
+  "states": {
+    "emptyPrompt": "请选择查看项"
+  }
+}

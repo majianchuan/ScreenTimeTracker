@@ -1,0 +1,8 @@
+{
+  "pieChart": {
+    "otherApps_one": "Other {{count}} app",
+    "otherApps_other": "Other {{count}} apps",
+    "otherCategories_one": "Other {{count}} category",
+    "otherCategories_other": "Other {{count}} categories"
+  }
+}

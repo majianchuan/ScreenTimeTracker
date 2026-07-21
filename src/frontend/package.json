@@ -27,14 +27,17 @@
     "dayjs": "^1.11.21",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
+    "i18next": "^26.3.6",
     "notistack": "^3.0.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.10",
     "vite-plugin-svgr": "^5.2.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@feature-sliced/steiger-plugin": "^0.7.0",
     "@tanstack/router-plugin": "^1.168.20",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
@@ -45,6 +48,7 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "prettier": "3.9.5",
+    "steiger": "^0.6.0",
     "typescript": "~7.0.2",
     "typescript-eslint": "^8.64.0",
     "vite": "^8.1.5"

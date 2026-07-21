@@ -21,8 +21,10 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import IconButton from "@mui/material/IconButton";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import Stack from "@mui/material/Stack";
+import { useTranslation } from "react-i18next";
 
 export const DataManagementPage = () => {
+  const { t } = useTranslation(["page_dataManagement", "shared"]);
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync: deleteUsageDataAsync } = useDeleteData();
   const { refetch } = useQuery({
@@ -42,9 +44,9 @@ export const DataManagementPage = () => {
 
   const handleImportError = (err: unknown) => {
     if (axios.isAxiosError(err) && err.response?.status === 422) {
-      enqueueSnackbar("配置版本不受支持，导入失败", { variant: "error" });
+      enqueueSnackbar(t("messages.unsupportedVersion"), { variant: "error" });
     } else {
-      enqueueSnackbar("导入数据失败", { variant: "error" });
+      enqueueSnackbar(t("messages.importFailed"), { variant: "error" });
     }
   };
 
@@ -68,7 +70,7 @@ export const DataManagementPage = () => {
             alignItems: "center",
           }}
         >
-          <Typography>删除</Typography>
+          <Typography>{t("labels.deletePrefix")}</Typography>
           <DatePicker
             sx={{ width: "10rem" }}
             value={dayjs(deleteUsageDataStartDate)}
@@ -81,7 +83,7 @@ export const DataManagementPage = () => {
               },
             }}
           />
-          <Typography>到</Typography>
+          <Typography>{t("common.to", { ns: "shared" })}</Typography>
           <DatePicker
             sx={{ width: "10rem" }}
             value={dayjs(deleteUsageDataEndDate)}
@@ -94,7 +96,7 @@ export const DataManagementPage = () => {
               },
             }}
           />
-          <Typography>的所有使用时间数据</Typography>
+          <Typography>{t("labels.deleteSuffix")}</Typography>
           <Button
             variant="contained"
             color="error"
@@ -103,13 +105,16 @@ export const DataManagementPage = () => {
                 deleteUsageDataStartDate === null ||
                 deleteUsageDataEndDate === null
               ) {
-                enqueueSnackbar("请选择日期范围", { variant: "error" });
+                enqueueSnackbar(
+                  t("validation.selectDateRange", { ns: "shared" }),
+                  { variant: "error" },
+                );
                 return;
               }
               setDeleteUsageDataComfirmDialogOpen(true);
             }}
           >
-            删除
+            {t("actions.delete", { ns: "shared" })}
           </Button>
         </Stack>
 
@@ -127,30 +132,34 @@ export const DataManagementPage = () => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `screen-time-tracker-data-${dayjs(new Date()).format("YYYY-MM-DD")}.json`;
+                    a.download = t("export.filenamePattern", {
+                      date: dayjs(new Date()).format("YYYY-MM-DD"),
+                    });
                     a.click();
                     URL.revokeObjectURL(url);
 
-                    enqueueSnackbar("导出数据到文件成功", {
+                    enqueueSnackbar(t("messages.exportFileSuccess"), {
                       variant: "success",
                     });
                   } catch {
-                    enqueueSnackbar("导出数据到文件失败", { variant: "error" });
+                    enqueueSnackbar(t("messages.exportFileFailed"), {
+                      variant: "error",
+                    });
                   }
                 }}
               >
-                导出数据
+                {t("labels.exportDataBtn")}
               </Button>
               <IconButton
                 onClick={async () => {
                   try {
                     const content = await fetchExportContent();
                     await navigator.clipboard.writeText(content);
-                    enqueueSnackbar("导出数据到剪贴板成功", {
+                    enqueueSnackbar(t("messages.exportClipboardSuccess"), {
                       variant: "success",
                     });
                   } catch {
-                    enqueueSnackbar("导出数据到剪贴板失败", {
+                    enqueueSnackbar(t("messages.exportClipboardFailed"), {
                       variant: "error",
                     });
                   }
@@ -161,7 +170,7 @@ export const DataManagementPage = () => {
             </Stack>
             <Stack direction="row" spacing={1}>
               <Button component="label" variant="contained">
-                导入数据
+                {t("labels.importDataBtn")}
                 <input
                   hidden
                   type="file"
@@ -171,7 +180,12 @@ export const DataManagementPage = () => {
                     try {
                       const result = await importDataAsync(await file.text());
                       enqueueSnackbar(
-                        `从文件导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
+                        t("messages.importFileSuccess", {
+                          newApps: result.newApps,
+                          newAppCategories: result.newAppCategories,
+                          importedSessions: result.importedSessions,
+                          skippedSessions: result.skippedSessions,
+                        }),
                         { variant: "success" },
                       );
                     } catch (err: unknown) {
@@ -190,7 +204,12 @@ export const DataManagementPage = () => {
                       await navigator.clipboard.readText(),
                     );
                     enqueueSnackbar(
-                      `从剪贴板导入数据成功。新增应用${result.newApps}个，类别${result.newAppCategories}个；导入会话${result.importedSessions}条，跳过${result.skippedSessions}条`,
+                      t("messages.importClipboardSuccess", {
+                        newApps: result.newApps,
+                        newAppCategories: result.newAppCategories,
+                        importedSessions: result.importedSessions,
+                        skippedSessions: result.skippedSessions,
+                      }),
                       { variant: "success" },
                     );
                   } catch (err: unknown) {
@@ -211,15 +230,17 @@ export const DataManagementPage = () => {
         role="alertdialog"
       >
         <DialogTitle>
-          确定删除 {deleteUsageDataStartDate?.toLocaleDateString()} 至{" "}
-          {deleteUsageDataEndDate?.toLocaleDateString()} 的所有使用时间数据吗？
+          {t("dialogs.deleteConfirm.title", {
+            startDate: deleteUsageDataStartDate?.toLocaleDateString(),
+            endDate: deleteUsageDataEndDate?.toLocaleDateString(),
+          })}
         </DialogTitle>
         <DialogActions>
           <Button
             onClick={() => setDeleteUsageDataComfirmDialogOpen(false)}
             autoFocus
           >
-            取消
+            {t("actions.cancel", { ns: "shared" })}
           </Button>
           <Button
             onClick={async () => {
@@ -233,16 +254,20 @@ export const DataManagementPage = () => {
                   startDate: dateToDateOnly(deleteUsageDataStartDate),
                   endDate: dateToDateOnly(deleteUsageDataEndDate),
                 });
-                enqueueSnackbar("删除使用时间数据成功", { variant: "success" });
+                enqueueSnackbar(t("messages.deleteSuccess"), {
+                  variant: "success",
+                });
               } catch {
-                enqueueSnackbar("删除使用时间数据失败", { variant: "error" });
+                enqueueSnackbar(t("messages.deleteFailed"), {
+                  variant: "error",
+                });
               } finally {
                 setDeleteUsageDataComfirmDialogOpen(false);
               }
             }}
             color="error"
           >
-            确定
+            {t("actions.confirm", { ns: "shared" })}
           </Button>
         </DialogActions>
       </Dialog>

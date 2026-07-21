@@ -14,6 +14,7 @@ import UnknownAppCategory from "@/shared/ui/UnknownAppCategory.svg";
 import type { Theme } from "@emotion/react";
 import { useTheme, type SxProps } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTranslation } from "react-i18next";
 
 export type UsageDistributionPieChartProps = {
   className?: string;
@@ -36,6 +37,7 @@ export const UsageDistributionPieChart = ({
   excludedIds,
   onItemClick,
 }: UsageDistributionPieChartProps) => {
+  const { t } = useTranslation("feature_usageDistribution");
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
@@ -136,8 +138,12 @@ export const UsageDistributionPieChart = ({
                   {
                     name:
                       type === "app"
-                        ? `其他${usageDistributiondata?.othersCount}个应用`
-                        : `其他${usageDistributiondata?.othersCount}个类别`,
+                        ? t("pieChart.otherApps", {
+                            count: usageDistributiondata.othersCount,
+                          })
+                        : t("pieChart.otherCategories", {
+                            count: usageDistributiondata.othersCount,
+                          }),
                     value: usageDistributiondata?.othersDurationSeconds,
                     id: null,
                     itemStyle: {

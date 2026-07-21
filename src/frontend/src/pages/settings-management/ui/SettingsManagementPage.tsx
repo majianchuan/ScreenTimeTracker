@@ -25,8 +25,11 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { LazyTextField } from "@/shared/ui/LazyTextField";
 import { LazyNumberField } from "@/shared/ui/LazyNumberField";
+import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/shared/i18n";
+import { useTranslation } from "react-i18next";
 
 export const SettingsManagementPage = () => {
+  const { t } = useTranslation(["page_settingsManagement", "shared"]);
   const { data: userSettingsDtoData, isLoading: isuserSettingsDataLoading } =
     useQuery(userSettingsQueries.userSettings());
   const { data: appSettingsDtoData, isLoading: isAppSettingsDataLoading } =
@@ -56,7 +59,7 @@ export const SettingsManagementPage = () => {
           justifyContent: "center",
         }}
       >
-        <Typography>无法获取数据，请检查网络</Typography>
+        <Typography>{t("errors.fetchFailed", { ns: "shared" })}</Typography>
       </Box>
     );
 
@@ -69,7 +72,33 @@ export const SettingsManagementPage = () => {
         }}
       >
         <Stack spacing={1} direction="column">
-          <Typography sx={{ fontWeight: "bold" }}>应用设置</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>
+            {t("appSettings.title")}
+          </Typography>
+          {/* 语言设置 */}
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>{t("appSettings.language.label")}</Typography>
+            <Select
+              size="small"
+              value={appSettingsDtoData.language}
+              onChange={async (event: SelectChangeEvent<string>) => {
+                await patchAppSettingsAsync({
+                  language: event.target.value as LanguageCode,
+                });
+              }}
+            >
+              {SUPPORTED_LANGUAGES.map((language) => (
+                <MenuItem value={language.code}>{language.label}</MenuItem>
+              ))}
+            </Select>
+          </Stack>
+          {/* 打开模式设置 */}
           <Stack
             direction="row"
             sx={{
@@ -78,8 +107,10 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>默认界面打开模式</Typography>
-              <Tooltip title="点击托盘图标时界面的打开模式">
+              <Typography>
+                {t("appSettings.defaultUIOpenMode.label")}
+              </Typography>
+              <Tooltip title={t("appSettings.defaultUIOpenMode.tooltip")}>
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -94,10 +125,16 @@ export const SettingsManagementPage = () => {
                 });
               }}
             >
-              <MenuItem value="Window">窗口</MenuItem>
-              <MenuItem value="Browser">浏览器</MenuItem>
+              <MenuItem value="Window">
+                {" "}
+                {t("appSettings.defaultUIOpenMode.options.window")}
+              </MenuItem>
+              <MenuItem value="Browser">
+                {t("appSettings.defaultUIOpenMode.options.browser")}
+              </MenuItem>
             </Select>
           </Stack>
+          {/* 开机启动设置 */}
           <Stack
             direction="row"
             sx={{
@@ -106,16 +143,10 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>开机自启动</Typography>
-              <Tooltip
-                title={
-                  <>
-                    如果程序是以管理员身份运行的，此时打开“开机自启动”将在下次开机时同样以管理员身份启动。否则将以普通用户身份启动。
-                    <br />
-                    修改可执行文件名或更改路径后开机自启动将失效，需要重新关闭再启用
-                  </>
-                }
-              >
+              <Typography>
+                {t("appSettings.isAutoStartEnabled.label")}
+              </Typography>
+              <Tooltip title={t("appSettings.isAutoStartEnabled.tooltip")}>
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -135,6 +166,24 @@ export const SettingsManagementPage = () => {
               }}
             />
           </Stack>
+          {/* 开机启动警告 Dialog */}
+          <Dialog
+            open={autoStartAlertDialogOpen}
+            onClose={() => setAutoStartAlertDialogOpen(false)}
+            role="alertdialog"
+          >
+            <DialogTitle>{t("appSettings.autoStartAlert.title")}</DialogTitle>
+            <DialogActions>
+              <Button
+                onClick={() => {
+                  setAutoStartAlertDialogOpen(false);
+                }}
+              >
+                {t("actions.confirm", { ns: "shared" })}
+              </Button>
+            </DialogActions>
+          </Dialog>
+          {/* 静默启动设置 */}
           <Stack
             direction="row"
             sx={{
@@ -143,8 +192,10 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>静默启动</Typography>
-              <Tooltip title="运行程序后不会自动打开界面。">
+              <Typography>
+                {t("appSettings.isSilentStartEnabled.label")}
+              </Typography>
+              <Tooltip title={t("appSettings.isSilentStartEnabled.tooltip")}>
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -160,25 +211,6 @@ export const SettingsManagementPage = () => {
             />
           </Stack>
         </Stack>
-
-        <Dialog
-          open={autoStartAlertDialogOpen}
-          onClose={() => setAutoStartAlertDialogOpen(false)}
-          role="alertdialog"
-        >
-          <DialogTitle>
-            开启后将写入修改系统配置，删除程序前请务必关闭，否则将导致残留！
-          </DialogTitle>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setAutoStartAlertDialogOpen(false);
-              }}
-            >
-              确定
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Paper>
       <Paper
         variant="outlined"
@@ -187,7 +219,10 @@ export const SettingsManagementPage = () => {
         }}
       >
         <Stack spacing={1} direction="column">
-          <Typography sx={{ fontWeight: "bold" }}>屏幕使用时间设置</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>
+            {t("screenTimeSettings.title")}
+          </Typography>
+          {/* 应用图标目录设置 */}
           <Stack
             direction="row"
             sx={{
@@ -196,8 +231,10 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>应用图标文件夹</Typography>
-              <Tooltip title="程序自动获取的应用图标将会保存在这里设定的文件夹路径下，修改后并不会改变已有图标的路径，只会影响新获取到的应用图标包括更新信息时获取的图标（如果图标有变化）。">
+              <Typography>
+                {t("screenTimeSettings.appIconDirectory.label")}
+              </Typography>
+              <Tooltip title={t("screenTimeSettings.appIconDirectory.tooltip")}>
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -213,6 +250,7 @@ export const SettingsManagementPage = () => {
               }}
             />
           </Stack>
+          {/* 应用信息过期阈值设置 */}
           <Stack
             direction="row"
             sx={{
@@ -221,15 +259,13 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>应用信息过期时间 (分钟)</Typography>
+              <Typography>
+                {t("screenTimeSettings.appInfoStaleThresholdMinutes.label")}
+              </Typography>
               <Tooltip
-                title={
-                  <>
-                    程序会在第一次遇到某应用时获取对应的可执行文件路径、图标、描述，下次遇到这个应用时，判断上次获取信息的时间距离现在是否超过了这里设定的过期时间，如果超过了则重新获取，否则不获取，保留旧信息。
-                    <br />
-                    注意：如果需要自定义应用图标，手动修改图标路径后一般关闭该应用的自动更新，否则更新时会覆盖自定义的图标路径。
-                  </>
-                }
+                title={t(
+                  "screenTimeSettings.appInfoStaleThresholdMinutes.tooltip",
+                )}
               >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
@@ -249,6 +285,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 活动会话自动保存设置 */}
           <Stack
             direction="row"
             sx={{
@@ -257,8 +294,14 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>活跃会话自动保存时间 (秒)</Typography>
-              <Tooltip title="自动保存当前活动应用使用会话的时间间隔，防止意外崩溃时数据丢失，确保屏幕时间统计准确。">
+              <Typography>
+                {t("screenTimeSettings.activeSessionAutoSaveSeconds.label")}
+              </Typography>
+              <Tooltip
+                title={t(
+                  "screenTimeSettings.activeSessionAutoSaveSeconds.tooltip",
+                )}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -277,6 +320,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 空闲检测设置 */}
           <Stack
             direction="row"
             sx={{
@@ -285,8 +329,12 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>空闲检测</Typography>
-              <Tooltip title="程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长。">
+              <Typography>
+                {t("screenTimeSettings.isIdleDetectionEnabled.label")}
+              </Typography>
+              <Tooltip
+                title={t("screenTimeSettings.isIdleDetectionEnabled.tooltip")}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -301,6 +349,7 @@ export const SettingsManagementPage = () => {
               }}
             />
           </Stack>
+          {/* 空闲阈值设置 */}
           <Stack
             direction="row"
             sx={{
@@ -309,8 +358,12 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>空闲阈值 (秒)</Typography>
-              <Tooltip title="程序会在用户没有操作键盘或鼠标超过设定的时间后认为已经空闲，并将从未操作键鼠开始直到再次操作键鼠之间的所有使用时长归为“Idle”应用的使用时长。">
+              <Typography>
+                {t("screenTimeSettings.idleThresholdSeconds.label")}
+              </Typography>
+              <Tooltip
+                title={t("screenTimeSettings.idleThresholdSeconds.tooltip")}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -329,6 +382,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 空闲检测轮询间隔设置 */}
           <Stack
             direction="row"
             sx={{
@@ -337,8 +391,16 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>空闲检测轮询间隔 (秒)</Typography>
-              <Tooltip title="每隔这里设定的时间后，检测一次用户是否空闲。">
+              <Typography>
+                {t(
+                  "screenTimeSettings.idleDetectionPollingIntervalSeconds.label",
+                )}
+              </Typography>
+              <Tooltip
+                title={t(
+                  "screenTimeSettings.idleDetectionPollingIntervalSeconds.tooltip",
+                )}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -357,6 +419,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 最小有效会话时长设置 */}
           <Stack
             direction="row"
             sx={{
@@ -365,8 +428,14 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>最小有效会话时长 (秒)</Typography>
-              <Tooltip title="每次触发优化时，会自动过滤删除掉持续时间短于此值的会话记录。">
+              <Typography>
+                {t("screenTimeSettings.minValidSessionDurationSeconds.label")}
+              </Typography>
+              <Tooltip
+                title={t(
+                  "screenTimeSettings.minValidSessionDurationSeconds.tooltip",
+                )}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -385,6 +454,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 会话合并容差时间设置 */}
           <Stack
             direction="row"
             sx={{
@@ -393,15 +463,13 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>会话合并容差时间 (秒)</Typography>
+              <Typography>
+                {t("screenTimeSettings.sessionMergeToleranceSeconds.label")}
+              </Typography>
               <Tooltip
-                title={
-                  <>
-                    每次触发优化时，会合并两段间隔小于这里值且为相同App的记录为一段长记录。
-                    <br />
-                    注意：合并时无论中间是否有其他使用记录，都会被删除。
-                  </>
-                }
+                title={t(
+                  "screenTimeSettings.sessionMergeToleranceSeconds.tooltip",
+                )}
               >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
@@ -421,6 +489,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 会话优化间隔设置 */}
           <Stack
             direction="row"
             sx={{
@@ -429,8 +498,16 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>会话优化间隔 (分钟)</Typography>
-              <Tooltip title="每个这里设定的时间后，会触发一次会话优化。">
+              <Typography>
+                {t(
+                  "screenTimeSettings.sessionOptimizationIntervalMinutes.label",
+                )}
+              </Typography>
+              <Tooltip
+                title={t(
+                  "screenTimeSettings.sessionOptimizationIntervalMinutes.tooltip",
+                )}
+              >
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>
@@ -449,6 +526,7 @@ export const SettingsManagementPage = () => {
               allowEmpty={false}
             />
           </Stack>
+          {/* 日期切换小时设置 */}
           <Stack
             direction="row"
             sx={{
@@ -457,8 +535,10 @@ export const SettingsManagementPage = () => {
             }}
           >
             <Stack direction="row" sx={{ alignItems: "center" }}>
-              <Typography>日期切换小时</Typography>
-              <Tooltip title="定义了这一天从几点开始，到第二天几点结束。">
+              <Typography>
+                {t("screenTimeSettings.dayCutoffHour.label")}
+              </Typography>
+              <Tooltip title={t("screenTimeSettings.dayCutoffHour.tooltip")}>
                 <IconButton size="small">
                   <HelpIcon fontSize="inherit" />
                 </IconButton>

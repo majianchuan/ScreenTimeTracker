@@ -1,0 +1,8 @@
+{
+  "dateRangeSelector": {
+    "last7Days": "近 7 天",
+    "lastWeek": "上周",
+    "last31Days": "近 31 天",
+    "lastMonth": "上个月"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "entityName": "application",
+  "columns": {
+    "name": "Name",
+    "color": "Color",
+    "appCategory": "App Category",
+    "icon": "Icon",
+    "iconPath": "Icon Path",
+    "isAutoUpdateEnabled": "Auto Update",
+    "lastAutoUpdatedAt": "Last Auto Updated",
+    "processName": "Process Name",
+    "executablePath": "Executable Path",
+    "action": "Actions"
+  },
+  "deleteConfirm": {
+    "title": "Are you sure you want to delete the application \"{{name}}\"?",
+    "description": "All existing data for this application will also be deleted."
+  },
+  "errors": {
+    "noAppSelected": "No application selected for deletion"
+  }
+}

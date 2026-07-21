@@ -27,8 +27,14 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import { LazyTextField } from "@/shared/ui/LazyTextField";
+import { useTranslation } from "react-i18next";
 
 export const AppCategoryManagementPage = () => {
+  const { t } = useTranslation([
+    "page_appCategoryManagement",
+    "shared",
+    "entity_appCategory",
+  ]);
   const { enqueueSnackbar } = useSnackbar();
   const { data: appCategoriesData, isLoading } = useQuery(
     appCategoryQueries.appCategories({}),
@@ -56,7 +62,7 @@ export const AppCategoryManagementPage = () => {
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: "名称",
+      headerName: t("columns.name"),
       width: 150,
       renderCell: (params: GridRenderCellParams<AppCategory, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -72,7 +78,13 @@ export const AppCategoryManagementPage = () => {
                   body: { name: value },
                 });
               } catch {
-                enqueueSnackbar("更新“名称”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("messages.error.updateFailed", {
+                    ns: "shared",
+                    field: t("fields.name"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -81,7 +93,7 @@ export const AppCategoryManagementPage = () => {
     },
     {
       field: "color",
-      headerName: "颜色",
+      headerName: t("columns.color"),
       width: 70,
       renderCell: (params: GridRenderCellParams<AppCategory, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -96,7 +108,13 @@ export const AppCategoryManagementPage = () => {
                   body: { color: value },
                 });
               } catch {
-                enqueueSnackbar("更新“颜色”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("messages.error.updateFailed", {
+                    ns: "shared",
+                    field: t("fields.color"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -105,7 +123,7 @@ export const AppCategoryManagementPage = () => {
     },
     {
       field: "icon",
-      headerName: "图标",
+      headerName: t("columns.icon"),
       width: 50,
       sortable: false,
       filterable: false,
@@ -126,7 +144,7 @@ export const AppCategoryManagementPage = () => {
     },
     {
       field: "iconPath",
-      headerName: "图标路径",
+      headerName: t("columns.iconPath"),
       width: 200,
       renderCell: (params: GridRenderCellParams<AppCategory, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -142,7 +160,13 @@ export const AppCategoryManagementPage = () => {
                   body: { iconPath: value === "" ? null : value },
                 });
               } catch {
-                enqueueSnackbar("更新“图标路径”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("messages.error.updateFailed", {
+                    ns: "shared",
+                    field: t("fields.iconPath"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -151,23 +175,22 @@ export const AppCategoryManagementPage = () => {
     },
     {
       field: "action",
-      headerName: "操作",
+      headerName: t("columns.action"),
       width: 60,
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
       renderCell: (params: GridRenderCellParams<AppCategory>) => (
-        <>
-          <IconButton
-            color="error"
-            onClick={() => {
-              setAppCategoryToDelete(params.row);
-              setDeleteAppCategoryComfirmDialogOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </>
+        <IconButton
+          disabled={params.row.isSystem}
+          color="error"
+          onClick={() => {
+            setAppCategoryToDelete(params.row);
+            setDeleteAppCategoryComfirmDialogOpen(true);
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
       ),
     },
   ];
@@ -181,7 +204,7 @@ export const AppCategoryManagementPage = () => {
           variant="contained"
           onClick={() => setCreateAppCategoryDialogOpen(true)}
         >
-          创建类别
+          {t("buttons.createCategory")}
         </Button>
       </Box>
       <Box sx={{ width: "100%", mt: 1 }}>
@@ -210,10 +233,12 @@ export const AppCategoryManagementPage = () => {
         onClose={() => setDeleteAppCategoryComfirmDialogOpen(false)}
         role="alertdialog"
       >
-        <DialogTitle>确定删除类别{appCategoryToDelete?.name}吗？</DialogTitle>
+        <DialogTitle>
+          {t("dialogs.delete.title", { name: appCategoryToDelete?.name })}
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            属于该类别的应用将变为默认类别。
+          <DialogContentText>
+            {t("dialogs.delete.description")}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -221,18 +246,26 @@ export const AppCategoryManagementPage = () => {
             onClick={() => setDeleteAppCategoryComfirmDialogOpen(false)}
             autoFocus
           >
-            取消
+            {t("actions.cancel", { ns: "shared" })}
           </Button>
           <Button
             onClick={async () => {
               if (appCategoryToDelete == null) {
-                enqueueSnackbar("未选择要删除的类别", { variant: "error" });
+                enqueueSnackbar(t("messages.error.noCategorySelected"), {
+                  variant: "error",
+                });
                 return;
               }
               try {
                 await deleteAppCategoryAsync(appCategoryToDelete.id);
               } catch {
-                enqueueSnackbar("删除类别失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("messages.error.deleteFailed", {
+                    ns: "shared",
+                    field: t("fields.category"),
+                  }),
+                  { variant: "error" },
+                );
               } finally {
                 setDeleteAppCategoryComfirmDialogOpen(false);
                 setAppCategoryToDelete(null);
@@ -240,7 +273,7 @@ export const AppCategoryManagementPage = () => {
             }}
             color="error"
           >
-            确定
+            {t("actions.confirm", { ns: "shared" })}
           </Button>
         </DialogActions>
       </Dialog>
@@ -249,7 +282,7 @@ export const AppCategoryManagementPage = () => {
         open={createAppCategoryDialogOpen}
         onClose={() => setCreateAppCategoryDialogOpen(false)}
       >
-        <DialogTitle>创建类别</DialogTitle>
+        <DialogTitle>{t("dialogs.create.title")}</DialogTitle>
         <DialogContent>
           <form
             onSubmit={async (event: React.SyntheticEvent<HTMLFormElement>) => {
@@ -264,7 +297,13 @@ export const AppCategoryManagementPage = () => {
                 await createAppCategoryAsync(data);
                 setCreateAppCategoryDialogOpen(false);
               } catch {
-                enqueueSnackbar("创建类别失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("messages.error.createFailed", {
+                    ns: "shared",
+                    field: t("fields.category"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
             id="create-form"
@@ -276,11 +315,11 @@ export const AppCategoryManagementPage = () => {
               variant="outlined"
               id="name"
               name="name"
-              label="名称"
+              label={t("fields.name")}
               fullWidth
             />
             <TextField
-              label="颜色"
+              label={t("fields.color")}
               margin="dense"
               fullWidth
               slotProps={{
@@ -299,17 +338,17 @@ export const AppCategoryManagementPage = () => {
               variant="outlined"
               id="iconPath"
               name="iconPath"
-              label="图标路径"
+              label={t("fields.iconPath")}
               fullWidth
             />
           </form>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateAppCategoryDialogOpen(false)}>
-            取消
+            {t("actions.cancel", { ns: "shared" })}
           </Button>
           <Button type="submit" form="create-form">
-            创建
+            {t("actions.create", { ns: "shared" })}
           </Button>
         </DialogActions>
       </Dialog>

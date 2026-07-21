@@ -1,0 +1,8 @@
+{
+  "filters": {
+    "memberPickerPlaceholder": "Item to view"
+  },
+  "states": {
+    "emptyPrompt": "Please select an item to view"
+  }
+}

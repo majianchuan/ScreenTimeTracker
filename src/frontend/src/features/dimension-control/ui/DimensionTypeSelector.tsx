@@ -3,10 +3,11 @@ import type { Theme } from "@emotion/react";
 import type { SxProps } from "@mui/material/styles";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { useTranslation } from "react-i18next";
 
 type DimensionOption = {
   value: Dimension;
-  label: string;
+  labelKey: string;
 };
 
 export type DateRangeSelectorProps = {
@@ -22,14 +23,15 @@ export const DimensionTypeSelector = ({
   value,
   onValueChange,
 }: DateRangeSelectorProps) => {
+  const { t } = useTranslation("feature_dimensionControl");
   const dimensionOptions: DimensionOption[] = [
     {
       value: "app",
-      label: "应用",
+      labelKey: "DimensionTypeSelector.options.app",
     },
     {
       value: "app-category",
-      label: "类别",
+      labelKey: "DimensionTypeSelector.options.app-category",
     },
   ];
 
@@ -48,7 +50,7 @@ export const DimensionTypeSelector = ({
     >
       {dimensionOptions.map((item) => (
         <ToggleButton key={item.value} value={item.value}>
-          {item.label}
+          {t(item.labelKey)}
         </ToggleButton>
       ))}
     </ToggleButtonGroup>

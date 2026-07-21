@@ -1,0 +1,22 @@
+{
+  "entityName": "应用",
+  "columns": {
+    "name": "名称",
+    "color": "颜色",
+    "appCategory": "应用类别",
+    "icon": "图标",
+    "iconPath": "图标路径",
+    "isAutoUpdateEnabled": "自动更新",
+    "lastAutoUpdatedAt": "上次自动更新时间",
+    "processName": "进程名",
+    "executablePath": "可执行文件路径",
+    "action": "操作"
+  },
+  "deleteConfirm": {
+    "title": "确定删除应用“{{name}}”吗？",
+    "description": "同时将删除所有该应用的已有数据。"
+  },
+  "errors": {
+    "noAppSelected": "未选择要删除的应用"
+  }
+}

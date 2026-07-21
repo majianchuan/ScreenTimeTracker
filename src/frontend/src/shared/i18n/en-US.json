@@ -1,0 +1,98 @@
+{
+  "actions": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "remove": "Remove",
+    "save": "Save",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "reset": "Reset",
+    "clear": "Clear",
+    "copy": "Copy",
+    "download": "Download",
+    "upload": "Upload",
+    "export": "Export",
+    "import": "Import",
+    "next": "Next",
+    "previous": "Previous",
+    "back": "Back",
+    "finish": "Finish"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "unknown": "Unknown",
+
+    "name": "Name",
+    "title": "Title",
+    "description": "Description",
+    "type": "Type",
+    "status": "Status",
+    "version": "Version",
+
+    "to": "to",
+
+    "date": "Date",
+    "time": "Time",
+
+    "loading": "Loading...",
+    "empty": "No data",
+    "noOptions": "No options",
+
+    "total": "Total",
+    "average": "Average"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+
+    "online": "Online",
+    "offline": "Offline",
+
+    "pending": "Pending",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed",
+    "success": "Success",
+
+    "draft": "Draft",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "errors": {
+    "network": "Network connection is abnormal. Please try again later.",
+    "timeout": "Request timed out.",
+    "unauthorized": "Unauthorized.",
+    "forbidden": "Permission denied.",
+    "notFound": "Resource not found.",
+    "internal": "Internal server error.",
+    "fetchFailed": "Failed to fetch data, please check your network connection",
+    "updateFailed": "Failed to update \"{{field}}\"",
+    "createFailed": "Failed to create \"{{field}}\"",
+    "deleteFailed": "Failed to delete \"{{field}}\""
+  },
+  "validation": {
+    "selectDateRange": "Please select a date range"
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "rangeSeparator": " ~ "
+  },
+  "timeFrame": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "custom": "Custom"
+  }
+}

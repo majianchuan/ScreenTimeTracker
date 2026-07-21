@@ -1,6 +1,7 @@
 namespace ScreenTimeTracker.Hosts.Desktop.UI.Services;
 
-public interface ITrayService : IDisposable
+public interface ITrayService
 {
-    void Initialize();
+    void Show();
+    void Hide();
 }

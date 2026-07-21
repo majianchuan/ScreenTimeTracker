@@ -1,6 +1,6 @@
 namespace ScreenTimeTracker.Hosts.Desktop.Hosting;
 
-public interface ISingleInstanceLock : IDisposable
+public interface ISingleInstanceLock
 {
     bool TryAcquire();
 }

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ScreenTimeTracker.Hosts.Desktop.LocalSettings.Domain;
 using ScreenTimeTracker.Hosts.Desktop.LocalSettings.State;
 using System.Globalization;
 
@@ -33,6 +34,8 @@ AppSettingsProvider appSettingsState,
         {
             logger.LogInformation("New database detected, correcting the current language...");
             string osLanguage = CultureInfo.CurrentUICulture.Name;
+            if (!AppSettings.SupportedLanguages.Contains(osLanguage))
+                osLanguage = "en-US";
             var appSettings = await context.AppSettings.SingleAsync(cancellationToken);
             appSettings.UpdateLanguage(osLanguage);
             await context.SaveChangesAsync(cancellationToken);

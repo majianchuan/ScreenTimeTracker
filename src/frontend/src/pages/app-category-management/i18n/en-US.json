@@ -1,0 +1,32 @@
+{
+  "columns": {
+    "name": "Name",
+    "color": "Color",
+    "icon": "Icon",
+    "iconPath": "Icon Path",
+    "action": "Actions"
+  },
+  "buttons": {
+    "createCategory": "Create Category"
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Are you sure you want to delete category \"{{name}}\"?",
+      "description": "Apps belonging to this category will become the default category."
+    },
+    "create": {
+      "title": "Create Category"
+    }
+  },
+  "fields": {
+    "name": "Name",
+    "color": "Color",
+    "iconPath": "Icon Path",
+    "category": "Category"
+  },
+  "messages": {
+    "error": {
+      "noCategorySelected": "No category selected for deletion"
+    }
+  }
+}

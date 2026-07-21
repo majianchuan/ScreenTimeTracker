@@ -32,7 +32,10 @@ import {
 } from "@/entities/app-category";
 import { LazyTextField } from "@/shared/ui/LazyTextField";
 import dayjs from "@/shared/lib/dayjs";
+import { useTranslation } from "react-i18next";
+
 export const AppManagementPage = () => {
+  const { t } = useTranslation(["page_appManagement", "shared"]);
   const { enqueueSnackbar } = useSnackbar();
   const { data: appsData, isLoading: isAppsDataLoading } = useQuery(
     appQueries.apps({}),
@@ -64,7 +67,7 @@ export const AppManagementPage = () => {
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: "名称",
+      headerName: t("columns.name"),
       width: 150,
       renderCell: (params: GridRenderCellParams<App, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -80,7 +83,13 @@ export const AppManagementPage = () => {
                   body: { name: value },
                 });
               } catch {
-                enqueueSnackbar("更新“名称”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("errors.updateFailed", {
+                    ns: "shared",
+                    field: t("columns.name"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -89,7 +98,7 @@ export const AppManagementPage = () => {
     },
     {
       field: "color",
-      headerName: "颜色",
+      headerName: t("columns.color"),
       width: 70,
       renderCell: (params: GridRenderCellParams<App, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -104,7 +113,13 @@ export const AppManagementPage = () => {
                   body: { color: value },
                 });
               } catch {
-                enqueueSnackbar("更新“颜色”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("errors.updateFailed", {
+                    ns: "shared",
+                    field: t("columns.color"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -113,7 +128,7 @@ export const AppManagementPage = () => {
     },
     {
       field: "appCategory",
-      headerName: "应用类别",
+      headerName: t("columns.appCategory"),
       width: 210,
       valueGetter: (_, row) => {
         return categoryMap.get(row.appCategoryId) ?? "";
@@ -129,7 +144,13 @@ export const AppManagementPage = () => {
                   body: { appCategoryId: value },
                 });
               } catch {
-                enqueueSnackbar("更新“颜色”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("errors.updateFailed", {
+                    ns: "shared",
+                    field: t("columns.appCategory"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -138,7 +159,7 @@ export const AppManagementPage = () => {
     },
     {
       field: "icon",
-      headerName: "图标",
+      headerName: t("columns.icon"),
       width: 50,
       sortable: false,
       filterable: false,
@@ -159,7 +180,7 @@ export const AppManagementPage = () => {
     },
     {
       field: "iconPath",
-      headerName: "图标路径",
+      headerName: t("columns.iconPath"),
       width: 150,
       renderCell: (params: GridRenderCellParams<App, string>) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -175,7 +196,13 @@ export const AppManagementPage = () => {
                   body: { iconPath: value === "" ? null : value },
                 });
               } catch {
-                enqueueSnackbar("更新“图标路径”失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("errors.updateFailed", {
+                    ns: "shared",
+                    field: t("columns.iconPath"),
+                  }),
+                  { variant: "error" },
+                );
               }
             }}
           />
@@ -184,7 +211,7 @@ export const AppManagementPage = () => {
     },
     {
       field: "isAutoUpdateEnabled",
-      headerName: "自动更新",
+      headerName: t("columns.isAutoUpdateEnabled"),
       width: 80,
       renderCell: (params: GridRenderCellParams<App, boolean>) => (
         <Switch
@@ -196,47 +223,52 @@ export const AppManagementPage = () => {
                 body: { isAutoUpdateEnabled: event.target.checked },
               });
             } catch {
-              enqueueSnackbar("更新“自动更新”失败", { variant: "error" });
+              enqueueSnackbar(
+                t("errors.updateFailed", {
+                  ns: "shared",
+                  field: t("columns.isAutoUpdateEnabled"),
+                }),
+                { variant: "error" },
+              );
             }
           }}
         />
       ),
     },
     {
-      field: "lastAutoUpdated",
-      headerName: "上次自动更新时间",
+      field: "lastAutoUpdatedAt",
+      headerName: t("columns.lastAutoUpdatedAt"),
       width: 140,
       valueFormatter: (value) => dayjs(value).format("L LT"),
     },
     {
       field: "processName",
-      headerName: "进程名",
+      headerName: t("columns.processName"),
       width: 150,
     },
     {
       field: "executablePath",
-      headerName: "可执行文件路径",
+      headerName: t("columns.executablePath"),
       width: 200,
     },
     {
       field: "action",
-      headerName: "操作",
+      headerName: t("columns.action"),
       width: 60,
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
       renderCell: (params: GridRenderCellParams<App>) => (
-        <>
-          <IconButton
-            color="error"
-            onClick={() => {
-              setAppToDelete(params.row);
-              setDeleteAppComfirmDialogOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </>
+        <IconButton
+          disabled={params.row.isSystem}
+          color="error"
+          onClick={() => {
+            setAppToDelete(params.row);
+            setDeleteAppComfirmDialogOpen(true);
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
       ),
     },
   ];
@@ -271,10 +303,12 @@ export const AppManagementPage = () => {
         onClose={() => setDeleteAppComfirmDialogOpen(false)}
         role="alertdialog"
       >
-        <DialogTitle>确定删除应用“{appToDelete?.name}”吗？</DialogTitle>
+        <DialogTitle>
+          {t("deleteConfirm.title", { name: appToDelete?.name })}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            同时将删除所有该应用的已有数据。
+            {t("deleteConfirm.description")}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -282,18 +316,26 @@ export const AppManagementPage = () => {
             onClick={() => setDeleteAppComfirmDialogOpen(false)}
             autoFocus
           >
-            取消
+            {t("actions.cancel", { ns: "shared" })}
           </Button>
           <Button
             onClick={async () => {
               if (appToDelete == null) {
-                enqueueSnackbar("未选择要删除的应用", { variant: "error" });
+                enqueueSnackbar(t("errors.noAppSelected"), {
+                  variant: "error",
+                });
                 return;
               }
               try {
                 await deleteAppAsync(appToDelete.id);
               } catch {
-                enqueueSnackbar("删除应用失败", { variant: "error" });
+                enqueueSnackbar(
+                  t("errors.deleteFailed", {
+                    ns: "shared",
+                    field: t("entityName"),
+                  }),
+                  { variant: "error" },
+                );
               } finally {
                 setDeleteAppComfirmDialogOpen(false);
                 setAppToDelete(null);
@@ -301,7 +343,7 @@ export const AppManagementPage = () => {
             }}
             color="error"
           >
-            确定
+            {t("actions.confirm", { ns: "shared" })}
           </Button>
         </DialogActions>
       </Dialog>
