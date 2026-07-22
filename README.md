@@ -1,38 +1,53 @@
-# 屏幕使用时间  
+<div align="center">
 
-## 简介  
-一个电脑屏幕使用时间统计工具。
+# Screen Time Tracker
 
-![alt text](assets/screenshot1.png)
+**English** | [简体中文](README_zh-CN.md)
 
-## 联系方式
-QQ群：745018774
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865f2?style=flat&logo=discord)](https://discord.gg/PxqGwcsVuh) [![QQ Group](https://img.shields.io/badge/QQ%20Group-Join%20Group-1ebafc?style=flat&logo=qq)](https://qm.qq.com/q/uiwJZiQRAm)
 
-### 功能
-- 统计电脑上不同应用占据最上层窗口时的时间。
-- 开启空闲检测后可在长时间未操作时停止记录。
-- 支持自定义每天开始和结束的时间。
-- 展示数据时可排除指定程序/类别。。
-- 可以详细查看某程序/类别的使用情况
-- 可以查看某天使用情况的时间线。
-- 可方便的设置开机自启动。
+</div>
 
-## 开发
-+ 准备环境
-  + .NET SDK 10.0+
-  + Node.js 22.12.0+
-+ 克隆代码库：
+## Overview
+An intuitive and lightweight desktop screen time tracking tool designed to help you understand your computer usage habits, boost productivity, and maintain a healthy work-life balance.
+
+![Screen Time Tracker Screenshot 1](assets/screenshot1.png)
+![Screen Time Tracker Screenshot 2](assets/screenshot2.png)
+
+## Key Features
+- **Time Tracking**: Runs silently in the background, accurately recording the duration spent on each application.
+- **Visual Analytics**: Provides a rich variety of intuitive charts and statistics, allowing you to clearly understand your time distribution.
+- **Privacy First**: All data is stored locally and never uploaded to the cloud, guaranteeing your personal privacy.
+- **Lightweight & Efficient**: Ultra-low CPU and RAM usage, ensuring it won't impact your daily experience.
+- **Highly Configurable**: Offers detailed configuration options to cater to different user requirements.
+- **Multilingual Support**: Native support for both English and Simplified Chinese interfaces.
+
+## Download
+You can download the application from [Releases](https://github.com/majianchuan/ScreenTimeTracker/releases) or build it yourself.
+
+## Development
+- **Prerequisites**
+  - .NET SDK 10.0+
+  - Node.js 22.12.0+
+- **Clone Repository**:
   ```shell
-    git clone https://github.com/majianchuan/ScreenTimeTracker.git
+  git clone https://github.com/majianchuan/ScreenTimeTracker.git
   ```
-+ 构建界面库：
+- **Build Frontend**:
   ```shell
   cd src/frontend
   pnpm install
   pnpm build
   ```
-+ 启动应用：
+- **Run Application**:
   ```shell
   cd ../Hosts/Desktop
   dotnet run
   ```
+
+## Community & Feedback
+
+If you encounter any issues or have feedback and suggestions, feel free to join our community:
+
+- **Discord Community**: [Join Discord](https://discord.com/invite/PxqGwcsVuh)
+- **QQ Group**: [Join QQ Group](https://qm.qq.com/q/uiwJZiQRAm)
