@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Resources/Icon.ico</ApplicationIcon>
     <AssemblyName>ScreenTimeTracker</AssemblyName>
-    <Version>4.5.0</Version>
+    <Version>4.5.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

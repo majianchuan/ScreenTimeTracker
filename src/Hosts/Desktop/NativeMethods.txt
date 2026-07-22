@@ -1,2 +1,3 @@
 MessageBox
-DestroyIcon
+LoadIcon
+IDI_APPLICATION

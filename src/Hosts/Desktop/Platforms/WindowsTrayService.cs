@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.Versioning;
 using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ScreenTimeTracker.Hosts.Desktop.Platforms;
@@ -29,7 +30,6 @@ public class TrayService : ITrayService, IDisposable
     private readonly Icon? _iconHandle;
     private nint _fallbackIconHandle = nint.Zero;
     private readonly TrayIconWithContextMenu _trayIcon;
-    private bool _isCreated = false;
     private bool _shouldBeVisible = false;
     private bool _isVisible = false;
     private bool _disposed;
@@ -53,12 +53,7 @@ public class TrayService : ITrayService, IDisposable
         else
         {
             logger.LogWarning("Embedded resource 'AppIcon' not found. Creating a fallback solid color icon.");
-            using var bitmap = new Bitmap(32, 32);
-            using var g = Graphics.FromImage(bitmap);
-            g.Clear(Color.RoyalBlue);
-            using var pen = new Pen(Color.White, 2);
-            g.DrawRectangle(pen, 2, 2, 28, 28);
-            _fallbackIconHandle = bitmap.GetHicon();
+            _fallbackIconHandle = PInvoke.LoadIcon(lpIconName: PInvoke.IDI_APPLICATION);
             _iconHandle = null;
         }
 
@@ -107,19 +102,8 @@ public class TrayService : ITrayService, IDisposable
         if (_isVisible)
             return;
 
-        if (!_isCreated)
-        {
-            try
-            {
-                _trayIcon.Create();
-                _isCreated = true;
-                _isVisible = true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to create tray icon. Waiting for taskbar to be created/recreated.");
-            }
-        }
+        if (!_trayIcon.IsCreated)
+            _ = EnsureTrayIconCreatedAsync();
         else
         {
             _trayIcon.Show();
@@ -133,10 +117,54 @@ public class TrayService : ITrayService, IDisposable
             return;
 
         _shouldBeVisible = false;
-        if (_isCreated && _isVisible)
+        if (_trayIcon.IsCreated && _isVisible)
         {
             _trayIcon.Hide();
             _isVisible = false;
+        }
+    }
+
+    private async Task EnsureTrayIconCreatedAsync(int maxAttempts = 15, int delayMs = 1000)
+    {
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            if (!_shouldBeVisible)
+                return;
+
+            if (_trayIcon.IsCreated)
+            {
+                _isVisible = true;
+                return;
+            }
+
+            if (CanCreateTrayIcon())
+            {
+                _trayIcon.Create();
+                _isVisible = true;
+            }
+
+            await Task.Delay(delayMs);
+        }
+
+        _logger.LogError("Failed to create tray icon after {MaxAttempts} attempts. Taskbar was not ready.", maxAttempts);
+    }
+
+    private bool CanCreateTrayIcon()
+    {
+        try
+        {
+            using var testIcon = new TrayIcon
+            {
+                Icon = _iconHandle is null ? _fallbackIconHandle : _iconHandle.Handle
+            };
+            testIcon.Create();
+            testIcon.TryRemove();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation(ex, "Test icon creation failed. Taskbar is not ready yet.");
+            return false;
         }
     }
 
@@ -144,22 +172,13 @@ public class TrayService : ITrayService, IDisposable
     {
         _logger.LogInformation("Taskbar created/recreated.");
 
-        if (_isCreated)
+        if (_trayIcon.IsCreated)
         {
-            try
-            {
-                _trayIcon.TryRemove();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to remove old tray icon registration.");
-            }
-            _isCreated = false;
+            _trayIcon.TryRemove();
         }
         if (_shouldBeVisible)
         {
             _trayIcon.Create();
-            _isCreated = true;
             _isVisible = true;
         }
         else
@@ -251,11 +270,12 @@ public class TrayService : ITrayService, IDisposable
             _iconHandle?.Dispose();
         }
 
-        if (_fallbackIconHandle != nint.Zero)
-        {
-            PInvoke.DestroyIcon(new HICON(_fallbackIconHandle));
-            _fallbackIconHandle = nint.Zero;
-        }
+        // 使用系统共享图标，不销毁
+        // if (_fallbackIconHandle != nint.Zero)
+        // {
+        //     PInvoke.DestroyIcon(new HICON(_fallbackIconHandle));
+        //     _fallbackIconHandle = nint.Zero;
+        // }
 
         _disposed = true;
     }
